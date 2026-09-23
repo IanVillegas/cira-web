@@ -11,7 +11,9 @@ import type {
 // En desarrollo apunta al backend local (CIRA-Server). Durante la presentación,
 // si se expone el puerto 3001 con Dev Tunnels, basta con definir VITE_API_URL
 // apuntando a esa URL pública al hacer el build.
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+// Se le quita cualquier "/" final: una URL pegada como "https://x.com/" no
+// debe romper las rutas (evita el bug de "//api/..." -> 404).
+const API_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:3001").replace(/\/+$/, "");
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}/api${path}`, {
