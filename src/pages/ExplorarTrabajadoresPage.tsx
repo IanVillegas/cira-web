@@ -1,17 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FilterChip } from "@/components/ui/FilterChip";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Loader } from "@/components/ui/Loader";
 import { WorkerCard } from "@/components/WorkerCard";
-import { trabajadoresMock } from "@/lib/mockData";
+import { api } from "@/lib/api";
+import type { Trabajador } from "@/lib/types";
 
 export function ExplorarTrabajadoresPage() {
+  const [trabajadores, setTrabajadores] = useState<Trabajador[] | null>(null);
   const [soloDisponibles, setSoloDisponibles] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const lista = soloDisponibles
-    ? trabajadoresMock.filter((t) => t.disponible)
-    : trabajadoresMock;
+  useEffect(() => {
+    api.trabajadores
+      .listar()
+      .then(setTrabajadores)
+      .catch(() => setError("No se pudo conectar con el servidor local (CIRA-Server)."));
+  }, []);
+
+  const lista = (trabajadores ?? []).filter((t) => !soloDisponibles || t.disponible);
 
   return (
     <div className="pb-4">
@@ -43,7 +52,11 @@ export function ExplorarTrabajadoresPage() {
       </div>
 
       <div className="px-5 pt-4">
-        {lista.length === 0 ? (
+        {error ? (
+          <EmptyState icon="cloud_off" title="Sin conexión al servidor" message={error} />
+        ) : trabajadores === null ? (
+          <Loader label="Cargando trabajadores..." />
+        ) : lista.length === 0 ? (
           <EmptyState
             icon="person_off"
             title="Sin trabajadores"

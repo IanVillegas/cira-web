@@ -2,13 +2,22 @@ import { useState } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { usuarioActual } from "@/lib/mockData";
+import { Loader } from "@/components/ui/Loader";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 
 const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 export function ConfigurarDisponibilidadPage() {
-  const [disponible, setDisponible] = useState(usuarioActual.disponible);
+  const { usuario, refrescarUsuario } = useAuth();
   const [dias, setDias] = useState<string[]>(["Lun", "Mar", "Mié", "Jue", "Vie"]);
+
+  if (!usuario) return <Loader label="Cargando disponibilidad..." />;
+
+  const toggleDisponible = async () => {
+    await api.usuario.setDisponibilidad(!usuario.disponible);
+    await refrescarUsuario();
+  };
 
   const toggleDia = (d: string) =>
     setDias((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
@@ -21,30 +30,30 @@ export function ConfigurarDisponibilidadPage() {
         <Card className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Icon
-              name={disponible ? "toggle_on" : "toggle_off"}
+              name={usuario.disponible ? "toggle_on" : "toggle_off"}
               size={32}
-              className={disponible ? "text-cira-accent" : "text-cira-text-helper"}
+              className={usuario.disponible ? "text-cira-accent" : "text-cira-text-helper"}
             />
             <div>
               <p className="font-semibold text-cira-text-primary">
-                {disponible ? "Disponible" : "No disponible"}
+                {usuario.disponible ? "Disponible" : "No disponible"}
               </p>
               <p className="text-sm text-cira-text-secondary">
-                {disponible
+                {usuario.disponible
                   ? "Aparecés en las búsquedas de empleadores."
                   : "No aparecés en resultados de búsqueda."}
               </p>
             </div>
           </div>
           <button
-            onClick={() => setDisponible((v) => !v)}
+            onClick={toggleDisponible}
             className={`h-7 w-12 shrink-0 rounded-full transition-colors ${
-              disponible ? "bg-cira-accent" : "bg-cira-surface-disabled"
+              usuario.disponible ? "bg-cira-accent" : "bg-cira-surface-disabled"
             }`}
           >
             <span
               className={`block h-5 w-5 translate-y-1 rounded-full bg-white shadow transition-transform ${
-                disponible ? "translate-x-6" : "translate-x-1"
+                usuario.disponible ? "translate-x-6" : "translate-x-1"
               }`}
             />
           </button>

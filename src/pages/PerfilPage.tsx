@@ -4,11 +4,14 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
+import { Loader } from "@/components/ui/Loader";
 import { useAuth } from "@/lib/auth";
 
 export function PerfilPage() {
   const { usuario } = useAuth();
   const navigate = useNavigate();
+
+  if (!usuario) return <Loader label="Cargando perfil..." />;
 
   return (
     <div className="pb-4">

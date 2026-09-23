@@ -1,24 +1,34 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { conversacionesMock } from "@/lib/mockData";
+import { Loader } from "@/components/ui/Loader";
+import { api } from "@/lib/api";
+import type { Conversacion } from "@/lib/types";
 
 export function ChatsPage() {
   const navigate = useNavigate();
+  const [conversaciones, setConversaciones] = useState<Conversacion[] | null>(null);
+
+  useEffect(() => {
+    api.conversaciones.listar().then(setConversaciones).catch(() => setConversaciones([]));
+  }, []);
 
   return (
     <div className="pb-4">
       <PageHeader title="Mensajes" subtitle="Tus conversaciones activas." icon="chat" />
 
       <div className="px-5">
-        {conversacionesMock.length === 0 ? (
+        {conversaciones === null ? (
+          <Loader label="Cargando conversaciones..." />
+        ) : conversaciones.length === 0 ? (
           <EmptyState
             icon="chat_bubble"
             title="Sin mensajes"
             message="Cuando contactes a alguien, sus conversaciones aparecerán aquí."
           />
         ) : (
-          conversacionesMock.map((c) => (
+          conversaciones.map((c) => (
             <button
               key={c.id}
               onClick={() => navigate(`/chats/${c.id}`)}

@@ -1,26 +1,35 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FilterChip } from "@/components/ui/FilterChip";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Loader } from "@/components/ui/Loader";
 import { JobCard } from "@/components/JobCard";
 import { Icon } from "@/components/ui/Icon";
-import { trabajosMock } from "@/lib/mockData";
+import { api } from "@/lib/api";
 import type { Trabajo } from "@/lib/types";
 
 export function ExplorarTrabajosPage() {
-  const [trabajos, setTrabajos] = useState<Trabajo[]>(trabajosMock);
+  const [trabajos, setTrabajos] = useState<Trabajo[] | null>(null);
   const [ordenPorCercania, setOrdenPorCercania] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.trabajos
+      .listar()
+      .then(setTrabajos)
+      .catch(() => setError("No se pudo conectar con el servidor local (CIRA-Server)."));
+  }, []);
 
   const lista = useMemo(() => {
+    if (!trabajos) return [];
     if (!ordenPorCercania) return trabajos;
     return [...trabajos].sort((a, b) => a.distanciaKm - b.distanciaKm);
   }, [trabajos, ordenPorCercania]);
 
-  const toggleApply = (id: string) => {
-    setTrabajos((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, yaPostulado: !t.yaPostulado } : t)),
-    );
+  const toggleApply = async (id: string) => {
+    const actualizado = await api.trabajos.postular(id);
+    setTrabajos((prev) => prev?.map((t) => (t.id === id ? actualizado : t)) ?? prev);
   };
 
   return (
@@ -61,7 +70,11 @@ export function ExplorarTrabajosPage() {
       </div>
 
       <div className="px-5 pt-4">
-        {lista.length === 0 ? (
+        {error ? (
+          <EmptyState icon="cloud_off" title="Sin conexión al servidor" message={error} />
+        ) : trabajos === null ? (
+          <Loader label="Cargando trabajos..." />
+        ) : lista.length === 0 ? (
           <EmptyState
             icon="work_off"
             title="Sin trabajos disponibles"

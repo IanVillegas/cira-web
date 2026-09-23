@@ -1,32 +1,48 @@
-# React + TypeScript + Vite
+# CIRA-Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Frontend web de CIRA (React + TypeScript + Tailwind CSS), migrado desde el
+proyecto original en .NET MAUI. Es el MVP para el curso de Aplicaciones
+Informáticas Globales: un mockup interactivo que conecta empleadores con
+trabajadores mediante geolocalización, perfiles y chat.
 
-Currently, two official plugins are available:
+## Requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 22.5+ (recomendado 24+) — se usa para correr también el backend.
+- El backend [`CIRA-Server`](../CIRA-Server) corriendo en paralelo para
+  datos reales (SQLite). Sin él, la mayoría de pantallas muestran un estado
+  de "sin conexión" en vez de datos.
 
-## React Compiler
+## Uso
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# 1. Backend (en otra terminal, desde CIRA-Server)
+cd ../CIRA-Server && npm install && npm run dev
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+# 2. Frontend
+npm install
+npm run dev      # http://localhost:5173
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Por defecto el frontend apunta a `http://localhost:3001`. Para apuntar a
+otra URL (por ejemplo un túnel público durante la presentación), copiá
+`.env.example` a `.env.local` y ajustá `VITE_API_URL`.
+
+## Estructura
+
+- `src/lib/api.ts` — cliente HTTP hacia CIRA-Server.
+- `src/lib/auth.tsx` — sesión simulada (login por teléfono/OTP) + datos
+  reales del usuario obtenidos del backend.
+- `src/components/ui/` — sistema de diseño (Button, Card, Input, PageHeader,
+  BottomNav, etc.), portado 1:1 desde los tokens de
+  `CIRA-Frontend/Resources/Styles/*.xaml`.
+- `src/pages/` — una pantalla por archivo, replicando las vistas del
+  proyecto MAUI original (`CIRA-Frontend/Views/`).
+- `src/layouts/PhoneFrame.tsx` — envuelve cada pantalla en un "marco de
+  teléfono" para que la experiencia se sienta como una app móvil incluso
+  en desktop.
+
+## Deploy
+
+El proyecto está pensado para desplegarse en Vercel (build de Vite
+está­ndar: `npm run build`, output `dist`). Ver conversación del proyecto
+para más detalle sobre la estrategia de publicación.

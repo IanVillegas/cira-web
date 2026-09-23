@@ -4,28 +4,38 @@ import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { CATEGORIAS, usuarioActual } from "@/lib/mockData";
-import type { ServicioUsuario } from "@/lib/types";
+import { Loader } from "@/components/ui/Loader";
+import { CATEGORIAS } from "@/lib/mockData";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 
 export function ConfigurarServiciosPage() {
-  const [servicios, setServicios] = useState<ServicioUsuario[]>(usuarioActual.servicios);
+  const { usuario, refrescarUsuario } = useAuth();
   const [nuevo, setNuevo] = useState({ categoria: CATEGORIAS[0], descripcion: "", precio: "" });
+  const [guardando, setGuardando] = useState(false);
 
-  const agregar = () => {
+  if (!usuario) return <Loader label="Cargando servicios..." />;
+
+  const agregar = async () => {
     if (!nuevo.descripcion.trim()) return;
-    setServicios((prev) => [
-      ...prev,
-      {
-        id: `s-${Date.now()}`,
+    setGuardando(true);
+    try {
+      await api.usuario.agregarServicio({
         categoria: nuevo.categoria,
         descripcion: nuevo.descripcion,
         precioAproximado: Number(nuevo.precio) || undefined,
-      },
-    ]);
-    setNuevo({ categoria: CATEGORIAS[0], descripcion: "", precio: "" });
+      });
+      await refrescarUsuario();
+      setNuevo({ categoria: CATEGORIAS[0], descripcion: "", precio: "" });
+    } finally {
+      setGuardando(false);
+    }
   };
 
-  const eliminar = (id: string) => setServicios((prev) => prev.filter((s) => s.id !== id));
+  const eliminar = async (id: string) => {
+    await api.usuario.eliminarServicio(id);
+    await refrescarUsuario();
+  };
 
   return (
     <div className="pb-8">
@@ -33,7 +43,7 @@ export function ConfigurarServiciosPage() {
 
       <div className="px-5">
         <div className="space-y-3">
-          {servicios.map((s) => (
+          {usuario.servicios.map((s) => (
             <Card key={s.id} className="flex items-start justify-between gap-2">
               <div>
                 <p className="text-[11px] font-semibold tracking-wider text-cira-accent uppercase">
@@ -78,8 +88,8 @@ export function ConfigurarServiciosPage() {
               value={nuevo.precio}
               onChange={(e) => setNuevo({ ...nuevo, precio: e.target.value })}
             />
-            <Button variant="secondary" onClick={agregar}>
-              Agregar
+            <Button variant="secondary" onClick={agregar} disabled={guardando}>
+              {guardando ? "Agregando..." : "Agregar"}
             </Button>
           </div>
         </Card>

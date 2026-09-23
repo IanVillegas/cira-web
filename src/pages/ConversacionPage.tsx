@@ -1,17 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Icon } from "@/components/ui/Icon";
-import { conversacionesMock } from "@/lib/mockData";
-import type { Mensaje } from "@/lib/types";
+import { Loader } from "@/components/ui/Loader";
+import { api } from "@/lib/api";
+import type { Conversacion } from "@/lib/types";
 
 export function ConversacionPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const conversacion = conversacionesMock.find((c) => c.id === id);
-  const [mensajes, setMensajes] = useState<Mensaje[]>(conversacion?.mensajes ?? []);
+  const [conversacion, setConversacion] = useState<Conversacion | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [texto, setTexto] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
-  if (!conversacion) {
+  useEffect(() => {
+    if (!id) return;
+    api.conversaciones
+      .obtener(id)
+      .then(setConversacion)
+      .catch(() => setNotFound(true));
+  }, [id]);
+
+  if (notFound) {
     return (
       <div className="flex h-full items-center justify-center text-cira-text-secondary">
         Conversación no encontrada.
@@ -19,18 +29,19 @@ export function ConversacionPage() {
     );
   }
 
-  const enviar = () => {
-    if (!texto.trim()) return;
-    setMensajes((prev) => [
-      ...prev,
-      {
-        id: `m-${Date.now()}`,
-        autor: "yo",
-        texto: texto.trim(),
-        hora: new Date().toLocaleTimeString("es-CR", { hour: "2-digit", minute: "2-digit" }),
-      },
-    ]);
+  if (!conversacion) return <Loader label="Cargando conversación..." />;
+
+  const enviar = async () => {
+    if (!texto.trim() || !id) return;
+    const nuevoTexto = texto.trim();
     setTexto("");
+    setEnviando(true);
+    try {
+      const mensaje = await api.conversaciones.enviarMensaje(id, nuevoTexto);
+      setConversacion((prev) => (prev ? { ...prev, mensajes: [...prev.mensajes, mensaje] } : prev));
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
@@ -46,7 +57,7 @@ export function ConversacionPage() {
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
-        {mensajes.map((m) => (
+        {conversacion.mensajes.map((m) => (
           <div key={m.id} className={`flex ${m.autor === "yo" ? "justify-end" : "justify-start"}`}>
             <div
               className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
@@ -74,7 +85,8 @@ export function ConversacionPage() {
         />
         <button
           onClick={enviar}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cira-accent text-white"
+          disabled={enviando}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cira-accent text-white disabled:opacity-60"
           aria-label="Enviar"
         >
           <Icon name="send" size={20} />

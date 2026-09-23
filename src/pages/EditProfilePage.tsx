@@ -1,22 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input, TextArea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Loader } from "@/components/ui/Loader";
+import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { MetodoPago } from "@/lib/types";
 
 const METODOS: MetodoPago[] = ["Efectivo", "SINPE", "Transferencia"];
 
 export function EditProfilePage() {
-  const { usuario } = useAuth();
+  const { usuario, refrescarUsuario } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    nombre: usuario.nombre,
-    zona: usuario.zona,
-    descripcion: usuario.descripcion,
-    metodosPago: usuario.metodosPago,
-  });
+  const [form, setForm] = useState({ nombre: "", zona: "", descripcion: "", metodosPago: [] as MetodoPago[] });
+  const [guardando, setGuardando] = useState(false);
+
+  useEffect(() => {
+    if (usuario) {
+      setForm({
+        nombre: usuario.nombre,
+        zona: usuario.zona,
+        descripcion: usuario.descripcion,
+        metodosPago: usuario.metodosPago,
+      });
+    }
+  }, [usuario]);
+
+  if (!usuario) return <Loader label="Cargando perfil..." />;
 
   const toggleMetodo = (m: MetodoPago) => {
     setForm((prev) => ({
@@ -27,9 +38,16 @@ export function EditProfilePage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/perfil");
+    setGuardando(true);
+    try {
+      await api.usuario.actualizar(form);
+      await refrescarUsuario();
+      navigate("/perfil");
+    } finally {
+      setGuardando(false);
+    }
   };
 
   return (
@@ -76,8 +94,8 @@ export function EditProfilePage() {
           </div>
         </label>
 
-        <Button type="submit" fullWidth disabled={form.metodosPago.length === 0} className="mt-2">
-          Guardar cambios
+        <Button type="submit" fullWidth disabled={form.metodosPago.length === 0 || guardando} className="mt-2">
+          {guardando ? "Guardando..." : "Guardar cambios"}
         </Button>
       </form>
     </div>

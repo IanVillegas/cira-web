@@ -5,13 +5,18 @@ import { Input, TextArea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { CATEGORIAS } from "@/lib/mockData";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import type { MetodoPago } from "@/lib/types";
 
 const METODOS: MetodoPago[] = ["Efectivo", "SINPE", "Transferencia"];
 
 export function CrearTrabajoPage() {
   const navigate = useNavigate();
+  const { usuario } = useAuth();
   const [publicado, setPublicado] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     titulo: "",
     descripcion: "",
@@ -24,10 +29,28 @@ export function CrearTrabajoPage() {
 
   const valido = form.titulo && form.categoria && form.ubicacion && form.fecha && Number(form.pago) > 0;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!valido) return;
-    setPublicado(true);
+    setEnviando(true);
+    setError(null);
+    try {
+      await api.trabajos.crear({
+        titulo: form.titulo,
+        descripcion: form.descripcion,
+        categoria: form.categoria,
+        ubicacion: form.ubicacion,
+        fecha: form.fecha,
+        pago: Number(form.pago),
+        metodoPago: form.metodoPago,
+        publicador: usuario?.nombre,
+      });
+      setPublicado(true);
+    } catch {
+      setError("No se pudo publicar el trabajo. Verificá que CIRA-Server esté corriendo.");
+    } finally {
+      setEnviando(false);
+    }
   };
 
   if (publicado) {
@@ -133,8 +156,10 @@ export function CrearTrabajoPage() {
           </div>
         </label>
 
-        <Button type="submit" fullWidth disabled={!valido} className="mt-2">
-          Publicar trabajo
+        {error && <p className="text-sm text-cira-btn-destructive-text">{error}</p>}
+
+        <Button type="submit" fullWidth disabled={!valido || enviando} className="mt-2">
+          {enviando ? "Publicando..." : "Publicar trabajo"}
         </Button>
       </form>
     </div>
