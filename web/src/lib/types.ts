@@ -37,6 +37,8 @@ export interface Trabajo {
   descripcion: string;
   categoria: string;
   ubicacion: string;
+  lat?: number;
+  lng?: number;
   distanciaKm: number;
   fecha: string;
   pago: number;
@@ -51,6 +53,8 @@ export interface Trabajador {
   id: string;
   nombre: string;
   servicios: string[];
+  lat?: number;
+  lng?: number;
   distanciaKm: number;
   calificacion: number;
   disponible: boolean;

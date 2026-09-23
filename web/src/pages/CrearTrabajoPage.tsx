@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Input, TextArea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
+import { LocationPicker } from "@/components/LocationPicker";
 import { CATEGORIAS } from "@/lib/mockData";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -22,6 +23,7 @@ export function CrearTrabajoPage() {
     descripcion: "",
     categoria: CATEGORIAS[0],
     ubicacion: "",
+    coords: null as { lat: number; lng: number } | null,
     fecha: "",
     pago: "",
     metodoPago: METODOS[0] as MetodoPago,
@@ -40,6 +42,8 @@ export function CrearTrabajoPage() {
         descripcion: form.descripcion,
         categoria: form.categoria,
         ubicacion: form.ubicacion,
+        lat: form.coords?.lat,
+        lng: form.coords?.lng,
         fecha: form.fecha,
         pago: Number(form.pago),
         metodoPago: form.metodoPago,
@@ -107,8 +111,13 @@ export function CrearTrabajoPage() {
           </select>
         </label>
 
+        <LocationPicker
+          value={form.coords}
+          onChange={(coords, direccion) => setForm({ ...form, coords, ubicacion: direccion })}
+        />
+
         <Input
-          label="Ubicación"
+          label="Dirección (editable)"
           icon="location_on"
           placeholder="Ej. Alajuela, Río Segundo"
           value={form.ubicacion}

@@ -68,15 +68,27 @@ router.get("/trabajos", (req, res) => {
 });
 
 router.post("/trabajos", (req, res) => {
-  const { titulo, descripcion, categoria, ubicacion, fecha, pago, metodoPago, publicador } = req.body;
+  const { titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodoPago, publicador } = req.body;
   if (!titulo || !categoria || !ubicacion || !fecha || !(pago > 0)) {
     return res.status(400).json({ error: "Faltan campos obligatorios o el pago no es válido." });
   }
   const id = `t-${randomUUID()}`;
   db.prepare(
-    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, distancia_km, fecha, pago, metodo_pago, publicador, estado, postulantes, ya_postulado)
-     VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 'Pendiente', 0, 0)`,
-  ).run(id, titulo, descripcion ?? "", categoria, ubicacion, fecha, pago, metodoPago, publicador ?? "Ian Villegas");
+    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, distancia_km, fecha, pago, metodo_pago, publicador, estado, postulantes, ya_postulado)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 'Pendiente', 0, 0)`,
+  ).run(
+    id,
+    titulo,
+    descripcion ?? "",
+    categoria,
+    ubicacion,
+    lat ?? null,
+    lng ?? null,
+    fecha,
+    pago,
+    metodoPago,
+    publicador ?? "Ian Villegas",
+  );
   const row = db.prepare("SELECT * FROM trabajo WHERE id = ?").get(id);
   res.status(201).json(mapTrabajo(row));
 });

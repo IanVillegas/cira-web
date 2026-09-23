@@ -54,6 +54,8 @@ export const api = {
       descripcion: string;
       categoria: string;
       ubicacion: string;
+      lat?: number;
+      lng?: number;
       fecha: string;
       pago: number;
       metodoPago: MetodoPago;

@@ -31,27 +31,29 @@ export function seedIfEmpty() {
   );
   for (const s of servicios) insertServicio.run(...s);
 
+  // Coordenadas reales aproximadas (Alajuela y alrededores, Costa Rica) para
+  // que el mapa con Leaflet/OpenStreetMap tenga pines en ubicaciones reales.
   const trabajos = [
-    ["t-1", "Reparar fuga de agua en cocina", "Se necesita plomero para revisar y reparar una fuga debajo del fregadero de la cocina. Herramientas propias.", "Plomería", "San José, Escazú", 2.3, "Hoy, 3:00 p.m.", 18000, "SINPE", "María Rojas", "Pendiente", 3, 0],
-    ["t-2", "Pintar sala y comedor", "Pintura de dos ambientes, aproximadamente 40 m². La pintura ya está comprada.", "Reparaciones", "Alajuela, Río Segundo", 1.1, "Mañana, 8:00 a.m.", 45000, "Transferencia", "Carlos Méndez", "Pendiente", 5, 0],
-    ["t-3", "Mudanza de apartamento pequeño", "Ayuda para mover cajas y muebles de un apartamento de 1 habitación a otro edificio cercano.", "Mudanzas", "Heredia Centro", 5.8, "Sábado, 9:00 a.m.", 25000, "Efectivo", "Laura Jiménez", "Pendiente", 1, 1],
-    ["t-4", "Poda de jardín y limpieza de zacate", "Jardín de casa con zacate alto y algunos arbustos que necesitan poda.", "Jardinería", "Alajuela, Desamparados", 0.6, "Hoy, 5:30 p.m.", 12000, "SINPE", "Esteban Vargas", "Pendiente", 2, 0],
-    ["p-1", "Limpieza profunda de apartamento", "Limpieza general de apartamento de 2 habitaciones antes de mudanza.", "Limpieza", "Alajuela Centro", 0, "Viernes, 1:00 p.m.", 20000, "SINPE", "Ian Villegas", "Pendiente", 4, 0],
+    ["t-1", "Reparar fuga de agua en cocina", "Se necesita plomero para revisar y reparar una fuga debajo del fregadero de la cocina. Herramientas propias.", "Plomería", "San José, Escazú", 9.9189, -84.1394, 2.3, "Hoy, 3:00 p.m.", 18000, "SINPE", "María Rojas", "Pendiente", 3, 0],
+    ["t-2", "Pintar sala y comedor", "Pintura de dos ambientes, aproximadamente 40 m². La pintura ya está comprada.", "Reparaciones", "Alajuela, Río Segundo", 10.0134, -84.2239, 1.1, "Mañana, 8:00 a.m.", 45000, "Transferencia", "Carlos Méndez", "Pendiente", 5, 0],
+    ["t-3", "Mudanza de apartamento pequeño", "Ayuda para mover cajas y muebles de un apartamento de 1 habitación a otro edificio cercano.", "Mudanzas", "Heredia Centro", 9.9989, -84.1174, 5.8, "Sábado, 9:00 a.m.", 25000, "Efectivo", "Laura Jiménez", "Pendiente", 1, 1],
+    ["t-4", "Poda de jardín y limpieza de zacate", "Jardín de casa con zacate alto y algunos arbustos que necesitan poda.", "Jardinería", "Alajuela, Desamparados", 10.0250, -84.2500, 0.6, "Hoy, 5:30 p.m.", 12000, "SINPE", "Esteban Vargas", "Pendiente", 2, 0],
+    ["p-1", "Limpieza profunda de apartamento", "Limpieza general de apartamento de 2 habitaciones antes de mudanza.", "Limpieza", "Alajuela Centro", 10.0163, -84.2113, 0, "Viernes, 1:00 p.m.", 20000, "SINPE", "Ian Villegas", "Pendiente", 4, 0],
   ];
   const insertTrabajo = db.prepare(
-    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, distancia_km, fecha, pago, metodo_pago, publicador, estado, postulantes, ya_postulado)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, distancia_km, fecha, pago, metodo_pago, publicador, estado, postulantes, ya_postulado)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   for (const t of trabajos) insertTrabajo.run(...t);
 
   const trabajadores = [
-    ["w-1", "Douglas Solano", JSON.stringify(["Electricidad", "Reparaciones"]), 0.9, 4.9, 1, "Alajuela Centro"],
-    ["w-2", "Kimberly Araya", JSON.stringify(["Limpieza", "Cuidado de mascotas"]), 1.4, 4.7, 1, "Río Segundo"],
-    ["w-3", "Josué Fernández", JSON.stringify(["Plomería"]), 3.2, 4.5, 0, "Desamparados"],
-    ["w-4", "Melissa Chacón", JSON.stringify(["Jardinería", "Mudanzas"]), 4.0, 4.6, 1, "Heredia Centro"],
+    ["w-1", "Douglas Solano", JSON.stringify(["Electricidad", "Reparaciones"]), 10.0180, -84.2130, 0.9, 4.9, 1, "Alajuela Centro"],
+    ["w-2", "Kimberly Araya", JSON.stringify(["Limpieza", "Cuidado de mascotas"]), 10.0134, -84.2239, 1.4, 4.7, 1, "Río Segundo"],
+    ["w-3", "Josué Fernández", JSON.stringify(["Plomería"]), 10.0250, -84.2500, 3.2, 4.5, 0, "Desamparados"],
+    ["w-4", "Melissa Chacón", JSON.stringify(["Jardinería", "Mudanzas"]), 9.9989, -84.1174, 4.0, 4.6, 1, "Heredia Centro"],
   ];
   const insertTrabajador = db.prepare(
-    "INSERT INTO trabajador (id, nombre, servicios, distancia_km, calificacion, disponible, zona) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO trabajador (id, nombre, servicios, lat, lng, distancia_km, calificacion, disponible, zona) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
   );
   for (const w of trabajadores) insertTrabajador.run(...w);
 

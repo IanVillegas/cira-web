@@ -1,83 +1,137 @@
 import { useEffect, useState } from "react";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Icon } from "@/components/ui/Icon";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Loader } from "@/components/ui/Loader";
 import { api } from "@/lib/api";
-import type { Trabajo } from "@/lib/types";
+import { obtenerUbicacionActual } from "@/lib/geo";
+import { iconoTrabajador, iconoTrabajo, iconoUsuario } from "@/lib/leafletIcons";
+import type { Trabajador, Trabajo } from "@/lib/types";
 
-// Posiciones fijas (en % del contenedor) solo para representar pines en el mockup.
-const POSICIONES = [
-  { top: "28%", left: "32%" },
-  { top: "48%", left: "62%" },
-  { top: "64%", left: "24%" },
-  { top: "36%", left: "72%" },
-  { top: "56%", left: "42%" },
-];
+// Centro por defecto: Alajuela Centro, Costa Rica.
+const CENTRO_DEFECTO: [number, number] = [10.0163, -84.2113];
+
+function RecenterMap({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, 15, { duration: 0.8 });
+  }, [center, map]);
+  return null;
+}
 
 export function MapaPage() {
-  const [trabajos, setTrabajos] = useState<Trabajo[] | null>(null);
-  const [seleccionado, setSeleccionado] = useState<Trabajo | null>(null);
+  const [trabajos, setTrabajos] = useState<Trabajo[]>([]);
+  const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [miUbicacion, setMiUbicacion] = useState<[number, number] | null>(null);
+  const [centro, setCentro] = useState<[number, number]>(CENTRO_DEFECTO);
+  const [errorUbicacion, setErrorUbicacion] = useState<string | null>(null);
 
   useEffect(() => {
-    api.trabajos.listar().then(setTrabajos).catch(() => setTrabajos([]));
+    Promise.all([api.trabajos.listar(), api.trabajadores.listar()])
+      .then(([t, w]) => {
+        setTrabajos(t);
+        setTrabajadores(w);
+      })
+      .catch(() => {
+        setTrabajos([]);
+        setTrabajadores([]);
+      })
+      .finally(() => setCargando(false));
   }, []);
+
+  const usarMiUbicacion = async () => {
+    setErrorUbicacion(null);
+    try {
+      const { lat, lng } = await obtenerUbicacionActual();
+      setMiUbicacion([lat, lng]);
+      setCentro([lat, lng]);
+    } catch {
+      setErrorUbicacion("No se pudo obtener tu ubicación. Revisá los permisos del navegador.");
+    }
+  };
 
   return (
     <div className="flex h-full flex-col pb-2">
-      <PageHeader title="Mapa" subtitle="Trabajos y trabajadores cerca de ti." icon="my_location" />
+      <PageHeader title="Mapa" subtitle="Trabajos y trabajadores cerca de ti." />
 
-      <div className="relative mx-5 flex-1 overflow-hidden rounded-cira-card bg-gradient-to-br from-cira-secondary via-cira-base to-cira-surface-muted">
-        <div
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage:
-              "linear-gradient(#d9dde6 1px, transparent 1px), linear-gradient(90deg, #d9dde6 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-          }}
-        />
-
-        {trabajos === null ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Loader label="Ubicando trabajos..." />
+      <div className="relative mx-5 flex-1 overflow-hidden rounded-cira-card">
+        {cargando ? (
+          <div className="flex h-full items-center justify-center bg-cira-surface-muted">
+            <Loader label="Cargando mapa..." />
           </div>
         ) : (
-          trabajos.map((trabajo, i) => (
-            <button
-              key={trabajo.id}
-              style={POSICIONES[i % POSICIONES.length]}
-              className="absolute -translate-x-1/2 -translate-y-full"
-              onClick={() => setSeleccionado(trabajo)}
-            >
-              <Icon
-                name="location_on"
-                filled
-                size={38}
-                className={seleccionado?.id === trabajo.id ? "text-cira-tertiary" : "text-cira-accent"}
-              />
-            </button>
-          ))
+          <MapContainer
+            center={centro}
+            zoom={14}
+            scrollWheelZoom
+            className="h-full w-full"
+            attributionControl={false}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            />
+            <RecenterMap center={centro} />
+
+            {miUbicacion && (
+              <Marker position={miUbicacion} icon={iconoUsuario}>
+                <Popup>Tu ubicación</Popup>
+              </Marker>
+            )}
+
+            {trabajos
+              .filter((t) => t.lat != null && t.lng != null)
+              .map((t) => (
+                <Marker key={t.id} position={[t.lat!, t.lng!]} icon={iconoTrabajo}>
+                  <Popup>
+                    <p className="text-[11px] font-semibold uppercase text-cira-accent">{t.categoria}</p>
+                    <p className="font-semibold">{t.titulo}</p>
+                    <p className="text-sm text-gray-600">{t.ubicacion}</p>
+                    <p className="mt-1 text-sm font-semibold text-cira-accent">
+                      ₡{t.pago.toLocaleString("es-CR")}
+                    </p>
+                  </Popup>
+                </Marker>
+              ))}
+
+            {trabajadores
+              .filter((w) => w.lat != null && w.lng != null)
+              .map((w) => (
+                <Marker key={w.id} position={[w.lat!, w.lng!]} icon={iconoTrabajador}>
+                  <Popup>
+                    <p className="font-semibold">{w.nombre}</p>
+                    <p className="text-sm text-gray-600">{w.servicios.join(" · ")}</p>
+                    <p className="text-sm text-gray-600">{w.disponible ? "Disponible" : "Ocupado"}</p>
+                  </Popup>
+                </Marker>
+              ))}
+          </MapContainer>
         )}
 
-        <div className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-cira-card shadow-lg">
+        <button
+          onClick={usarMiUbicacion}
+          className="absolute bottom-4 right-4 z-[1000] flex h-11 w-11 items-center justify-center rounded-full bg-cira-card shadow-lg"
+          aria-label="Usar mi ubicación"
+        >
           <Icon name="my_location" size={22} className="text-cira-accent" />
-        </div>
+        </button>
       </div>
 
-      {seleccionado && (
-        <Card className="mx-5 mt-3">
-          <p className="text-[11px] font-semibold tracking-wider text-cira-accent uppercase">
-            {seleccionado.categoria}
-          </p>
-          <p className="font-semibold text-cira-text-primary">{seleccionado.titulo}</p>
-          <p className="mt-1 text-sm text-cira-text-secondary">
-            {seleccionado.ubicacion} · {seleccionado.distanciaKm} km
-          </p>
-          <Button variant="outlined" className="mt-3" fullWidth onClick={() => setSeleccionado(null)}>
-            Cerrar
+      {errorUbicacion && (
+        <div className="mx-5 mt-3 flex items-center gap-2 rounded-cira-input bg-cira-btn-destructive-bg px-4 py-2.5 text-sm text-cira-btn-destructive-text">
+          <Icon name="error" size={18} />
+          {errorUbicacion}
+        </div>
+      )}
+
+      {!cargando && trabajos.length === 0 && trabajadores.length === 0 && (
+        <div className="mx-5 mt-3">
+          <Button variant="outlined" fullWidth disabled>
+            Sin datos para mostrar en el mapa
           </Button>
-        </Card>
+        </div>
       )}
     </div>
   );
