@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Fuentes ─────────────────────────────────────────── */
+  --font-sans: "Open Sans", "OpenSans", system-ui, sans-serif;
+
+  /* ── Colores base ────────────────────────────────────── */
+  --color-cira-base: #f7f9fb;
+  --color-cira-accent: #3e7be1;
+  --color-cira-card: #ffffff;
+
+  --color-cira-text-primary: #191c1e;
+  --color-cira-text-secondary: #464555;
+  --color-cira-text-helper: #acacb6;
+
+  --color-cira-border: #d9dde6;
+  --color-cira-surface-muted: #f6f8fb;
+  --color-cira-surface-disabled: #eceef3;
+
+  /* ── Botones ─────────────────────────────────────────── */
+  --color-cira-btn-primary-bg: #3e7be1;
+  --color-cira-btn-secondary-bg: #f4f8ff;
+  --color-cira-btn-inverted-bg: #191c1e;
+  --color-cira-btn-outlined-border: #acacb6;
+  --color-cira-btn-disabled-bg: #eceef3;
+  --color-cira-btn-disabled-text: #acacb6;
+  --color-cira-btn-destructive-bg: #ffe8ec;
+  --color-cira-btn-destructive-border: #ffe8ec;
+  --color-cira-btn-destructive-text: #d94b5f;
+
+  /* ── Inputs ──────────────────────────────────────────── */
+  --color-cira-input-bg: #ffffff;
+  --color-cira-input-border: #d9dde6;
+  --color-cira-input-disabled-bg: #e7e9ef;
+  --color-cira-input-disabled-text: #acacb6;
+
+  /* ── Bottom nav ──────────────────────────────────────── */
+  --color-cira-nav-bg: #3e7be1;
+  --color-cira-nav-selected-bg: #eef3ff;
+  --color-cira-nav-item-selected-bg: #2f63b8;
+  --color-cira-nav-active: #ffffff;
+  --color-cira-nav-inactive: #d9e7ff;
+
+  /* ── Header ──────────────────────────────────────────── */
+  --color-cira-header-text: #3e7be1;
+  --color-cira-header-text-muted: #464555;
+  --color-cira-header-icon-bg: #eef3ff;
+
+  /* ── Paleta general ──────────────────────────────────── */
+  --color-cira-primary: #3e7be1;
+  --color-cira-primary-dark: #2f63b8;
+  --color-cira-secondary: #d9e7ff;
+  --color-cira-tertiary: #1f4f9b;
+
+  --color-cira-gray-100: #e1e1e1;
+  --color-cira-gray-200: #c8c8c8;
+  --color-cira-gray-300: #acacb6;
+  --color-cira-gray-400: #919191;
+  --color-cira-gray-500: #464555;
+  --color-cira-gray-600: #404040;
+  --color-cira-gray-900: #191c1e;
+  --color-cira-gray-950: #141414;
+
+  /* ── Tipografía (tamaños tomados de Typography.xaml) ───── */
+  --text-cira-helper: 0.75rem;   /* 12px */
+  --text-cira-nav: 0.75rem;      /* 12px */
+  --text-cira-body: 0.875rem;    /* 14px */
+  --text-cira-control: 1rem;     /* 16px */
+  --text-cira-title: 1.5rem;     /* 24px */
+  --text-cira-headline: 2rem;    /* 32px */
+
+  /* ── Radios (tomados de Metrics.xaml) ───────────────────── */
+  --radius-cira-button: 999px;
+  --radius-cira-card: 20px;
+  --radius-cira-input: 8px;
+  --radius-cira-badge: 999px;
+  --radius-cira-nav-bar: 28px 28px 0 0;
+  --radius-cira-nav-item: 18px;
+  --radius-cira-page-surface: 0 0 28px 28px;
+}
+
+body {
+  background-color: var(--color-cira-base);
+  color: var(--color-cira-text-primary);
+  font-family: var(--font-sans);
+}
+
+.material-symbols-rounded {
+  font-family: "Material Symbols Rounded";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
+
+.material-symbols-rounded.filled {
+  font-variation-settings: "FILL" 1;
+}
+
+/* Oculta la barra de desplazamiento del "frame" de teléfono sin perder el scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
