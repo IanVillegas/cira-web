@@ -1,3 +1,20 @@
+# Dependencias
+node_modules
+
+# Build
+dist
+dist-ssr
+*.local
+
+# Base de datos local del backend (se genera/siembra automáticamente)
+server/cira.db
+server/cira.db-shm
+server/cira.db-wal
+
+# Env
+.env
+.env.local
+
 # Logs
 logs
 *.log
@@ -7,12 +24,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# Editor / SO
 .vscode/*
 !.vscode/extensions.json
 .idea

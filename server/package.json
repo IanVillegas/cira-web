@@ -1,0 +1,16 @@
+{
+  "name": "cira-server",
+  "version": "1.0.0",
+  "description": "Backend real de CIRA (Express + SQLite nativo de Node) para el MVP del curso de Aplicaciones Informáticas Globales.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "seed": "node src/seed.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
