@@ -1,17 +1,31 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Input, TextArea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
+import { Input } from "@/components/ui/Input";
+import { Field, FieldCaption } from "@/components/ui/FieldCaption";
+import { SelectableCard } from "@/components/ui/SelectableCard";
+import { Card } from "@/components/ui/Card";
 import { LocationPicker } from "@/components/LocationPicker";
 import { CATEGORIAS } from "@/lib/mockData";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { MetodoPago } from "@/lib/types";
 
-const METODOS: MetodoPago[] = ["Efectivo", "SINPE", "Transferencia"];
+const METODOS: { value: MetodoPago; icon: string; label: string }[] = [
+  { value: "SINPE", icon: "smartphone", label: "SINPE" },
+  { value: "Efectivo", icon: "payments", label: "EFECTIVO" },
+  { value: "Transferencia", icon: "account_balance", label: "TRANSFER." },
+];
 
+function formatearFecha(fecha: string, hora: string) {
+  const d = new Date(`${fecha}T${hora || "00:00"}`);
+  if (Number.isNaN(d.getTime())) return `${fecha} ${hora}`.trim();
+  return d.toLocaleString("es-CR", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+}
+
+/** Réplica de CrearTrabajoPage.xaml: tres tarjetas (datos, ubicación y fecha, presupuesto y pago). */
 export function CrearTrabajoPage() {
   const navigate = useNavigate();
   const { usuario } = useAuth();
@@ -21,15 +35,17 @@ export function CrearTrabajoPage() {
   const [form, setForm] = useState({
     titulo: "",
     descripcion: "",
-    categoria: CATEGORIAS[0],
+    categoria: "",
     ubicacion: "",
     coords: null as { lat: number; lng: number } | null,
     fecha: "",
+    hora: "",
     pago: "",
-    metodoPago: METODOS[0] as MetodoPago,
+    metodoPago: "SINPE" as MetodoPago,
   });
 
-  const valido = form.titulo && form.categoria && form.ubicacion && form.fecha && Number(form.pago) > 0;
+  const valido =
+    form.titulo.trim() && form.categoria && form.ubicacion && form.fecha && Number(form.pago) > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,20 +54,20 @@ export function CrearTrabajoPage() {
     setError(null);
     try {
       await api.trabajos.crear({
-        titulo: form.titulo,
+        titulo: form.titulo.trim(),
         descripcion: form.descripcion,
         categoria: form.categoria,
         ubicacion: form.ubicacion,
         lat: form.coords?.lat,
         lng: form.coords?.lng,
-        fecha: form.fecha,
+        fecha: formatearFecha(form.fecha, form.hora),
         pago: Number(form.pago),
         metodoPago: form.metodoPago,
         publicador: usuario?.nombre,
       });
       setPublicado(true);
     } catch {
-      setError("No se pudo publicar el trabajo. Verificá que CIRA-Server esté corriendo.");
+      setError("No se pudo publicar el trabajo. Verifica que el servidor esté corriendo.");
     } finally {
       setEnviando(false);
     }
@@ -59,118 +75,166 @@ export function CrearTrabajoPage() {
 
   if (publicado) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
+      <div className="flex h-full min-h-[480px] flex-col items-center justify-center gap-4 px-8 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
           <Icon name="check_circle" filled size={36} className="text-emerald-600" />
         </div>
-        <h1 className="text-cira-title font-semibold text-cira-text-primary">
-          Trabajo publicado
-        </h1>
+        <h1 className="text-cira-title font-semibold text-cira-text-primary">Trabajo publicado</h1>
         <p className="text-sm text-cira-text-secondary">
           Ya es visible en la lista y el mapa para los trabajadores cercanos.
         </p>
-        <Button fullWidth onClick={() => navigate("/publicaciones")}>
-          Ver mis publicaciones
-        </Button>
+        <Button onClick={() => navigate("/publicaciones")}>Ver mis publicaciones</Button>
       </div>
     );
   }
 
   return (
-    <div className="pb-8">
-      <PageHeader title="Crear Publicación" showBack />
+    <div>
+      <PageHeader title="Crear Publicación" icon="work" showBack />
 
-      <form className="flex flex-col gap-4 px-5" onSubmit={handleSubmit}>
-        <Input
-          label="Título"
-          placeholder="Ej. Reparar fuga de agua"
-          value={form.titulo}
-          onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-          required
-        />
+      <form className="flex flex-col gap-3.5 px-5 pt-2 pb-9" onSubmit={handleSubmit}>
+        <Card className="flex flex-col gap-3.5">
+          <Field label="Título del trabajo">
+            <Input
+              placeholder="Ej: Reparación de fuga"
+              value={form.titulo}
+              onChange={(e) => setForm({ ...form, titulo: e.target.value })}
+            />
+          </Field>
 
-        <TextArea
-          label="Descripción"
-          placeholder="Detalles del trabajo, materiales, herramientas necesarias..."
-          value={form.descripcion}
-          onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-        />
-
-        <label className="flex flex-col gap-1.5">
-          <span className="text-cira-body font-semibold text-cira-text-primary">Categoría</span>
-          <select
-            className="rounded-cira-input border border-cira-input-border bg-cira-input-bg px-4 py-3 text-cira-control text-cira-text-primary focus:border-cira-accent focus:outline-none"
-            value={form.categoria}
-            onChange={(e) => setForm({ ...form, categoria: e.target.value })}
-          >
-            {CATEGORIAS.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <LocationPicker
-          value={form.coords}
-          onChange={(coords, direccion) => setForm({ ...form, coords, ubicacion: direccion })}
-        />
-
-        <Input
-          label="Dirección (editable)"
-          icon="location_on"
-          placeholder="Ej. Alajuela, Río Segundo"
-          value={form.ubicacion}
-          onChange={(e) => setForm({ ...form, ubicacion: e.target.value })}
-          required
-        />
-
-        <Input
-          label="Fecha y hora"
-          icon="calendar_month"
-          type="datetime-local"
-          value={form.fecha}
-          onChange={(e) => setForm({ ...form, fecha: e.target.value })}
-          required
-        />
-
-        <Input
-          label="Pago ofrecido (₡)"
-          icon="payments"
-          type="number"
-          min={1}
-          placeholder="15000"
-          value={form.pago}
-          onChange={(e) => setForm({ ...form, pago: e.target.value })}
-          required
-        />
-
-        <label className="flex flex-col gap-1.5">
-          <span className="text-cira-body font-semibold text-cira-text-primary">Método de pago</span>
-          <div className="flex gap-2">
-            {METODOS.map((m) => (
-              <button
-                type="button"
-                key={m}
-                onClick={() => setForm({ ...form, metodoPago: m })}
-                className={`flex-1 rounded-cira-input border px-3 py-2 text-sm font-semibold transition-colors ${
-                  form.metodoPago === m
-                    ? "border-cira-accent bg-cira-secondary text-cira-accent"
-                    : "border-cira-input-border text-cira-text-secondary"
+          <Field label="Categoría">
+            <div className="relative">
+              <select
+                value={form.categoria}
+                onChange={(e) => setForm({ ...form, categoria: e.target.value })}
+                className={`min-h-14 w-full appearance-none rounded-cira-input bg-cira-input-bg px-3.5 pr-11 text-cira-control focus:outline-none ${
+                  form.categoria ? "text-cira-text-primary" : "text-cira-text-helper"
                 }`}
               >
-                {m}
-              </button>
-            ))}
+                <option value="">Selecciona una categoría</option>
+                {CATEGORIAS.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <Icon
+                name="keyboard_arrow_down"
+                size={24}
+                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-cira-text-secondary"
+              />
+            </div>
+          </Field>
+
+          <Field label="Descripción detallada">
+            <textarea
+              rows={4}
+              placeholder="Describe el problema o necesidad con detalle..."
+              value={form.descripcion}
+              onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+              className="min-h-[104px] w-full resize-y rounded-cira-input bg-cira-input-bg px-3.5 py-2.5 text-cira-body text-cira-text-primary placeholder:text-cira-text-helper focus:outline-none"
+            />
+          </Field>
+        </Card>
+
+        <Card className="flex flex-col gap-3.5">
+          <LocationPicker
+            value={form.coords}
+            address={form.ubicacion}
+            onChange={(coords, direccion) => setForm({ ...form, coords, ubicacion: direccion })}
+          />
+
+          <div className="grid grid-cols-2 gap-3">
+            <DateTimeField
+              label="Fecha"
+              icon="calendar_month"
+              type="date"
+              value={form.fecha}
+              onChange={(fecha) => setForm({ ...form, fecha })}
+            />
+            <DateTimeField
+              label="Hora"
+              icon="schedule"
+              type="time"
+              value={form.hora}
+              onChange={(hora) => setForm({ ...form, hora })}
+            />
           </div>
-        </label>
+        </Card>
 
-        {error && <p className="text-sm text-cira-btn-destructive-text">{error}</p>}
+        <Card className="flex flex-col gap-3.5">
+          <Field label="Presupuesto ofrecido">
+            <div className="flex h-[86px] items-center gap-2.5 rounded-[14px] border border-cira-border bg-cira-input-bg p-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-cira-nav-selected-bg">
+                <Icon name="payments" size={24} className="text-cira-accent" />
+              </span>
+              <span className="text-2xl font-semibold text-cira-text-primary">₡</span>
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  placeholder="20000"
+                  value={form.pago}
+                  onChange={(e) => setForm({ ...form, pago: e.target.value })}
+                  className="w-full bg-transparent text-2xl font-semibold text-cira-text-primary placeholder:text-cira-text-helper focus:outline-none"
+                />
+                <span className="text-[9px] tracking-[0.12em] text-cira-text-helper">MONTO EN COLONES</span>
+              </div>
+            </div>
+          </Field>
 
-        <Button type="submit" fullWidth disabled={!valido || enviando} className="mt-2">
-          {enviando ? "Publicando..." : "Publicar trabajo"}
+          <div className="flex flex-col gap-2">
+            <FieldCaption>Método de pago</FieldCaption>
+            <div className="grid grid-cols-3 gap-2.5">
+              {METODOS.map((m) => (
+                <SelectableCard
+                  key={m.value}
+                  icon={m.icon}
+                  text={m.label}
+                  selected={form.metodoPago === m.value}
+                  onClick={() => setForm({ ...form, metodoPago: m.value })}
+                />
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        {error && <p className="text-center text-[13px] text-cira-accent">{error}</p>}
+
+        <Button type="submit" disabled={!valido || enviando} className="my-2">
+          {enviando ? "PUBLICANDO..." : "PUBLICAR AHORA"}
         </Button>
       </form>
     </div>
+  );
+}
+
+/** Réplica de CiraDateTimeField: etiqueta + contenedor con ícono acento y selector nativo. */
+function DateTimeField({
+  label,
+  icon,
+  type,
+  value,
+  onChange,
+}: {
+  label: string;
+  icon: string;
+  type: "date" | "time";
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Field label={label}>
+      <div className="flex min-h-12 items-center gap-2 rounded-cira-input bg-cira-input-bg px-2.5">
+        <Icon name={icon} size={18} className="shrink-0 text-cira-accent" />
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full min-w-0 bg-transparent text-xs text-cira-text-primary focus:outline-none"
+        />
+      </div>
+    </Field>
   );
 }

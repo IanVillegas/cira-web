@@ -7,20 +7,22 @@ interface PageHeaderProps {
   icon?: string;
   showBack?: boolean;
   onIconClick?: () => void;
+  /** Padding del encabezado (por defecto 20,24,20,12 como CiraPageHeader). */
+  className?: string;
 }
 
-export function PageHeader({ title, subtitle, icon, showBack = false, onIconClick }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, icon, showBack = false, onIconClick, className = "px-5 pt-6 pb-3" }: PageHeaderProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center gap-3 px-5 pt-6 pb-3">
+    <div className={`flex items-center gap-3 ${className}`}>
       {showBack && (
         <button
           onClick={() => navigate(-1)}
           className="text-cira-header-text"
           aria-label="Volver"
         >
-          <Icon name="arrow_back" size={28} />
+          <Icon name="chevron_backward" size={28} />
         </button>
       )}
 

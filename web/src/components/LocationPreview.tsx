@@ -16,11 +16,19 @@ interface LocationPreviewProps {
   text: string;
 }
 
-/** Vista previa no interactiva de la zona elegida (CiraLocationPreview). */
+/**
+ * Réplica de CiraLocationPreview: arriba el texto de la zona (contenedor blanco
+ * con ícono acento) y debajo la vista previa del mapa, no interactiva.
+ */
 export function LocationPreview({ center, text }: LocationPreviewProps) {
   return (
-    <div className="overflow-hidden rounded-cira-input bg-cira-input-bg">
-      <div className="relative h-44 w-full bg-cira-surface-muted">
+    <div className="flex flex-col gap-2">
+      <div className="flex min-h-14 items-center gap-2.5 rounded-cira-input bg-cira-input-bg px-3.5">
+        <Icon name="location_on" size={20} className="text-cira-accent" />
+        <span className="text-cira-body text-cira-text-secondary">{text}</span>
+      </div>
+
+      <div className="relative h-48 overflow-hidden rounded-cira-input bg-cira-input-bg">
         {center ? (
           <MapContainer
             center={center}
@@ -42,10 +50,6 @@ export function LocationPreview({ center, text }: LocationPreviewProps) {
             <Icon name="explore_nearby" size={44} className="text-cira-text-helper" />
           </div>
         )}
-      </div>
-      <div className="flex items-center gap-2 px-3.5 py-3">
-        <Icon name="location_on" size={18} className="text-cira-accent" />
-        <span className="text-[13px] text-cira-text-secondary">{text}</span>
       </div>
     </div>
   );

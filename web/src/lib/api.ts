@@ -1,5 +1,6 @@
 import type {
   Conversacion,
+  EstadoTrabajo,
   HistorialItem,
   Mensaje,
   MetodoPago,
@@ -64,6 +65,8 @@ export const api = {
       publicador?: string;
     }) => request<Trabajo>("/trabajos", { method: "POST", body: JSON.stringify(datos) }),
     postular: (id: string) => request<Trabajo>(`/trabajos/${id}/postular`, { method: "PATCH" }),
+    cambiarEstado: (id: string, estado: EstadoTrabajo) =>
+      request<Trabajo>(`/trabajos/${id}`, { method: "PATCH", body: JSON.stringify({ estado }) }),
   },
 
   trabajadores: {

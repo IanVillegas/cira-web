@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Loader } from "@/components/ui/Loader";
+import { JobStatusCard, type StatusBadge } from "@/components/JobStatusCard";
 import { api } from "@/lib/api";
 import type { HistorialItem } from "@/lib/types";
 
-const formatoPago = new Intl.NumberFormat("es-CR", {
-  style: "currency",
-  currency: "CRC",
-  maximumFractionDigits: 0,
-});
+// Colores de HistorialTrabajosPage.xaml.cs
+function badgeDe(estado: HistorialItem["estado"]): StatusBadge {
+  if (estado === "Finalizado") return { text: "Completado", bg: "#E8F5E9", color: "#2E7D32" };
+  if (estado === "Cancelado") return { text: "Cancelado", bg: "#FFE8EC", color: "#D94B5F" };
+  return { text: estado, bg: "#F6F8FB", color: "#464555" };
+}
 
 export function HistorialTrabajosPage() {
   const [historial, setHistorial] = useState<HistorialItem[] | null>(null);
@@ -22,9 +22,14 @@ export function HistorialTrabajosPage() {
 
   return (
     <div className="pb-4">
-      <PageHeader title="Historial de trabajos" subtitle="Consulta tus trabajos finalizados y cancelados." icon="history" showBack />
+      <PageHeader
+        title="Historial de trabajos"
+        subtitle="Consulta tus trabajos finalizados y cancelados."
+        icon="history"
+        showBack
+      />
 
-      <div className="px-5">
+      <div className="px-5 pt-2">
         {historial === null ? (
           <Loader label="Cargando historial..." />
         ) : historial.length === 0 ? (
@@ -34,18 +39,14 @@ export function HistorialTrabajosPage() {
           />
         ) : (
           historial.map((h) => (
-            <Card key={h.id} className="mb-3.5 flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-cira-text-primary">{h.titulo}</p>
-                <p className="text-sm text-cira-text-secondary">
-                  {h.contraparte} · {h.fecha}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-cira-accent">{formatoPago.format(h.pago)}</p>
-                <Badge tone={h.estado === "Finalizado" ? "success" : "danger"}>{h.estado}</Badge>
-              </div>
-            </Card>
+            <JobStatusCard
+              key={h.id}
+              titulo={h.titulo}
+              publicador={h.contraparte}
+              fecha={h.fecha}
+              badge={badgeDe(h.estado)}
+              iconClassName="text-cira-text-helper"
+            />
           ))
         )}
       </div>

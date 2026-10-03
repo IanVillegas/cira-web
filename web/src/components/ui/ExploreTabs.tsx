@@ -1,4 +1,5 @@
-import { NavLink } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 
 const TABS = [
   { to: "/explorar", label: "Trabajos" },
@@ -9,8 +10,19 @@ const TABS = [
 
 /** Réplica de CiraExploreTabs: píldora blanca con borde; la pestaña activa va en acento. */
 export function ExploreTabs() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { pathname } = useLocation();
+
+  // La tira se desplaza horizontalmente: mantener visible la pestaña activa.
+  useEffect(() => {
+    const container = containerRef.current;
+    const active = container?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!container || !active) return;
+    container.scrollLeft = active.offsetLeft - (container.clientWidth - active.clientWidth) / 2;
+  }, [pathname]);
+
   return (
-    <div className="no-scrollbar overflow-x-auto px-5">
+    <div ref={containerRef} className="no-scrollbar overflow-x-auto px-5">
       <div className="inline-flex gap-0.5 rounded-[21px] border border-cira-border bg-cira-card p-0.5">
         {TABS.map((tab) => (
           <NavLink
