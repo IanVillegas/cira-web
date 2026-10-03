@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
+    "demo": "node scripts/demo.mjs",
     "seed": "node src/seed.js"
   },
   "dependencies": {

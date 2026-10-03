@@ -14,7 +14,13 @@ import type {
 // apuntando a esa URL pública al hacer el build.
 // Se le quita cualquier "/" final: una URL pegada como "https://x.com/" no
 // debe romper las rutas (evita el bug de "//api/..." -> 404).
-const API_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:3001").replace(/\/+$/, "");
+// Sin VITE_API_URL: en desarrollo (npm run dev) se usa el backend en localhost:3001;
+// en la versión compilada se usa el mismo origen, porque el backend sirve la app
+// (modo "demo", un solo puerto).
+const API_URL = (import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? "http://localhost:3001" : "")).replace(
+  /\/+$/,
+  "",
+);
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}/api${path}`, {
