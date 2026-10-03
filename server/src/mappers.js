@@ -4,6 +4,7 @@ export function mapUsuario(row, servicios) {
     nombre: row.nombre,
     cedula: row.cedula,
     telefono: row.telefono,
+    correo: row.correo ?? "",
     descripcion: row.descripcion,
     zona: row.zona,
     metodosPago: JSON.parse(row.metodos_pago),

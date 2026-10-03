@@ -21,10 +21,27 @@ router.get("/usuario", (_req, res) => {
 });
 
 router.put("/usuario", (req, res) => {
-  const { nombre, zona, descripcion, metodosPago } = req.body;
+  const { nombre, zona, descripcion, metodosPago, telefono, correo, cedula } = req.body;
   db.prepare(
-    "UPDATE usuario SET nombre = ?, zona = ?, descripcion = ?, metodos_pago = ? WHERE id = ?",
-  ).run(nombre, zona, descripcion, JSON.stringify(metodosPago ?? []), USUARIO_ID);
+    `UPDATE usuario SET
+       nombre = COALESCE(?, nombre),
+       zona = COALESCE(?, zona),
+       descripcion = COALESCE(?, descripcion),
+       metodos_pago = COALESCE(?, metodos_pago),
+       telefono = COALESCE(?, telefono),
+       correo = COALESCE(?, correo),
+       cedula = COALESCE(?, cedula)
+     WHERE id = ?`,
+  ).run(
+    nombre ?? null,
+    zona ?? null,
+    descripcion ?? null,
+    metodosPago ? JSON.stringify(metodosPago) : null,
+    telefono ?? null,
+    correo ?? null,
+    cedula ?? null,
+    USUARIO_ID,
+  );
   const row = db.prepare("SELECT * FROM usuario WHERE id = ?").get(USUARIO_ID);
   const servicios = db.prepare("SELECT * FROM servicio WHERE usuario_id = ?").all(USUARIO_ID);
   res.json(mapUsuario(row, servicios));
@@ -43,6 +60,17 @@ router.post("/usuario/servicios", (req, res) => {
     "INSERT INTO servicio (id, usuario_id, categoria, descripcion, precio_aproximado) VALUES (?, ?, ?, ?, ?)",
   ).run(id, USUARIO_ID, categoria, descripcion, precioAproximado ?? null);
   res.status(201).json({ id, categoria, descripcion, precioAproximado });
+});
+
+router.put("/usuario/servicios/:id", (req, res) => {
+  const { categoria, descripcion, precioAproximado } = req.body;
+  const result = db
+    .prepare(
+      "UPDATE servicio SET categoria = ?, descripcion = ?, precio_aproximado = ? WHERE id = ? AND usuario_id = ?",
+    )
+    .run(categoria, descripcion, precioAproximado ?? null, req.params.id, USUARIO_ID);
+  if (result.changes === 0) return res.status(404).json({ error: "Servicio no encontrado." });
+  res.json({ id: req.params.id, categoria, descripcion, precioAproximado });
 });
 
 router.delete("/usuario/servicios/:id", (req, res) => {

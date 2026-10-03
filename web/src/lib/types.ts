@@ -14,6 +14,7 @@ export interface Usuario {
   nombre: string;
   cedula: string;
   telefono: string;
+  correo?: string;
   descripcion: string;
   zona: string;
   fotoUrl?: string;

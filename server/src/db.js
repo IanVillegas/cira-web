@@ -96,6 +96,7 @@ function agregarColumnaSiFalta(tabla, columna, definicion) {
   }
 }
 
+agregarColumnaSiFalta("usuario", "correo", "TEXT NOT NULL DEFAULT ''");
 agregarColumnaSiFalta("trabajo", "lat", "REAL");
 agregarColumnaSiFalta("trabajo", "lng", "REAL");
 agregarColumnaSiFalta("trabajador", "lat", "REAL");

@@ -32,7 +32,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 export const api = {
   usuario: {
     obtener: () => request<Usuario>("/usuario"),
-    actualizar: (datos: Partial<Pick<Usuario, "nombre" | "zona" | "descripcion" | "metodosPago">>) =>
+    actualizar: (
+      datos: Partial<Pick<Usuario, "nombre" | "zona" | "descripcion" | "metodosPago" | "telefono" | "correo" | "cedula">>,
+    ) =>
       request<Usuario>("/usuario", { method: "PUT", body: JSON.stringify(datos) }),
     setDisponibilidad: (disponible: boolean) =>
       request<{ disponible: boolean }>("/usuario/disponibilidad", {
@@ -41,6 +43,10 @@ export const api = {
       }),
     agregarServicio: (servicio: { categoria: string; descripcion: string; precioAproximado?: number }) =>
       request("/usuario/servicios", { method: "POST", body: JSON.stringify(servicio) }),
+    actualizarServicio: (
+      id: string,
+      servicio: { categoria: string; descripcion: string; precioAproximado?: number },
+    ) => request(`/usuario/servicios/${id}`, { method: "PUT", body: JSON.stringify(servicio) }),
     eliminarServicio: (id: string) => request(`/usuario/servicios/${id}`, { method: "DELETE" }),
   },
 

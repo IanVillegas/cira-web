@@ -1,82 +1,118 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Loader } from "@/components/ui/Loader";
+import { Switch } from "@/components/ui/Switch";
+import { DateTimeField } from "@/components/ui/DateTimeField";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
-const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-
+/** Réplica de ConfigurarDisponibilidadPage.xaml: estado actual + rango opcional + guardar. */
 export function ConfigurarDisponibilidadPage() {
   const { usuario, refrescarUsuario } = useAuth();
-  const [dias, setDias] = useState<string[]>(["Lun", "Mar", "Mié", "Jue", "Vie"]);
+  const navigate = useNavigate();
+  const [disponible, setDisponible] = useState(true);
+  const [usarRango, setUsarRango] = useState(false);
+  const [rango, setRango] = useState({ desdeFecha: "", desdeHora: "", hastaFecha: "", hastaHora: "" });
+  const [guardando, setGuardando] = useState(false);
+  const [estado, setEstado] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (usuario) setDisponible(usuario.disponible);
+  }, [usuario]);
 
   if (!usuario) return <Loader label="Cargando disponibilidad..." />;
 
-  const toggleDisponible = async () => {
-    await api.usuario.setDisponibilidad(!usuario.disponible);
-    await refrescarUsuario();
+  const guardar = async () => {
+    if (usarRango) {
+      const desde = new Date(`${rango.desdeFecha}T${rango.desdeHora || "00:00"}`);
+      const hasta = new Date(`${rango.hastaFecha}T${rango.hastaHora || "00:00"}`);
+      if (Number.isNaN(desde.getTime()) || Number.isNaN(hasta.getTime()) || hasta <= desde) {
+        return setEstado("El rango de disponibilidad no es válido.");
+      }
+    }
+    setGuardando(true);
+    setEstado(null);
+    try {
+      await api.usuario.setDisponibilidad(disponible);
+      await refrescarUsuario();
+      navigate("/perfil");
+    } catch {
+      setEstado("No se pudo guardar. Verifica que el servidor esté corriendo.");
+    } finally {
+      setGuardando(false);
+    }
   };
 
-  const toggleDia = (d: string) =>
-    setDias((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
-
   return (
-    <div className="pb-8">
-      <PageHeader title="Disponibilidad" subtitle="Indica cuándo puedes recibir solicitudes." showBack />
+    <div>
+      <PageHeader
+        title="Disponibilidad"
+        subtitle="Indica cuándo puedes recibir solicitudes."
+        icon="event_available"
+        showBack
+      />
 
-      <div className="px-5">
-        <Card className="flex items-center justify-between">
+      <div className="flex flex-col gap-[18px] px-5 pt-2 pb-7">
+        <div className="flex flex-col gap-3.5 rounded-[14px] bg-cira-card p-4">
+          <h2 className="text-base font-semibold text-cira-text-primary">Estado actual</h2>
           <div className="flex items-center gap-3">
-            <Icon
-              name={usuario.disponible ? "toggle_on" : "toggle_off"}
-              size={32}
-              className={usuario.disponible ? "text-cira-accent" : "text-cira-text-helper"}
-            />
-            <div>
-              <p className="font-semibold text-cira-text-primary">
-                {usuario.disponible ? "Disponible" : "No disponible"}
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cira-nav-selected-bg">
+              <Icon
+                name={disponible ? "check_circle" : "cancel"}
+                size={26}
+                className={disponible ? "text-cira-accent" : "text-cira-text-helper"}
+              />
+            </span>
+            <div className="flex-1">
+              <p className="text-lg font-semibold text-cira-text-primary">
+                {disponible ? "Disponible" : "No disponible"}
               </p>
-              <p className="text-sm text-cira-text-secondary">
-                {usuario.disponible
-                  ? "Aparecés en las búsquedas de empleadores."
-                  : "No aparecés en resultados de búsqueda."}
+              <p className="text-[13px] text-cira-text-secondary">
+                {usarRango ? "Rango configurado" : "Sin rango configurado"}
               </p>
             </div>
+            <Switch checked={disponible} onChange={setDisponible} label="Disponibilidad" />
           </div>
-          <button
-            onClick={toggleDisponible}
-            className={`h-7 w-12 shrink-0 rounded-full transition-colors ${
-              usuario.disponible ? "bg-cira-accent" : "bg-cira-surface-disabled"
-            }`}
-          >
-            <span
-              className={`block h-5 w-5 translate-y-1 rounded-full bg-white shadow transition-transform ${
-                usuario.disponible ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
-        </Card>
+        </div>
 
-        <Card className="mt-4">
-          <p className="mb-3 font-semibold text-cira-text-primary">Días disponibles</p>
-          <div className="flex flex-wrap gap-2">
-            {DIAS.map((d) => (
-              <button
-                key={d}
-                onClick={() => toggleDia(d)}
-                className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                  dias.includes(d)
-                    ? "border-cira-accent bg-cira-secondary text-cira-accent"
-                    : "border-cira-input-border text-cira-text-secondary"
-                }`}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-        </Card>
+        <div className="flex flex-col gap-3.5 rounded-[14px] bg-cira-card p-4">
+          <label className="flex items-center gap-2.5">
+            <input
+              type="checkbox"
+              checked={usarRango}
+              onChange={(e) => setUsarRango(e.target.checked)}
+              className="h-5 w-5 shrink-0 accent-cira-accent"
+            />
+            <span className="flex flex-col gap-0.5">
+              <span className="text-[15px] font-semibold text-cira-text-primary">Usar rango opcional</span>
+              <span className="text-[13px] text-cira-text-secondary">
+                Define una fecha y hora de inicio y fin.
+              </span>
+            </span>
+          </label>
+
+          {usarRango && (
+            <div className="flex flex-col gap-3.5">
+              <div className="grid grid-cols-2 gap-3">
+                <DateTimeField label="Desde" icon="calendar_month" type="date" value={rango.desdeFecha} onChange={(v) => setRango({ ...rango, desdeFecha: v })} />
+                <DateTimeField label="Hora" icon="schedule" type="time" value={rango.desdeHora} onChange={(v) => setRango({ ...rango, desdeHora: v })} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <DateTimeField label="Hasta" icon="calendar_month" type="date" value={rango.hastaFecha} onChange={(v) => setRango({ ...rango, hastaFecha: v })} />
+                <DateTimeField label="Hora" icon="schedule" type="time" value={rango.hastaHora} onChange={(v) => setRango({ ...rango, hastaHora: v })} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {estado && <p className="text-[13px] text-cira-accent">{estado}</p>}
+
+        <Button onClick={guardar} disabled={guardando}>
+          GUARDAR DISPONIBILIDAD
+        </Button>
       </div>
     </div>
   );
