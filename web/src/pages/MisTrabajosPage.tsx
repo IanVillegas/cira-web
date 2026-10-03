@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ExploreTabs } from "@/components/ui/ExploreTabs";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
@@ -28,16 +29,16 @@ export function MisTrabajosPage() {
 
   return (
     <div className="pb-4">
-      <PageHeader title="Mis trabajos" subtitle="Postulaciones y trabajos en curso." icon="work_history" />
+      <PageHeader title="Mis trabajos" subtitle="Consulta y gestiona tus trabajos activos." icon="work" />
+      <ExploreTabs />
 
-      <div className="px-5">
+      <div className="px-5 pt-4">
         {misTrabajos === null ? (
           <Loader label="Cargando tus trabajos..." />
         ) : misTrabajos.length === 0 ? (
           <EmptyState
-            icon="assignment"
-            title="Sin trabajos activos"
-            message="Postulate a un trabajo para verlo aquí."
+            title="No tienes trabajos activos"
+            message="Aquí aparecerán los trabajos que estés realizando."
           />
         ) : (
           misTrabajos.map((t) => (

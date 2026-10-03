@@ -44,7 +44,8 @@ export function WorkerCard({ trabajador, onRequest }: WorkerCardProps) {
 
       <Button
         variant="secondary"
-        className="!px-4 !py-2 shrink-0"
+        fullWidth={false}
+        className="shrink-0 !px-4 !py-2"
         onClick={() => onRequest?.(trabajador.id)}
       >
         Contactar

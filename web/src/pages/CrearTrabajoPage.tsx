@@ -78,7 +78,7 @@ export function CrearTrabajoPage() {
 
   return (
     <div className="pb-8">
-      <PageHeader title="Publicar trabajo" subtitle="Contá qué necesitás resolver." showBack />
+      <PageHeader title="Crear Publicación" showBack />
 
       <form className="flex flex-col gap-4 px-5" onSubmit={handleSubmit}>
         <Input

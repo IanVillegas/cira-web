@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ExploreTabs } from "@/components/ui/ExploreTabs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Loader } from "@/components/ui/Loader";
+import { Button } from "@/components/ui/Button";
 import { JobCard } from "@/components/JobCard";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -23,21 +25,20 @@ export function MisPublicacionesPage() {
 
   return (
     <div className="pb-4">
-      <PageHeader
-        title="Mis publicaciones"
-        subtitle="Trabajos que has publicado."
-        icon="add"
-        onIconClick={() => navigate("/crear-trabajo")}
-      />
+      <PageHeader title="Explorar" subtitle="Consulta y administra tus publicaciones." icon="article" />
+      <ExploreTabs />
 
-      <div className="px-5">
+      <div className="px-5 pt-4">
+        <Button className="mb-4" onClick={() => navigate("/crear-trabajo")}>
+          Crear publicación
+        </Button>
+
         {publicaciones === null ? (
           <Loader label="Cargando publicaciones..." />
         ) : publicaciones.length === 0 ? (
           <EmptyState
-            icon="post_add"
-            title="Aún no has publicado nada"
-            message="Publicá un trabajo y empezá a recibir postulaciones."
+            title="No tienes publicaciones todavía"
+            message="Crea tu primera publicación para recibir postulantes."
           />
         ) : (
           publicaciones.map((trabajo) => <JobCard key={trabajo.id} trabajo={trabajo} />)

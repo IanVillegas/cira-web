@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ExploreTabs } from "@/components/ui/ExploreTabs";
 import { FilterChip } from "@/components/ui/FilterChip";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Loader } from "@/components/ui/Loader";
@@ -36,20 +36,7 @@ export function ExplorarTrabajosPage() {
     <div className="pb-4">
       <PageHeader title="Explorar" subtitle="Encuentra tu próximo servicio hoy." icon="work" />
 
-      <div className="flex gap-2 px-5">
-        <Link
-          to="/explorar"
-          className="flex-1 rounded-full bg-cira-secondary py-2 text-center text-sm font-semibold text-cira-accent"
-        >
-          Trabajos
-        </Link>
-        <Link
-          to="/trabajadores"
-          className="flex-1 rounded-full py-2 text-center text-sm font-semibold text-cira-text-secondary"
-        >
-          Trabajadores
-        </Link>
-      </div>
+      <ExploreTabs />
 
       <div className="mt-4 flex items-center gap-2 overflow-x-auto px-5 pb-1">
         <FilterChip label="Precio" />
@@ -71,12 +58,11 @@ export function ExplorarTrabajosPage() {
 
       <div className="px-5 pt-4">
         {error ? (
-          <EmptyState icon="cloud_off" title="Sin conexión al servidor" message={error} />
+          <EmptyState image="empty_no_signal" title="Sin conexión" message={error} />
         ) : trabajos === null ? (
           <Loader label="Cargando trabajos..." />
         ) : lista.length === 0 ? (
           <EmptyState
-            icon="work_off"
             title="Sin trabajos disponibles"
             message="Cuando existan publicaciones activas aparecerán aquí."
           />

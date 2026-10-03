@@ -21,7 +21,7 @@ export function InhabilitarCuentaPage() {
 
   return (
     <div className="pb-8">
-      <PageHeader title="Inhabilitar cuenta" showBack />
+      <PageHeader title="Inhabilitar cuenta" subtitle="La cuenta quedará inactiva hasta que solicites recuperarla." showBack />
 
       <div className="px-5">
         <div className="flex flex-col items-center gap-3 rounded-cira-card bg-cira-btn-destructive-bg p-5 text-center">

@@ -1,72 +1,85 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Icon } from "@/components/ui/Icon";
-import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { PhoneFrame } from "@/layouts/PhoneFrame";
+import { Input } from "@/components/ui/Input";
+import { PinInput } from "@/components/ui/PinInput";
+import { AuthError, AuthHeading, AuthLayout, IdentifierChip } from "@/layouts/AuthLayout";
+
+type Step = "identifier" | "token" | "pin";
 
 export function RecoverAccessPage() {
   const navigate = useNavigate();
-  const [cedula, setCedula] = useState("");
+  const [step, setStep] = useState<Step>("identifier");
+  const [error, setError] = useState<string | null>(null);
+  const [telefono, setTelefono] = useState("");
+  const [token, setToken] = useState("");
   const [pin, setPin] = useState("");
-  const [enviado, setEnviado] = useState(false);
+  const [confirmPin, setConfirmPin] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setEnviado(true);
+  const ir = (next: Step) => {
+    setError(null);
+    setStep(next);
   };
 
   return (
-    <PhoneFrame>
-      <div className="flex flex-1 flex-col overflow-y-auto bg-cira-base px-6 pt-10 pb-6">
-        <button onClick={() => navigate(-1)} className="text-cira-header-text">
-          <Icon name="arrow_back" size={26} />
-        </button>
+    <AuthLayout>
+      {step === "identifier" && (
+        <div className="flex flex-col gap-[18px]">
+          <AuthHeading title="Recupera tu acceso" subtitle="Ingresa tu teléfono para enviarte un código." />
+          <Input
+            type="tel"
+            inputMode="numeric"
+            placeholder="Telefono"
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ""))}
+          />
+          <AuthError message={error} />
+          <Button
+            onClick={() =>
+              /^\d{8}$/.test(telefono) ? ir("token") : setError("Ingresa un número de 8 dígitos.")
+            }
+          >
+            Continuar
+          </Button>
+          <Button variant="outlined" onClick={() => navigate("/login")}>
+            Volver al inicio de sesión
+          </Button>
+        </div>
+      )}
 
-        <h1 className="mt-4 text-cira-title font-semibold text-cira-text-primary">
-          Recuperar acceso
-        </h1>
-        <p className="mt-1 text-sm text-cira-text-secondary">
-          Ingresá tu cédula y definí un nuevo PIN. Cerraremos todas tus sesiones activas por seguridad.
-        </p>
-
-        {enviado ? (
-          <div className="mt-8 flex flex-col items-center gap-3 rounded-cira-card bg-cira-surface-muted p-6 text-center">
-            <Icon name="check_circle" size={40} className="text-emerald-600" filled />
-            <p className="font-semibold text-cira-text-primary">Acceso recuperado</p>
-            <p className="text-sm text-cira-text-secondary">
-              Ya podés iniciar sesión con tu nuevo PIN.
-            </p>
-            <Button fullWidth onClick={() => navigate("/login")}>
-              Ir a iniciar sesión
-            </Button>
+      {step === "token" && (
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <AuthHeading title="Verifica el codigo" />
+            <IdentifierChip>{telefono}</IdentifierChip>
           </div>
-        ) : (
-          <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit}>
-            <Input
-              label="Cédula"
-              icon="badge"
-              placeholder="1-2345-6789"
-              value={cedula}
-              onChange={(e) => setCedula(e.target.value)}
-              required
-            />
-            <Input
-              label="Nuevo PIN"
-              icon="lock"
-              type="password"
-              inputMode="numeric"
-              placeholder="••••"
-              value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              required
-            />
-            <Button type="submit" fullWidth className="mt-2">
-              Recuperar acceso
-            </Button>
-          </form>
-        )}
-      </div>
-    </PhoneFrame>
+          <PinInput value={token} onChange={setToken} length={6} isPassword={false} allowLetters autoUppercase autoFocus />
+          <AuthError message={error} />
+          <Button disabled={token.length < 6} onClick={() => ir("pin")}>
+            Verificar
+          </Button>
+          <Button variant="outlined" onClick={() => setToken("")}>
+            Reenviar SMS
+          </Button>
+        </div>
+      )}
+
+      {step === "pin" && (
+        <div className="flex flex-col gap-5">
+          <AuthHeading title="Crea tu nuevo PIN" subtitle="Usalo para entrar de nuevo a CIRA." />
+          <PinInput label="PIN nuevo" value={pin} onChange={setPin} />
+          <PinInput label="Confirmar PIN" value={confirmPin} onChange={setConfirmPin} />
+          <AuthError message={error} />
+          <Button
+            disabled={pin.length < 4 || confirmPin.length < 4}
+            onClick={() =>
+              pin === confirmPin ? navigate("/login", { replace: true }) : setError("Los PIN no coinciden.")
+            }
+          >
+            Guardar PIN
+          </Button>
+        </div>
+      )}
+    </AuthLayout>
   );
 }

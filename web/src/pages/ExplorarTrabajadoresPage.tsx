@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ExploreTabs } from "@/components/ui/ExploreTabs";
 import { FilterChip } from "@/components/ui/FilterChip";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Loader } from "@/components/ui/Loader";
@@ -24,22 +24,9 @@ export function ExplorarTrabajadoresPage() {
 
   return (
     <div className="pb-4">
-      <PageHeader title="Explorar" subtitle="Trabajadores disponibles cerca de ti." icon="groups" />
+      <PageHeader title="Explorar" subtitle="Busca trabajadores disponibles y envía solicitud directa." icon="group" />
 
-      <div className="flex gap-2 px-5">
-        <Link
-          to="/explorar"
-          className="flex-1 rounded-full py-2 text-center text-sm font-semibold text-cira-text-secondary"
-        >
-          Trabajos
-        </Link>
-        <Link
-          to="/trabajadores"
-          className="flex-1 rounded-full bg-cira-secondary py-2 text-center text-sm font-semibold text-cira-accent"
-        >
-          Trabajadores
-        </Link>
-      </div>
+      <ExploreTabs />
 
       <div className="mt-4 flex items-center gap-2 overflow-x-auto px-5 pb-1">
         <FilterChip label="Categoría" />
@@ -53,14 +40,13 @@ export function ExplorarTrabajadoresPage() {
 
       <div className="px-5 pt-4">
         {error ? (
-          <EmptyState icon="cloud_off" title="Sin conexión al servidor" message={error} />
+          <EmptyState image="empty_not_found_variant" title="No fue posible cargar trabajadores" message="Verifica tu conexión o intenta nuevamente." />
         ) : trabajadores === null ? (
           <Loader label="Cargando trabajadores..." />
         ) : lista.length === 0 ? (
           <EmptyState
-            icon="person_off"
-            title="Sin trabajadores"
-            message="No encontramos trabajadores con estos filtros."
+            title="Sin trabajadores disponibles"
+            message="Cuando existan trabajadores disponibles aparecerán aquí."
           />
         ) : (
           lista.map((trabajador) => (

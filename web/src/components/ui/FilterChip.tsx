@@ -1,23 +1,22 @@
 import type { ButtonHTMLAttributes } from "react";
-import { Icon } from "./Icon";
 
 interface FilterChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;
   active?: boolean;
 }
 
+/** Réplica de CiraFilterChip: blanco, radio 16, 12 semibold; activo = fondo suave + borde acento. */
 export function FilterChip({ label, active = false, className = "", ...rest }: FilterChipProps) {
   return (
     <button
-      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-colors
-        ${active
-          ? "border-cira-accent bg-cira-secondary text-cira-accent"
-          : "border-cira-border bg-cira-card text-cira-text-secondary hover:border-cira-accent"}
-        ${className}`}
+      className={`shrink-0 rounded-2xl border px-3 py-2 text-xs font-semibold transition-colors ${
+        active
+          ? "border-cira-accent bg-cira-nav-selected-bg text-cira-accent"
+          : "border-transparent bg-cira-card text-cira-text-secondary"
+      } ${className}`}
       {...rest}
     >
       {label}
-      <Icon name="expand_more" size={16} />
     </button>
   );
 }

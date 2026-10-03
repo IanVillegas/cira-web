@@ -7,6 +7,9 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
+// Réplica de CiraInputContainerStyle: fondo blanco, sin borde, radio 8,
+// altura mínima 56 y padding horizontal 14. El foco se marca con un anillo
+// sutil (en MAUI lo da la plataforma).
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, icon, error, className = "", id, ...rest }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
@@ -18,14 +21,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </span>
         )}
         <div
-          className={`flex items-center gap-2 rounded-cira-input border bg-cira-input-bg px-4 py-3 transition-colors focus-within:border-cira-accent
-            ${error ? "border-cira-btn-destructive-text" : "border-cira-input-border"}`}
+          className={`flex min-h-14 items-center gap-2 rounded-cira-input bg-cira-input-bg px-3.5 ring-1 ring-transparent transition-shadow focus-within:ring-cira-accent
+            ${error ? "ring-cira-btn-destructive-text" : ""}`}
         >
           {icon && <Icon name={icon} size={20} className="text-cira-text-helper" />}
           <input
             ref={ref}
             id={inputId}
-            className={`w-full bg-transparent text-cira-control text-cira-text-primary placeholder:text-cira-text-helper focus:outline-none ${className}`}
+            className={`min-h-12 w-full bg-transparent text-cira-control text-cira-text-primary placeholder:text-cira-text-helper focus:outline-none ${className}`}
             {...rest}
           />
         </div>
@@ -54,7 +57,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           ref={ref}
           id={areaId}
           rows={4}
-          className={`w-full resize-none rounded-cira-input border border-cira-input-border bg-cira-input-bg px-4 py-3 text-cira-control text-cira-text-primary placeholder:text-cira-text-helper focus:border-cira-accent focus:outline-none ${className}`}
+          className={`min-h-28 w-full resize-none rounded-cira-input bg-cira-input-bg px-3.5 py-2.5 text-cira-body text-cira-text-primary ring-1 ring-transparent placeholder:text-cira-text-helper focus:outline-none focus:ring-cira-accent ${className}`}
           {...rest}
         />
       </label>

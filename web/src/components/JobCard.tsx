@@ -55,17 +55,17 @@ export function JobCard({ trabajo, onApply, onContact }: JobCardProps) {
 
       <div className="mt-3 flex flex-col gap-2.5">
         <Button variant="outlined" onClick={() => onContact?.(trabajo.id)}>
-          Comunícate
+          COMUNÍCATE
         </Button>
         <div className="grid grid-cols-2 gap-3">
           <Button variant="outlined" onClick={() => navigate("/mapa")}>
-            Ver en mapa
+            VER EN MAPA
           </Button>
           <Button
             variant={trabajo.yaPostulado ? "destructive" : "primary"}
             onClick={() => onApply?.(trabajo.id)}
           >
-            {trabajo.yaPostulado ? "Retirar" : "Postularme"}
+            {trabajo.yaPostulado ? "RETIRAR" : "POSTULARME"}
           </Button>
         </div>
       </div>

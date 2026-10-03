@@ -38,7 +38,7 @@ export function PerfilPage() {
               <Icon name="task_alt" size={16} className="text-cira-accent" /> {usuario.trabajosCompletados} trabajos
             </span>
           </div>
-          <Button variant="outlined" onClick={() => navigate("/perfil/editar")}>
+          <Button variant="outlined" fullWidth={false} onClick={() => navigate("/perfil/editar")}>
             Editar perfil
           </Button>
         </Card>

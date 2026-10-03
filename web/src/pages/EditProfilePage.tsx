@@ -52,7 +52,7 @@ export function EditProfilePage() {
 
   return (
     <div className="pb-8">
-      <PageHeader title="Editar perfil" showBack />
+      <PageHeader title="Editar perfil" subtitle="Mantén tu información visible para clientes." showBack />
 
       <form className="flex flex-col gap-4 px-5" onSubmit={handleSubmit}>
         <Input

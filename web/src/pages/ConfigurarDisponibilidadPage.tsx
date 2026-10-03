@@ -24,7 +24,7 @@ export function ConfigurarDisponibilidadPage() {
 
   return (
     <div className="pb-8">
-      <PageHeader title="Disponibilidad" subtitle="Indicá cuándo podés recibir solicitudes." showBack />
+      <PageHeader title="Disponibilidad" subtitle="Indica cuándo puedes recibir solicitudes." showBack />
 
       <div className="px-5">
         <Card className="flex items-center justify-between">

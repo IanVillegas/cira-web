@@ -16,16 +16,16 @@ export function ChatsPage() {
 
   return (
     <div className="pb-4">
-      <PageHeader title="Mensajes" subtitle="Tus conversaciones activas." icon="chat" />
+      <PageHeader title="Mensajes" subtitle="Tus conversaciones activas" icon="chat" />
 
       <div className="px-5">
         {conversaciones === null ? (
           <Loader label="Cargando conversaciones..." />
         ) : conversaciones.length === 0 ? (
           <EmptyState
-            icon="chat_bubble"
-            title="Sin mensajes"
-            message="Cuando contactes a alguien, sus conversaciones aparecerán aquí."
+            image="empty_no_messages"
+            title="Sin conversaciones aún"
+            message="Las conversaciones aparecerán aquí cuando contactes a alguien."
           />
         ) : (
           conversaciones.map((c) => (

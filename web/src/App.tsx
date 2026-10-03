@@ -30,7 +30,7 @@ export default function App() {
         <Routes>
           {/* Autenticación (cada página maneja su propio PhoneFrame, sin bottom nav) */}
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/pin" element={<PinLoginPage />} />
+          <Route path="/sesion-expirada" element={<PinLoginPage />} />
           <Route path="/registro" element={<RegisterPage />} />
           <Route path="/recuperar" element={<RecoverAccessPage />} />
 

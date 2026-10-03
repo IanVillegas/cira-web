@@ -39,7 +39,7 @@ export function ConfigurarServiciosPage() {
 
   return (
     <div className="pb-8">
-      <PageHeader title="Configurar servicios" subtitle="Definí qué ofrecés y a qué precio." showBack />
+      <PageHeader title="Servicios" subtitle="Define qué ofreces y tu precio aproximado." showBack />
 
       <div className="px-5">
         <div className="space-y-3">

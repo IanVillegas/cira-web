@@ -22,16 +22,15 @@ export function HistorialTrabajosPage() {
 
   return (
     <div className="pb-4">
-      <PageHeader title="Historial" subtitle="Registro de trabajos realizados." icon="history" showBack />
+      <PageHeader title="Historial de trabajos" subtitle="Consulta tus trabajos finalizados y cancelados." icon="history" showBack />
 
       <div className="px-5">
         {historial === null ? (
           <Loader label="Cargando historial..." />
         ) : historial.length === 0 ? (
           <EmptyState
-            icon="history"
-            title="Sin historial"
-            message="Cuando completes trabajos aparecerán aquí."
+            title="Sin historial de trabajos"
+            message="Aquí aparecerán los trabajos que hayas completado o cancelado."
           />
         ) : (
           historial.map((h) => (

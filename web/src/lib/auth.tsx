@@ -4,19 +4,45 @@ import type { Usuario } from "./types";
 
 interface AuthContextValue {
   isAuthenticated: boolean;
+  /** Teléfono/correo recordado: si hay uno pero la sesión se perdió, se muestra "Sesión expirada". */
+  lastIdentifier: string | null;
   usuario: Usuario | null;
-  login: () => void;
+  login: (identifier: string) => void;
+  /** Cierra sesión y olvida la cuenta (vuelve al login normal). */
   logout: () => void;
+  /** Olvida solo la cuenta recordada ("Cambiar de cuenta"). */
+  forgetIdentifier: () => void;
   refrescarUsuario: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const STORAGE_KEY = "cira.session";
+const SESSION_KEY = "cira.session";
+const IDENTIFIER_KEY = "cira.identifier";
+
+function readStorage(storage: Storage, key: string): string | null {
+  try {
+    return storage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(storage: Storage, key: string, value: string | null) {
+  try {
+    if (value === null) storage.removeItem(key);
+    else storage.setItem(key, value);
+  } catch {
+    /* almacenamiento no disponible: la sesión sigue en memoria */
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    () => sessionStorage.getItem(STORAGE_KEY) === "true",
+    () => readStorage(sessionStorage, SESSION_KEY) === "true",
+  );
+  const [lastIdentifier, setLastIdentifier] = useState<string | null>(() =>
+    readStorage(localStorage, IDENTIFIER_KEY),
   );
   const [usuario, setUsuario] = useState<Usuario | null>(null);
 
@@ -34,27 +60,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isAuthenticated) refrescarUsuario();
   }, [isAuthenticated]);
 
-  const login = () => {
-    try {
-      sessionStorage.setItem(STORAGE_KEY, "true");
-    } catch {
-      /* almacenamiento no disponible: la sesión sigue en memoria */
-    }
+  const login = (identifier: string) => {
+    writeStorage(sessionStorage, SESSION_KEY, "true");
+    writeStorage(localStorage, IDENTIFIER_KEY, identifier);
+    setLastIdentifier(identifier);
     setIsAuthenticated(true);
   };
 
+  const forgetIdentifier = () => {
+    writeStorage(localStorage, IDENTIFIER_KEY, null);
+    setLastIdentifier(null);
+  };
+
   const logout = () => {
-    try {
-      sessionStorage.removeItem(STORAGE_KEY);
-    } catch {
-      /* almacenamiento no disponible */
-    }
+    writeStorage(sessionStorage, SESSION_KEY, null);
+    forgetIdentifier();
     setIsAuthenticated(false);
   };
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, usuario, login, logout, refrescarUsuario }}
+      value={{ isAuthenticated, lastIdentifier, usuario, login, logout, forgetIdentifier, refrescarUsuario }}
     >
       {children}
     </AuthContext.Provider>
