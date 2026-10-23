@@ -1,8 +1,10 @@
 # CIRA — Ideas de innovación
 
-Backlog de funcionalidades innovadoras para CIRA (curso Aplicaciones Informáticas Globales). Cada idea incluye su propósito, cómo funciona, su relación con el modelo de negocio y qué tan viable es para la demo del Entregable 2.
+Backlog de funcionalidades para CIRA (curso Aplicaciones Informáticas Globales). Cada idea incluye su propósito, cómo funciona, su relación con el modelo de negocio y qué tan viable es para la demo del entregable final.
 
-**Estados:** 💡 Propuesta · 🛠️ En desarrollo · ✅ Implementada · ❌ Descartada
+Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"**.
+
+**Estados:** 💡 Propuesta · ✔️ Aprobada · 🛠️ En desarrollo · ✅ Implementada · ❌ Descartada · 🗺️ Roadmap (fase futura)
 
 ---
 
@@ -10,81 +12,89 @@ Backlog de funcionalidades innovadoras para CIRA (curso Aplicaciones Informátic
 
 | # | Idea | Estado | Prioridad |
 |---|------|--------|-----------|
-| 1 | Calificación por estrellas (bidireccional) | 💡 Propuesta | Alta |
-| 2 | Diagnóstico con IA | 💡 Propuesta | Alta |
-| 3 | Modo Urgencia con recargo dinámico | 💡 Propuesta | Alta |
-| 4 | Pago protegido (escrow) con SINPE Móvil | 💡 Propuesta | Media |
+| 1 | Calificaciones (bidireccionales) y reportes | ✔️ Aprobada | Alta |
+| 2 | Diagnóstico / sugerencia de categoría con IA | ❌ Descartada → 🗺️ Roadmap | — |
+| 3 | Modo Urgencia con tarifa de urgencia | ✔️ Aprobada | Alta |
+| 4 | Pago en la app con comisión de CIRA | ✔️ Aprobada | Alta |
 | 5 | Verificación con insignias | 💡 Propuesta | Media |
-| 6 | Plan CIRA Plus para trabajadores (alertas prioritarias) | 💡 Propuesta | Alta |
+| 6 | Plan Plus para trabajadores (alertas prioritarias) | ✔️ Aprobada | Alta |
+| 7 | Seguimiento del trabajo tipo Uber | 💡 Propuesta | Media (la primera extra) |
+| 8 | Compartir un trabajo por WhatsApp | 💡 Propuesta | Baja |
+| 9 | Idioma español / inglés | 💡 Propuesta | Baja |
+
+**Monetización (freemium):** la app es gratis para todos y CIRA gana dinero con tres fuentes, todas simuladas en la demo:
+1. **Plan Plus**: suscripción mensual del trabajador (idea #6).
+2. **Tarifa de urgencia**: pago único por trabajo urgente (idea #3).
+3. **Comisión** sobre los pagos hechos en la app (idea #4).
 
 ---
 
-## 1. Calificación por estrellas (bidireccional)
+## 1. Calificaciones (bidireccionales) y reportes
 
-**Problema que resuelve:** En trabajos informales no hay forma de saber si un trabajador (o un patrono) es confiable antes de contratarlo.
+> Pendiente desde el semestre pasado.
+
+**Problema que resuelve:** En trabajos informales no hay forma de saber si un trabajador (o un cliente) es confiable antes de contratarlo.
 
 **Cómo funciona:**
-- Al terminar un trabajo, **ambas partes** se califican de 1 a 5 estrellas: el patrono califica al trabajador y el trabajador califica al patrono.
-- Se puede dejar un comentario opcional.
+- Al terminar un trabajo, **ambas partes** se califican de 1 a 5 estrellas y dejan un comentario: el cliente califica al trabajador y el trabajador califica al cliente.
 - El promedio se muestra en el perfil y en las tarjetas de exploración (`WorkerCard`, `JobCard`).
-- Los trabajadores también pueden evitar patronos con mala reputación (por ejemplo, que no pagan a tiempo).
+- Un botón **Reportar usuario** en el perfil o el chat permite indicar un motivo (no se presentó, mal trato, cobro indebido, etc.).
+- Los trabajadores también pueden evitar clientes con mala reputación (por ejemplo, que no pagan a tiempo).
 
 **Relación con el modelo de negocio:** Aumenta la confianza en la plataforma, lo que incrementa las transacciones y por ende las comisiones. Es la base del sistema de reputación.
 
-**Viabilidad para la demo:** Alta. Requiere una tabla `ratings` en SQLite, un endpoint para calificar y mostrar el promedio en las pantallas existentes.
+**Viabilidad para la demo:** Alta. Tablas `calificacion` y `reporte` en SQLite, endpoints para crearlas y el promedio calculado a partir de las calificaciones reales. Hoy la app solo muestra un promedio fijo de los datos de prueba.
 
 ---
 
-## 2. Diagnóstico con IA
+## 2. Diagnóstico / sugerencia de categoría con IA — ❌ Descartada (queda en el roadmap)
 
-**Problema que resuelve:** Muchas personas no saben qué tipo de trabajador necesitan ni cuánto debería costar el trabajo.
+**Idea original:** El cliente describe el problema o sube una foto y la IA sugiere la categoría, si es urgente y un rango de precio. En el primer entregable prometimos sugerir la categoría con IA.
 
-**Cómo funciona:**
-- El cliente sube una **foto** o **describe el problema** con sus palabras (ej. "se me reventó un tubo debajo del fregadero").
-- La IA:
-  - Clasifica la **categoría** del servicio (fontanería, electricidad, etc.).
-  - Detecta si es **urgente** (y puede activar el Modo Urgencia, idea #3).
-  - Sugiere un **rango de precio de referencia**.
-- Con eso se precarga el formulario de "Publicar trabajo".
+**Por qué se quita de la app (justificación para el documento):**
+- Las categorías son pocas y el selector ya es rápido; la IA no ahorra un esfuerzo real.
+- Implica **costo por uso** de una API externa.
+- Genera **dependencia de un proveedor externo**, un riesgo que identificamos en el análisis de Porter (poder de negociación de proveedores).
+- Preferimos priorizar el **Modo Urgencia** (idea #3), que aporta más valor con el mismo esfuerzo.
 
-**Relación con el modelo de negocio:** Reduce la fricción al publicar, lo que genera más trabajos publicados. Diferenciador fuerte frente a la competencia (grupos de Facebook, WhatsApp, recomendaciones de boca en boca).
+**Qué sí se documenta:** cómo usamos IA para **desarrollar** la app (obligatorio en la rúbrica).
 
-**Viabilidad para la demo:** Alta. Una llamada a una API de LLM con visión desde el backend Express. **Cumple el requisito de uso de cloud/IA del Entregable 2.**
+**Roadmap:** se puede retomar cuando haya volumen de trabajos que justifique el costo.
 
 ---
 
-## 3. Modo Urgencia con recargo dinámico
+## 3. Modo Urgencia con tarifa de urgencia
 
-> Idea propuesta por Mari.
+> Idea propuesta por Mari. Ya estaba en el primer entregable como "publicaciones potenciadas para tareas urgentes"; falta llevarla a la app.
 
 **Problema que resuelve:** Emergencias en el hogar (tubo quebrado con fuga, corto eléctrico, quedarse afuera sin llaves) necesitan ayuda inmediata, y hoy no hay forma rápida de conseguirla.
 
 **Cómo funciona:**
-- Al publicar, el cliente marca el trabajo como **urgente** (o la IA lo sugiere).
+- Al crear un trabajo, el cliente activa la opción **"Es urgente"**.
 - Limitado a categorías críticas: fontanería, electricidad y cerrajería.
-- Se envía una alerta solo a los trabajadores **disponibles en este momento** dentro de un radio corto (usando el mapa con Leaflet y las coordenadas `lat`/`lng` ya existentes).
-- El primero que acepta se queda con el trabajo; se muestra un tiempo estimado de llegada.
-- Se aplica un **recargo visible** (ej. +40%) sobre la tarifa, similar a la tarifa dinámica de Uber.
+- Se envía una alerta a los trabajadores **disponibles** de esa categoría más cercanos (usando las coordenadas `lat`/`lng` ya existentes); primero a los del Plan Plus (idea #6).
+- El primero que acepta se queda con el trabajo.
+- El trabajo se paga un poco mejor por ser inmediato, y el cliente paga una **tarifa de urgencia** que se muestra en el resumen del pago.
 
-**Relación con el modelo de negocio:** CIRA cobra una comisión mayor en trabajos urgentes. El trabajador gana más por responder rápido. El modelo de negocio **se ve funcionando** en la demo.
+**Relación con el modelo de negocio:** La tarifa de urgencia es un ingreso por pago único para CIRA, y el trabajador gana más por responder rápido. El modelo de negocio **se ve funcionando** en la demo.
 
-**Viabilidad para la demo:** Media-alta. Las notificaciones pueden simularse dentro de la app (banner o pantalla de alerta) sin push real.
+**Viabilidad para la demo:** Alta. La alerta se muestra como banner o pantalla dentro de la app, sin notificaciones push reales.
 
 ---
 
-## 4. Pago protegido (escrow) con SINPE Móvil
+## 4. Pago en la app con comisión de CIRA
 
 **Problema que resuelve:** Falta de confianza en los pagos: el cliente teme pagar por adelantado y que no se haga el trabajo; el trabajador teme no recibir su pago.
 
 **Cómo funciona:**
-- El cliente paga a CIRA al contratar (SINPE Móvil simulado).
-- El dinero queda **retenido** hasta que ambas partes confirmen que el trabajo terminó.
-- Confirmar el trabajo y **calificar con estrellas** (idea #1) es el mismo paso.
-- Al confirmar, se libera el pago al trabajador menos la comisión de CIRA.
+- Solo quedan dos métodos de pago: **Efectivo** y **Pago en la app**. Se eliminan SINPE y Transferencia (ya se quitaron en el primer entregable, pero siguen en el código).
+- Con "Pago en la app" el resumen del pago muestra el monto del trabajo, la **comisión de CIRA** y, si aplica, la tarifa de urgencia.
+- El pago es **simulado** (el profesor lo permite).
+- Opcional: el dinero queda retenido hasta que ambas partes confirmen que el trabajo terminó; confirmar y calificar (idea #1) es el mismo paso.
 
 **Relación con el modelo de negocio:** Justifica directamente la **comisión por transacción** y la hace visible en el flujo.
 
-**Viabilidad para la demo:** Alta como simulación (pantalla de "pago" fingido, como pidió el profesor). No requiere pasarela real.
+**Viabilidad para la demo:** Alta como simulación (pantalla de pago fingido). No requiere pasarela real.
 
 ---
 
@@ -93,60 +103,104 @@ Backlog de funcionalidades innovadoras para CIRA (curso Aplicaciones Informátic
 **Problema que resuelve:** Las estrellas solas no dicen si la persona es quien dice ser ni si tiene experiencia comprobada.
 
 **Cómo funciona:** Badges visibles en el perfil y en las tarjetas:
+- ⭐ **Plus** (se activa al suscribirse, idea #6)
 - ✔️ Cédula verificada
 - 📄 Hoja de delincuencia al día
 - 🏅 +50 trabajos completados
 - ⚡ Responde urgencias
 
-**Relación con el modelo de negocio:** Posible monetización futura (verificación premium o destacar perfiles verificados).
+**Relación con el modelo de negocio:** La insignia Plus hace visible la suscripción. Las demás aumentan la confianza.
 
-**Viabilidad para la demo:** Alta. Son campos en la base de datos y componentes visuales.
+**Viabilidad para la demo:** Alta. La insignia Plus es la mínima necesaria; las demás son campos en la base de datos y componentes visuales.
 
 ---
 
-## 6. Plan CIRA Plus para trabajadores (alertas prioritarias)
+## 6. Plan Plus para trabajadores (alertas prioritarias)
 
-> Idea propuesta por un compañero del equipo. Complementa el Modo Urgencia de Mari (idea #3).
+> Idea propuesta por un compañero del equipo. Complementa el Modo Urgencia (idea #3).
 
-**Problema que resuelve:** Los trabajadores pierden oportunidades porque no se enteran a tiempo de los trabajos cercanos. Por su parte, CIRA necesita una fuente de ingreso recurrente además de la comisión por transacción.
+**Problema que resuelve:** Los trabajadores pierden oportunidades porque no se enteran a tiempo de los trabajos cercanos. Por su parte, CIRA necesita un ingreso recurrente además de la comisión.
 
-**Cómo funciona:** Modelo *freemium* con dos planes para trabajadores:
+**Cómo funciona:** Pantalla de planes (**Gratis** y **Plus**) con un botón para suscribirse (pago simulado). Al activarlo, el trabajador ve su insignia en el perfil.
 
-| | Plan Básico (gratis) | Plan Plus (suscripción mensual) |
+| | Plan Gratis | Plan Plus (suscripción mensual) |
 |---|---|---|
 | Perfil, postularse, chat | ✅ | ✅ |
 | Explorar trabajos | ✅ | ✅ |
-| Alertas de trabajos de su oficio en su zona | Con demora | **Instantáneas y primero** |
-| Alertas de urgencias (idea #3) | Si nadie Plus acepta | **Prioridad** |
-| Panel "Te están buscando cerca" | ❌ | ✅ |
-| Perfil destacado en búsquedas | ❌ | ✅ |
+| Alertas de trabajos de su oficio en su zona | Unos minutos después | **Primero** |
+| Alertas de urgencias (idea #3) | Unos minutos después | **Primero** |
+| Insignia Plus en el perfil | ❌ | ✅ |
 
-- **Alerta prioritaria:** si soy electricista Plus y alguien cerca publica que necesita un electricista, me llega la notificación de inmediato, antes que a los trabajadores del plan básico.
-- **Panel "Te están buscando cerca":** al abrir la app, el trabajador Plus ve primero la lista de clientes cercanos que buscan su oficio, ordenada por distancia (usando el mapa y las coordenadas `lat`/`lng`).
+- Ejemplo: si soy electricista Plus y alguien cerca busca un electricista, me llega la alerta de inmediato y unos minutos antes que a los del plan gratis.
+- **Ventaja de minutos, no exclusividad:** si solo los que pagan recibieran alertas, el cliente se podría quedar sin respuesta y los trabajadores gratis dejarían de usar la app.
 
-**A tener en cuenta:**
-- La prioridad debe ser una **ventaja de tiempo** (ej. los Plus reciben la alerta 2–3 minutos antes), no una exclusividad. Así el cliente siempre recibe respuesta y los trabajadores gratuitos siguen teniendo oportunidades.
-- Se puede combinar con la reputación: entre los Plus, la alerta llega primero a los mejor calificados (idea #1).
+**Valoración:**
+- ✅ Agrega un ingreso recurrente y es fácil de explicar en el Business Model Canvas.
+- ⚠️ Aporta más a la **monetización** que a la innovación.
+- ⚠️ Al lanzar, con pocos trabajos, pocos pagarían por enterarse primero. El precio debe ser bajo, porque el público son trabajadores independientes.
+- ⚠️ Conviene que, entre los Plus, la alerta llegue primero a los mejor calificados (idea #1), para que la prioridad no dependa solo de pagar.
 
-**Relación con el modelo de negocio:** Agrega una segunda fuente de ingresos (**suscripción**) a la comisión por transacción. Debe reflejarse en el Business Model Canvas (fuentes de ingreso y segmentos de clientes).
+**Viabilidad para la demo:** Alta. Un campo `plan` en el usuario, la pantalla de planes y la alerta como banner.
 
-**Viabilidad para la demo:** Alta. Un campo `plan` en el usuario, una pantalla de planes con "pago" simulado y la alerta mostrada como banner dentro de la app.
+---
+
+## 7. Seguimiento del trabajo tipo Uber
+
+> Idea extra. Si sobra tiempo, es la primera que haríamos.
+
+**Problema que resuelve:** En una urgencia, el cliente no sabe si el trabajador realmente viene ni cuánto falta.
+
+**Cómo funciona:** Después de aceptar un trabajo urgente, el cliente ve el estado avanzar: **Aceptado → En camino → Llegó → Terminado**. El trabajador actualiza el estado desde su pantalla.
+
+**Relación con el modelo de negocio:** Hace más valiosa la tarifa de urgencia y cierra el flujo de la demo (el estado "Terminado" lleva a pagar y calificar).
+
+**Viabilidad para la demo:** Alta. Es un campo de estado en el trabajo; con dos usuarios conectados se ve el cambio del otro lado.
+
+---
+
+## 8. Compartir un trabajo por WhatsApp
+
+> Idea extra.
+
+**Cómo funciona:** Un botón en el detalle del trabajo genera un link y abre WhatsApp con el mensaje listo para enviar.
+
+**Relación con el modelo de negocio:** En el primer entregable definimos WhatsApp como el canal para conseguir usuarios. Además da una métrica fácil: cuántos usuarios llegan por links compartidos.
+
+**Viabilidad para la demo:** Alta. Se usa un link `wa.me` desde el frontend.
+
+---
+
+## 9. Idioma español / inglés
+
+> Idea extra.
+
+**Cómo funciona:** Selector de idioma en el menú de cuenta; los textos de la app cambian entre español e inglés.
+
+**Relación con el modelo de negocio:** Es lo que más se conecta con el enfoque de aplicaciones **globales** y con la expansión a Latinoamérica del roadmap.
+
+**Viabilidad para la demo:** Media. Hay que extraer los textos de ~20 pantallas a archivos de traducción; conviene hacerlo al final.
+
+---
+
+## Cambios técnicos pendientes (no son ideas nuevas)
+
+- **Quitar SINPE y Transferencia del código.** Siguen en `types.ts`, `CrearTrabajoPage.tsx` (SINPE viene por defecto), `EditProfilePage.tsx`, `PerfilPage.tsx` y `seed.js`. Solo deben quedar "Efectivo" y "Pago en la app".
+- **Editar publicaciones.** El backend ya permite editar un trabajo (`PATCH /trabajos/:id`); falta el botón y la pantalla en "Mis publicaciones".
+- **Usuarios definidos y multiusuario.** Login por teléfono con PIN `1234` para todos (fase de pruebas), para que varios compañeros puedan interactuar a la vez (postularse, chatear, calificar). Hoy el backend usa un usuario fijo (`u-1`). Los teléfonos reales van en un archivo local excluido de git, no en el repo.
+- **Publicar en internet:** no es necesario. La demo corre local con `npm run demo` y los demás dispositivos se conectan por la misma red WiFi.
 
 ---
 
 ## Flujo integrado para la demo
 
-Las ideas se conectan en un solo recorrido:
-
-1. El cliente toma una foto del tubo quebrado.
-2. La **IA** detecta: fontanería, urgente, rango de precio sugerido.
-3. Se activa el **Modo Urgencia** y se alerta a fontaneros cercanos disponibles, primero a los del **Plan Plus**.
-4. Un trabajador **verificado** acepta.
-5. El cliente paga y el dinero queda **retenido**.
-6. Al terminar, ambos confirman y se **califican con estrellas**; se libera el pago.
+1. El cliente crea un trabajo de fontanería y activa **"Es urgente"**.
+2. La alerta llega primero a los fontaneros **Plus** cercanos y, minutos después, al resto.
+3. Un trabajador acepta y el cliente ve el **seguimiento**: Aceptado → En camino → Llegó → Terminado.
+4. El cliente paga con **Pago en la app**; el resumen muestra la tarifa de urgencia y la comisión de CIRA.
+5. Ambos se **califican con estrellas** y, si hace falta, pueden **reportar** al otro usuario.
 
 ---
 
 ## Ideas por evaluar
 
-_(Agregar aquí nuevas propuestas del equipo)_
+_(Agregar aquí nuevas propuestas del equipo; se valoran antes de pasarlas al resumen.)_
