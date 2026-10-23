@@ -33,6 +33,18 @@ export function TarjetaPage() {
 
   useEffect(() => () => window.clearTimeout(temporizador.current), []);
 
+  // Al entrar con una tarjeta ya registrada, gira sola una vez (y regresa) para mostrar el reverso.
+  const giroAlEntrar = useRef(false);
+  const tieneTarjeta = !!usuario?.tarjeta;
+  useEffect(() => {
+    if (!tieneTarjeta || giroAlEntrar.current) return;
+    const t = window.setTimeout(() => {
+      giroAlEntrar.current = true;
+      girarUnMomento();
+    }, 500);
+    return () => window.clearTimeout(t);
+  }, [tieneTarjeta]);
+
   const girarUnMomento = () => {
     window.clearTimeout(temporizador.current);
     setGiroBreve(true);
