@@ -165,7 +165,6 @@ export interface ConfigNegocio {
   urgenciaPct: number;
   plusPrecio: number;
   retrasoGratisSeg: number;
-  categoriasUrgentes: string[];
 }
 
 export interface Ingresos {

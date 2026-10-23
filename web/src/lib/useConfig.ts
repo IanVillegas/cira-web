@@ -8,7 +8,6 @@ const POR_DEFECTO: ConfigNegocio = {
   urgenciaPct: 15,
   plusPrecio: 2500,
   retrasoGratisSeg: 120,
-  categoriasUrgentes: ["Plomería", "Electricidad", "Cerrajería"],
 };
 
 let cache: ConfigNegocio | null = null;

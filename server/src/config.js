@@ -23,6 +23,5 @@ export const CONFIG = {
   RADIO_ALERTAS_KM: 15,
 };
 
-export const CATEGORIAS_URGENTES = ["Plomería", "Electricidad", "Cerrajería"];
 export const METODOS_PAGO = ["Efectivo", "Tarjeta"];
 export const ETAPAS = ["Aceptado", "En camino", "Llegó", "Terminado"];

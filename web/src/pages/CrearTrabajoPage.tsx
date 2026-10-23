@@ -85,8 +85,7 @@ export function CrearTrabajoPage() {
       .finally(() => setCargando(false));
   }, [id]);
 
-  const puedeUrgencia = !editando && config.categoriasUrgentes.includes(form.categoria);
-  const esUrgente = urgente && (editando || puedeUrgencia);
+  const esUrgente = urgente;
   const metodoEfectivo: MetodoPago = form.metodoPago;
   // Con tarjeta, o en una urgencia (la tarifa se cobra con tarjeta), hace falta una tarjeta registrada.
   const faltaTarjeta = (metodoEfectivo === "Tarjeta" || esUrgente) && !usuario?.tarjeta;
@@ -162,7 +161,7 @@ export function CrearTrabajoPage() {
           <Card
             className={`flex items-start gap-3 border ${
               esUrgente ? "border-cira-btn-destructive-text" : "border-cira-border"
-            } ${puedeUrgencia || editando ? "" : "opacity-80"}`}
+            }`}
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cira-btn-destructive-bg">
               <Icon name="bolt" filled size={22} className="text-cira-btn-destructive-text" />
@@ -170,12 +169,10 @@ export function CrearTrabajoPage() {
             <div className="flex-1">
               <p className="text-[15px] font-semibold text-cira-text-primary">{tr("Es urgente")}</p>
               <p className="text-xs text-cira-text-secondary">
-                {puedeUrgencia || editando
-                  ? tr("Alertamos primero a los trabajadores más cercanos y disponibles. Tiene una tarifa de urgencia del {pct}%, que se cobra con tu tarjeta registrada.", { pct: config.urgenciaPct })
-                  : tr("Disponible solo para Plomería, Electricidad y Cerrajería. Elige una de esas categorías para activarla.")}
+                {tr("Alertamos primero a los trabajadores más cercanos y disponibles. Tiene una tarifa de urgencia del {pct}%, que se cobra con tu tarjeta registrada.", { pct: config.urgenciaPct })}
               </p>
             </div>
-            {!editando && <Switch checked={esUrgente} onChange={setUrgente} disabled={!puedeUrgencia} label={tr("Es urgente")} />}
+            {!editando && <Switch checked={esUrgente} onChange={setUrgente} label={tr("Es urgente")} />}
           </Card>
         )}
 

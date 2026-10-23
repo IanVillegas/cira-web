@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
 import { db } from "./db.js";
-import { CATEGORIAS_URGENTES, CONFIG, ETAPAS, METODOS_PAGO } from "./config.js";
+import { CONFIG, ETAPAS, METODOS_PAGO } from "./config.js";
 import {
   calcularResumenPago,
   distanciaKm,
@@ -98,7 +98,6 @@ router.get("/config", (_req, res) => {
     urgenciaPct: CONFIG.URGENCIA_PCT,
     plusPrecio: CONFIG.PLUS_PRECIO,
     retrasoGratisSeg: CONFIG.RETRASO_GRATIS_SEG,
-    categoriasUrgentes: CATEGORIAS_URGENTES,
   });
 });
 
@@ -301,9 +300,6 @@ router.post("/trabajos", (req, res) => {
   if (!titulo || !categoria || !ubicacion || !(pago > 0) || (!fecha && !esUrgente)) {
     return error(res, 400, "Faltan campos obligatorios o el pago no es válido.");
   }
-  if (esUrgente && !CATEGORIAS_URGENTES.includes(categoria)) {
-    return error(res, 400, "El modo urgencia solo aplica a las categorías críticas (plomería, electricidad y cerrajería).");
-  }
   const metodo = metodoPago;
   if (!METODOS_PAGO.includes(metodo)) return error(res, 400, "Método de pago no válido.");
   if (!tarjetaOk(req.usuarioId, metodo, esUrgente)) return error(res, 400, MSG_SIN_TARJETA);
@@ -328,9 +324,6 @@ router.patch("/trabajos/:id", (req, res) => {
 
   const { titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodoPago } = req.body;
   if (pago != null && !(pago > 0)) return error(res, 400, "El pago no es válido.");
-  if (row.urgente && categoria && !CATEGORIAS_URGENTES.includes(categoria)) {
-    return error(res, 400, "Una urgencia debe mantener una categoría crítica.");
-  }
   const metodo = metodoPago;
   if (metodo && !METODOS_PAGO.includes(metodo)) return error(res, 400, "Método de pago no válido.");
   if (!tarjetaOk(req.usuarioId, metodo ?? row.metodo_pago, !!row.urgente)) return error(res, 400, MSG_SIN_TARJETA);

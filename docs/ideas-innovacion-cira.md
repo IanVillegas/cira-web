@@ -71,7 +71,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 **Cómo funciona:**
 - Al crear un trabajo, el cliente activa la opción **"Es urgente"**.
-- Limitado a categorías críticas: fontanería, electricidad y cerrajería.
+- Disponible para cualquier categoría (decisión tras la primera revisión; el documento original la limitaba a fontanería, electricidad y cerrajería).
 - Se envía una alerta a los trabajadores **disponibles** de esa categoría más cercanos (usando las coordenadas `lat`/`lng` ya existentes); primero a los del Plan Plus (idea #6).
 - El primero que acepta se queda con el trabajo.
 - El trabajo se paga un poco mejor por ser inmediato, y el cliente paga una **tarifa de urgencia** que se muestra en el resumen del pago.
