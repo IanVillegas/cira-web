@@ -41,7 +41,11 @@ export function MisPublicacionesPage() {
 
   return (
     <div className="pb-6">
-      <PageHeader title={tr("Explorar")} subtitle={tr("Consulta y administra tus publicaciones.")} />
+      <PageHeader
+        title={tr("Explorar")}
+        subtitle={tr("Consulta y administra tus publicaciones.")}
+        action={{ icon: "notifications", label: tr("Alertas"), onClick: () => navigate("/alertas") }}
+      />
       <ExploreTabs />
 
       <div className="grid gap-3 px-5 pt-4">

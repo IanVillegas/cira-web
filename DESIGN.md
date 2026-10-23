@@ -102,15 +102,16 @@ Interletrado negativo en todo texto de 15px o más; ya viene en cada clase.
 | `Switch` | `Switch` | `checked`, `onChange`, `label` |
 | `SelectableCard` | `SelectableCard` | `icon`, `text`, `selected`, `onClick` |
 | `FilterChip` | `FilterChip` | `label`, `active` |
-| `SegmentedControl` | `ExploreTabs` | `items` (`{ value, label }`), `value`, `onChange`, `fullWidth` |
+| `SegmentedControl` | `ExploreTabs` | `items` (`{ value, label }`), `value`, `onChange`, `fullWidth`, `gutter` (margen lateral de 20px que se desplaza con el contenido) |
 | `PinInput` | `PinInput` | igual que hoy + `error` |
-| `PageHeader` | `PageHeader` | `title`, `subtitle`, `onBack`, `backLabel`, `action` (`{ icon, label, onClick }`), `large` |
+| `PageHeader` | `PageHeader` | `title`, `subtitle` (una sola línea), `onBack`, `backLabel`, `action` (`{ icon, label, onClick }`), `large`, `reserveBar` (reserva la barra superior para que los títulos de sección queden a la misma altura) |
 | `EmptyState` | `EmptyState` | `title`, `message`, `image` (`/images/empty_*.svg`), `action` |
 | `Loader`, `Spinner`, `Skeleton` | `Loader` | `Skeleton`: `width`, `height`, `radius`, `lines` |
 | `TabBar` | `BottomNav` | `items` (`{ key, label, icon, badge? }`), `value`, `onChange`, `floating`. `badge` pinta un contador rojo (mensajes sin leer) |
 | `Sheet` | `DistrictPickerSheet` y similares | `open`, `onClose`, `title`, `subtitle`, `contained` |
 | `Toast` | nuevo | `open`, `message`, `tone`, `icon`, `onClose`, `duration`, `onPress` (tocar el aviso hace algo, p. ej. abrir un chat) |
 | `Dialog` | `SuccessModal` | `open`, `onClose`, `title`, `message`, `icon`, `tone` (`success`, `accent`, `danger`), `actions`, `contained`; el contenido extra va como `children` |
+| `CreditCard` | nuevo | `brand`, `number`, `holder`, `expiry`, `cvv`, `flipped`, `onClick`, `labels`; tarjeta realista con chip y reverso que gira 180° al cambiar `flipped` (en táctil: al tocarla o al enfocar el CVV) |
 | `Fab` | nuevo | `icon`, `label` (accesible, obligatoria), `onClick`; círculo de 56px para la acción principal de una lista |
 | `Reveal`, `Stagger` | nuevos | `effect` (`up`, `scale`, `fade`), `delay`, `step` |
 | `Icon` | `Icon` | `name` (Material Symbols Rounded), `filled`, `size` |
@@ -176,6 +177,8 @@ Viven en `web/src/components/` (no en `aire/`) porque dependen de la lógica de 
 | `ToastHost` y `lib/toast.ts` | `mostrarToast(texto, tipo, accion?)` desde cualquier lugar; el host muestra el aviso más reciente con `Toast` |
 | `JobCard`, `WorkerCard`, `PublicacionCard`, `JobStatusCard` | Tarjetas de trabajo y personas (una acción principal por tarjeta) |
 | `PagarSheet`, `RatingSheet`, `ReportSheet`, `DistrictPickerSheet` | Hojas de pago con propina, calificación, reporte y distrito |
+
+- Las rejillas `grid` de una columna miden como mucho el ancho disponible (regla global en `index.css`): un texto con `truncate` no ensancha la tarjeta.
 
 ## Migración
 

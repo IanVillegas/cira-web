@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import type { MetodoPago } from "@/lib/types";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
+import { formatearTelefono, soloDigitosTelefono } from "@/lib/format";
 
 const METODOS: { value: MetodoPago; icon: string }[] = [
   { value: "Efectivo", icon: "payments" },
@@ -45,7 +46,7 @@ export function EditProfilePage() {
   useEffect(() => {
     if (!usuario) return;
     setNombres(separarNombre(usuario.nombre));
-    setContacto({ telefono: usuario.telefono, correo: usuario.correo ?? "", cedula: usuario.cedula });
+    setContacto({ telefono: soloDigitosTelefono(usuario.telefono), correo: usuario.correo ?? "", cedula: usuario.cedula });
     setDistrito(distritoDe(usuario.zona));
     setZonaTexto(usuario.zona);
     setMetodos(usuario.metodosPago);
@@ -127,10 +128,10 @@ export function EditProfilePage() {
             type="tel"
             inputMode="numeric"
             icon="call"
-            maxLength={8}
+            maxLength={9}
             placeholder={tr("Teléfono")}
-            value={contacto.telefono}
-            onChange={(e) => setContacto({ ...contacto, telefono: e.target.value.replace(/\D/g, "") })}
+            value={formatearTelefono(contacto.telefono)}
+            onChange={(e) => setContacto({ ...contacto, telefono: soloDigitosTelefono(e.target.value) })}
           />
           <Input type="email" icon="mail" placeholder={tr("Correo")} value={contacto.correo} onChange={(e) => setContacto({ ...contacto, correo: e.target.value })} />
           <Input icon="badge" placeholder={tr("Cédula (opcional)")} value={contacto.cedula} onChange={(e) => setContacto({ ...contacto, cedula: e.target.value })} />

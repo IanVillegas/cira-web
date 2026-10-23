@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Card, Icon, Input, Loader, PageHeader } from "@/components/aire";
+import { Button, Card, CreditCard, Input, Loader, PageHeader } from "@/components/aire";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
+import { marcaDe, numeroEnmascarado } from "@/lib/tarjeta";
 import { mostrarToast } from "@/lib/toast";
 
 const soloDigitos = (v: string) => v.replace(/\D/g, "");
@@ -25,6 +26,18 @@ export function TarjetaPage() {
   const [form, setForm] = useState({ numero: "", titular: "", vence: "", cvv: "" });
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // La tarjeta gira al enfocar el CVV (muestra el reverso) y un momento al tocarla o al guardarla.
+  const [cvvEnfocado, setCvvEnfocado] = useState(false);
+  const [giroBreve, setGiroBreve] = useState(false);
+  const temporizador = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(temporizador.current), []);
+
+  const girarUnMomento = () => {
+    window.clearTimeout(temporizador.current);
+    setGiroBreve(true);
+    temporizador.current = window.setTimeout(() => setGiroBreve(false), 2200);
+  };
 
   if (!usuario) return <Loader label={tr("Cargando tarjeta...")} />;
   const tarjeta = usuario.tarjeta;
@@ -39,6 +52,7 @@ export function TarjetaPage() {
       setForm({ numero: "", titular: "", vence: "", cvv: "" });
       setEditando(false);
       mostrarToast(tr("Tarjeta registrada"));
+      girarUnMomento();
     } catch (e) {
       setError(e instanceof Error ? e.message : tr("No se pudo guardar la tarjeta."));
     } finally {
@@ -64,17 +78,17 @@ export function TarjetaPage() {
       />
 
       <div className="grid gap-4 px-5 pt-2">
-        <div className="flex h-[176px] flex-col justify-between rounded-aire-lg bg-aire-accent p-5 text-aire-on-accent shadow-aire-accent">
-          <div className="flex items-center justify-between">
-            <Icon name="contactless" size={30} />
-            <span className="aire-text-headline">{tarjeta?.marca ?? tr("Sin tarjeta")}</span>
-          </div>
-          <p className="aire-text-title-2 tracking-[0.18em]">{tarjeta ? `•••• •••• •••• ${tarjeta.ultimos4}` : "•••• •••• •••• ••••"}</p>
-          <div className="aire-text-footnote flex items-end justify-between uppercase">
-            <span>{tarjeta?.titular ?? tr("Titular")}</span>
-            <span>{tarjeta?.vence ?? "MM/AA"}</span>
-          </div>
-        </div>
+        <CreditCard
+          brand={mostrarForm ? marcaDe(form.numero) : (tarjeta?.marca ?? "Tarjeta")}
+          number={mostrarForm || !tarjeta ? numeroEnmascarado(form.numero) : `•••• •••• •••• ${tarjeta.ultimos4}`}
+          holder={mostrarForm || !tarjeta ? form.titular : tarjeta.titular}
+          expiry={mostrarForm || !tarjeta ? form.vence : tarjeta.vence}
+          cvv={mostrarForm ? "•".repeat(form.cvv.length) : ""}
+          flipped={cvvEnfocado || giroBreve}
+          onClick={girarUnMomento}
+          label={tr("Tarjeta")}
+          labels={{ holder: tr("Titular"), expires: tr("Vence"), namePlaceholder: tr("NOMBRE APELLIDO"), fine: tr("CIRA · Tarjeta simulada") }}
+        />
 
         {mostrarForm ? (
           <Card className="grid gap-3">
@@ -97,6 +111,8 @@ export function TarjetaPage() {
                 placeholder="CVV"
                 maxLength={4}
                 value={form.cvv}
+                onFocus={() => setCvvEnfocado(true)}
+                onBlur={() => setCvvEnfocado(false)}
                 onChange={(e) => setForm({ ...form, cvv: soloDigitos(e.target.value) })}
               />
             </div>

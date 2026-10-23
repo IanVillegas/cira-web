@@ -9,7 +9,8 @@ import { PhoneFrame } from "./PhoneFrame";
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <PhoneFrame>
-      <div className="no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto px-5 py-8">
+      <div className="relative isolate flex min-h-0 flex-1 flex-col overflow-hidden bg-aire-accent-soft before:absolute before:inset-0 before:-z-10 before:bg-[url(/images/background.svg)] before:bg-cover before:opacity-[0.14] before:content-['']">
+        <div className="no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto px-5 py-8">
         <div className="flex h-[180px] shrink-0 items-end justify-center pb-6">
           <img src="/images/cira_isotipo_outline_blue.svg" alt="CIRA" className="h-28 w-28" />
         </div>
@@ -19,6 +20,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         </Reveal>
 
         <div className="min-h-6 flex-1" />
+        </div>
       </div>
     </PhoneFrame>
   );

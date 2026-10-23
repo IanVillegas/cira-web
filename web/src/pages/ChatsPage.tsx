@@ -38,7 +38,7 @@ export function ChatsPage() {
 
   return (
     <div className="pb-6">
-      <PageHeader title={tr("Mensajes")} subtitle={tr("Tus conversaciones activas")} />
+      <PageHeader title={tr("Mensajes")} subtitle={tr("Tus conversaciones activas")} reserveBar />
 
       {error ? (
         <Vacio image="empty_no_signal" title={tr("Sin conexión")} />

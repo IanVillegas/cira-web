@@ -193,7 +193,7 @@
 .ca-btn--sm { min-height: 34px; padding: 0 14px; font-size: 14px; letter-spacing: -0.15px; }
 .ca-btn--lg { min-height: 54px; padding: 0 28px; font-size: 17px; letter-spacing: -0.43px; }
 .ca-btn__label { display: inline-flex; align-items: center; gap: 8px; transition: opacity var(--ca-dur-fast), transform var(--ca-dur-base) var(--ca-ease-out); }
-.ca-btn__spinner { position: absolute; }
+.ca-btn__spinner { position: absolute; inset: 0; margin: auto; }
 .ca-btn.is-loading .ca-btn__label { opacity: 0; transform: scale(0.9); }
 .ca-btn.is-loading .ca-btn__spinner { animation: ca-fade-in var(--ca-dur-fast) var(--ca-ease-out) both; }
 .ca-btn:disabled { cursor: not-allowed; }
@@ -246,6 +246,61 @@
 }
 .ca-fab:active { transform: scale(0.92); transition-duration: var(--ca-dur-instant); }
 .ca-fab:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--aire-focus), var(--aire-shadow-accent); }
+
+/* Tarjeta de crédito con giro 3D */
+.ca-ccard {
+  display: block;
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  margin-inline: auto;
+  aspect-ratio: 1.586;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  perspective: 1000px;
+  container-type: inline-size;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.ca-ccard__inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.8s var(--ca-ease-spring); }
+.ca-ccard.is-flipped .ca-ccard__inner { transform: rotateY(180deg); }
+.ca-ccard:focus-visible { outline: none; border-radius: var(--aire-radius-lg); box-shadow: 0 0 0 3px var(--aire-focus); }
+.ca-ccard__face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--aire-radius-lg);
+  background: var(--aire-ink);
+  color: var(--aire-surface);
+  box-shadow: var(--aire-shadow-float);
+  overflow: hidden;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.ca-ccard__front { justify-content: space-between; padding: 6.5cqw 7cqw; }
+.ca-ccard__back { transform: rotateY(180deg); padding: 0 0 6cqw; justify-content: flex-start; }
+.ca-ccard__top { display: flex; align-items: center; gap: 3cqw; }
+.ca-ccard__chip { width: 13cqw; height: auto; }
+.ca-ccard__nfc { opacity: 0.8; font-size: 8cqw !important; }
+.ca-ccard__brand { margin-left: auto; font: 700 3.4cqw/1 var(--aire-font-sans); letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.85; }
+.ca-ccard__number { font: 600 6.4cqw/1 var(--aire-font-sans); letter-spacing: 0.1em; font-variant-numeric: tabular-nums; white-space: nowrap; text-shadow: 0 1px 1px rgb(0 0 0 / 0.4); }
+.ca-ccard__bottom { display: flex; align-items: flex-end; gap: 6cqw; }
+.ca-ccard__meta { display: grid; gap: 1cqw; min-width: 0; }
+.ca-ccard__meta small { font: 600 2.4cqw/1 var(--aire-font-sans); letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.6; }
+.ca-ccard__meta b { font: 600 3.9cqw/1.1 var(--aire-font-sans); letter-spacing: 0.06em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ca-ccard__bottom > .ca-ccard__meta:first-child { flex: 1; }
+.ca-ccard__logo { width: 11cqw; height: 11cqw; margin-left: auto; flex: none; }
+.ca-ccard__wordmark { margin-left: auto; font: 800 5.4cqw/1 var(--aire-font-sans); letter-spacing: 0.04em; }
+.ca-ccard__wordmark--visa { font-style: italic; }
+.ca-ccard__wordmark--amex { padding: 1.2cqw 1.8cqw; border: 0.4cqw solid currentColor; border-radius: 1cqw; font-size: 3.8cqw; letter-spacing: 0.12em; }
+.ca-ccard__strip { display: block; height: 17%; margin-top: 8%; background: repeating-linear-gradient(45deg, var(--aire-ink-2), var(--aire-ink-2) 10px, var(--aire-ink) 10px, var(--aire-ink) 20px); }
+.ca-ccard__sign { display: flex; align-items: center; gap: 2cqw; margin: 6cqw 6cqw 0; }
+.ca-ccard__signline { flex: 1; height: 9cqw; border-radius: 1cqw; background: var(--aire-surface); opacity: 0.9; }
+.ca-ccard__code { display: inline-flex; align-items: center; justify-content: center; min-width: 15cqw; height: 9cqw; padding: 0 2cqw; border-radius: 1cqw; background: var(--aire-surface); color: var(--aire-ink); font: 700 4.4cqw/1 var(--aire-font-sans); letter-spacing: 0.12em; }
+.ca-ccard__fine { margin: auto 6cqw 0; font: 500 2.6cqw/1 var(--aire-font-sans); letter-spacing: 0.08em; opacity: 0.55; text-transform: uppercase; }
 
 /* ── Indicador de actividad ────────────────────────────── */
 .ca-spinner { position: relative; display: inline-block; }
@@ -455,6 +510,7 @@
 
 /* ── Control segmentado ────────────────────────────────── */
 .ca-seg-scroll { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.ca-seg-scroll.has-gutter { padding-inline: 20px; scroll-padding-inline: 20px; }
 .ca-seg-scroll::-webkit-scrollbar { display: none; }
 .ca-seg {
   position: relative;
@@ -545,7 +601,8 @@
 .ca-header__titles { animation: ca-fade-up var(--ca-dur-slow) var(--ca-ease-out) both; }
 .ca-header h1 { margin: 0; font: 600 22px/28px var(--aire-font-display); letter-spacing: -0.45px; color: var(--aire-ink); }
 .ca-header--large h1 { font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: -0.9px; }
-.ca-header p { margin: 2px 0 0; font: 400 15px/20px var(--aire-font-sans); letter-spacing: -0.24px; color: var(--aire-ink-2); }
+.ca-header p { margin: 2px 0 0; font: 400 15px/20px var(--aire-font-sans); letter-spacing: -0.24px; color: var(--aire-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ca-header__titles { min-width: 0; }
 
 /* ── Estado vacío ──────────────────────────────────────── */
 .ca-empty { display: flex; flex-direction: column; align-items: center; padding: 32px 32px; text-align: center; }

@@ -95,6 +95,12 @@ export function ConversacionPage() {
       />
 
       <div className="relative min-h-0 flex-1">
+        <img
+          src="/images/background.svg"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.09]"
+        />
         <div className="no-scrollbar relative h-full overflow-y-auto py-1.5">
           {conversacion.mensajes.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center">

@@ -16,6 +16,7 @@ export { Sheet } from "./Sheet";
 export { Toast } from "./Toast";
 export { Dialog } from "./Dialog";
 export { Fab } from "./Fab";
+export { CreditCard } from "./CreditCard";
 export { Reveal, Stagger } from "./Reveal";
 export { Icon } from "./Icon";
 export { cx } from "./cx";

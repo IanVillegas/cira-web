@@ -568,4 +568,8 @@ export const EN: Record<string, string> = {
   "Úsalo para entrar de nuevo a CIRA.": "Use it to log back into CIRA.",
   "Mapa": "Map",
   "Chats": "Chats",
+  "Encuentra a quién contratar hoy.": "Find who to hire today.",
+  "Vence": "Expires",
+  "NOMBRE APELLIDO": "FIRST LAST",
+  "CIRA · Tarjeta simulada": "CIRA · Simulated card",
 };

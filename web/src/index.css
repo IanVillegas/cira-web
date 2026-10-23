@@ -16,3 +16,8 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Las rejillas de una sola columna no deben crecer por el contenido (textos con `truncate`, chips): la columna mide como mucho el ancho disponible. */
+.ca-root .grid:not([class*="grid-cols"]) {
+  grid-template-columns: minmax(0, 1fr);
+}

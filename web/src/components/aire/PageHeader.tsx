@@ -12,14 +12,16 @@ export interface PageHeaderProps {
   action?: { icon: string; label: string; onClick: () => void };
   /** Título grande estilo iOS (34px) en vez de 22px. */
   large?: boolean;
+  /** Reserva el espacio de la barra superior aunque no haya botón, para que los títulos de las secciones queden a la misma altura. */
+  reserveBar?: boolean;
   children?: ReactNode;
 }
 
 /** Encabezado de pantalla; el título entra con un leve desplazamiento al montar. */
-export function PageHeader({ title, subtitle, onBack, backLabel = "Atrás", action, large = true, children }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, onBack, backLabel = "Atrás", action, large = true, reserveBar = false, children }: PageHeaderProps) {
   return (
     <header className={cx("ca-header", large && "ca-header--large")}>
-      {(onBack || action) && (
+      {(onBack || action || reserveBar) && (
         <div className="ca-header__bar">
           {onBack ? (
             <button type="button" className="ca-header__back" onClick={onBack}>

@@ -13,6 +13,8 @@ export interface SegmentedControlProps {
   /** Ocupa todo el ancho con segmentos iguales. */
   fullWidth?: boolean;
   label?: string;
+  /** Margen lateral de 20px que se desplaza con el contenido (para alinear con el resto de la pantalla). */
+  gutter?: boolean;
 }
 
 /**
@@ -20,7 +22,7 @@ export interface SegmentedControlProps {
  * hasta la opción elegida con la curva de resorte de iOS. Si no cabe, se
  * desplaza horizontalmente y mantiene visible la opción activa.
  */
-export function SegmentedControl({ items, value, onChange, fullWidth = false, label = "Secciones" }: SegmentedControlProps) {
+export function SegmentedControl({ items, value, onChange, fullWidth = false, label = "Secciones", gutter = false }: SegmentedControlProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [thumb, setThumb] = useState<{ x: number; w: number } | null>(null);
 
@@ -47,7 +49,7 @@ export function SegmentedControl({ items, value, onChange, fullWidth = false, la
   }, [value, items.length]);
 
   return (
-    <div className={cx("ca-seg-scroll", fullWidth && "is-full")}>
+    <div className={cx("ca-seg-scroll", fullWidth && "is-full", gutter && "has-gutter")}>
       <div ref={trackRef} className="ca-seg" role="tablist" aria-label={label}>
         <span
           className={cx("ca-seg__thumb", thumb && "is-ready")}

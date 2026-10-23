@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Icon, Loader, PageHeader, Sheet, Stagger, cx } from "@/components/aire";
 import { useAuth } from "@/lib/auth";
 import { cambiarIdioma, idioma, tr, type Idioma } from "@/lib/i18n";
+import { formatearTelefono } from "@/lib/format";
 
 const OPCIONES = [
   { icon: "edit", label: "Editar perfil", to: "/perfil/editar" },
@@ -36,7 +37,7 @@ export function AccountMenuPage() {
             <Icon name="account_circle" filled size={56} className="text-aire-accent-text" />
           </span>
           <p className="aire-text-title-1 text-aire-ink">{usuario.nombre}</p>
-          <p className="aire-text-subhead text-aire-ink-2">{usuario.telefono}</p>
+          <p className="aire-text-subhead text-aire-ink-2">{formatearTelefono(usuario.telefono)}</p>
         </div>
 
         <Stagger className="grid overflow-hidden rounded-aire-lg bg-aire-surface">

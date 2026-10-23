@@ -20,6 +20,7 @@ export function ExploreTabs() {
       value={actual}
       onChange={(v) => navigate(v)}
       label={tr("Explorar")}
+      gutter
     />
   );
 }

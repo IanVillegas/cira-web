@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FilterChip, Loader, PageHeader, Stagger } from "@/components/aire";
 import { ExploreTabs } from "@/components/ExploreTabs";
 import { Vacio } from "@/components/Vacio";
@@ -8,6 +9,7 @@ import { tr } from "@/lib/i18n";
 import type { Trabajador } from "@/lib/types";
 
 export function ExplorarTrabajadoresPage() {
+  const navigate = useNavigate();
   const [trabajadores, setTrabajadores] = useState<Trabajador[] | null>(null);
   const [soloDisponibles, setSoloDisponibles] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +25,11 @@ export function ExplorarTrabajadoresPage() {
 
   return (
     <div className="pb-6">
-      <PageHeader title={tr("Explorar")} subtitle={tr("Busca trabajadores disponibles y envía solicitud directa.")} />
+      <PageHeader
+        title={tr("Explorar")}
+        subtitle={tr("Encuentra a quién contratar hoy.")}
+        action={{ icon: "notifications", label: tr("Alertas"), onClick: () => navigate("/alertas") }}
+      />
       <ExploreTabs />
 
       <div className="no-scrollbar mt-4 flex items-center gap-2 overflow-x-auto px-5 pb-1">
