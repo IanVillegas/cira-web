@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./components/aire/aire.css";
+@import "./components/aire/aire-tailwind.css";
 
 @theme {
   /* ── Fuentes ─────────────────────────────────────────── */
