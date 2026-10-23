@@ -16,13 +16,15 @@ import { PagoResumen } from "@/components/PagoResumen";
 import { LocationPicker } from "@/components/LocationPicker";
 import { CATEGORIAS } from "@/lib/mockData";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import { mostrarToast } from "@/lib/toast";
 import { calcularResumen, useConfig } from "@/lib/useConfig";
 import type { MetodoPago } from "@/lib/types";
 import { localeActual, tr } from "@/lib/i18n";
 
 const METODOS: { value: MetodoPago; icon: string; label: string }[] = [
   { value: "Efectivo", icon: "payments", label: tr("EFECTIVO") },
-  { value: "Pago en la app", icon: "credit_card", label: tr("PAGO EN LA APP") },
+  { value: "Tarjeta", icon: "credit_card", label: tr("TARJETA") },
 ];
 
 function formatearFecha(fecha: string, hora: string) {
@@ -40,9 +42,9 @@ export function CrearTrabajoPage() {
   const { id } = useParams();
   const editando = id !== undefined;
   const config = useConfig();
+  const { usuario } = useAuth();
   const [cargando, setCargando] = useState(editando);
   const [urgente, setUrgente] = useState(false);
-  const [publicado, setPublicado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -54,7 +56,7 @@ export function CrearTrabajoPage() {
     fecha: "",
     hora: "",
     pago: "",
-    metodoPago: "Pago en la app" as MetodoPago,
+    metodoPago: "Tarjeta" as MetodoPago,
   });
 
   useEffect(() => {
@@ -85,10 +87,12 @@ export function CrearTrabajoPage() {
 
   const puedeUrgencia = !editando && config.categoriasUrgentes.includes(form.categoria);
   const esUrgente = urgente && (editando || puedeUrgencia);
-  const metodoEfectivo: MetodoPago = esUrgente ? "Pago en la app" : form.metodoPago;
+  const metodoEfectivo: MetodoPago = form.metodoPago;
+  // Con tarjeta, o en una urgencia (la tarifa se cobra con tarjeta), hace falta una tarjeta registrada.
+  const faltaTarjeta = (metodoEfectivo === "Tarjeta" || esUrgente) && !usuario?.tarjeta;
 
   const valido =
-    form.titulo.trim() && form.categoria && form.ubicacion && (esUrgente || form.fecha) && Number(form.pago) > 0;
+    form.titulo.trim() && form.categoria && form.ubicacion && (esUrgente || form.fecha) && Number(form.pago) > 0 && !faltaTarjeta;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +113,8 @@ export function CrearTrabajoPage() {
       };
       if (id) await api.trabajos.editar(id, datos);
       else await api.trabajos.crear({ ...datos, urgente: esUrgente });
-      setPublicado(true);
+      mostrarToast(editando ? tr("Cambios guardados") : esUrgente ? tr("Urgencia publicada: avisamos a los trabajadores cercanos") : tr("Trabajo publicado"));
+      navigate("/publicaciones");
     } catch (e) {
       setError(e instanceof Error ? e.message : tr("No se pudo publicar el trabajo."));
     } finally {
@@ -118,27 +123,6 @@ export function CrearTrabajoPage() {
   };
 
   if (cargando) return <Loader label={tr("Cargando publicación...")} />;
-
-  if (publicado) {
-    return (
-      <div className="flex h-full min-h-[480px] flex-col items-center justify-center gap-4 px-8 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-          <Icon name="check_circle" filled size={36} className="text-emerald-600" />
-        </div>
-        <h1 className="text-cira-title font-semibold text-cira-text-primary">
-          {editando ? tr("Cambios guardados") : esUrgente ? tr("Urgencia publicada") : tr("Trabajo publicado")}
-        </h1>
-        <p className="text-sm text-cira-text-secondary">
-          {esUrgente
-            ? tr("Avisamos a los trabajadores disponibles de esa categoría. El primero que acepte se queda con el trabajo.")
-            : editando
-              ? tr("Los trabajadores verán la información actualizada.")
-              : tr("Ya es visible en la lista y el mapa para los trabajadores cercanos.")}
-        </p>
-        <Button onClick={() => navigate("/publicaciones")}>{tr("Ver mis publicaciones")}</Button>
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -174,18 +158,24 @@ export function CrearTrabajoPage() {
           </Field>
         </Card>
 
-        {(puedeUrgencia || (editando && urgente)) && (
-          <Card className="flex items-start gap-3 border border-cira-btn-destructive-text/30">
+        {(!editando || urgente) && (
+          <Card
+            className={`flex items-start gap-3 border ${
+              esUrgente ? "border-cira-btn-destructive-text" : "border-cira-border"
+            } ${puedeUrgencia || editando ? "" : "opacity-80"}`}
+          >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cira-btn-destructive-bg">
               <Icon name="bolt" filled size={22} className="text-cira-btn-destructive-text" />
             </span>
             <div className="flex-1">
               <p className="text-[15px] font-semibold text-cira-text-primary">{tr("Es urgente")}</p>
               <p className="text-xs text-cira-text-secondary">
-                {tr("Alertamos primero a los trabajadores más cercanos y disponibles. Tiene una tarifa de urgencia del {pct}% y se paga en la app.", { pct: config.urgenciaPct })}
+                {puedeUrgencia || editando
+                  ? tr("Alertamos primero a los trabajadores más cercanos y disponibles. Tiene una tarifa de urgencia del {pct}%, que se cobra con tu tarjeta registrada.", { pct: config.urgenciaPct })
+                  : tr("Disponible solo para Plomería, Electricidad y Cerrajería. Elige una de esas categorías para activarla.")}
               </p>
             </div>
-            {!editando && <Switch checked={urgente} onChange={setUrgente} label={tr("Es urgente")} />}
+            {!editando && <Switch checked={esUrgente} onChange={setUrgente} disabled={!puedeUrgencia} label={tr("Es urgente")} />}
           </Card>
         )}
 
@@ -239,7 +229,7 @@ export function CrearTrabajoPage() {
                   icon={m.icon}
                   text={m.label}
                   selected={metodoEfectivo === m.value}
-                  onClick={() => !esUrgente && setForm({ ...form, metodoPago: m.value })}
+                  onClick={() => setForm({ ...form, metodoPago: m.value })}
                 />
               ))}
             </div>
@@ -250,7 +240,19 @@ export function CrearTrabajoPage() {
           )}
         </Card>
 
-        {error && <p className="text-center text-[13px] text-cira-accent">{error}</p>}
+        {faltaTarjeta && (
+          <Card className="flex flex-col gap-2.5 border border-cira-btn-destructive-text/40">
+            <p className="flex items-start gap-2 text-[13px] text-cira-text-primary">
+              <Icon name="credit_card_off" size={20} className="shrink-0 text-cira-btn-destructive-text" />
+              {tr("Para pagar con tarjeta o publicar una urgencia primero debes registrar una tarjeta.")}
+            </p>
+            <Button variant="outlined" type="button" onClick={() => navigate("/cuenta/tarjeta")}>
+              {tr("REGISTRAR TARJETA")}
+            </Button>
+          </Card>
+        )}
+
+        {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}
 
         <Button type="submit" disabled={!valido || enviando} className="my-2">
           {enviando ? tr("GUARDANDO...") : editando ? tr("GUARDAR CAMBIOS") : esUrgente ? tr("PUBLICAR URGENCIA") : tr("PUBLICAR AHORA")}

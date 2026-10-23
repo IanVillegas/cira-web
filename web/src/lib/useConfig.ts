@@ -35,8 +35,11 @@ export function calcularResumen(
   urgente: boolean,
   metodo: MetodoPago,
   config: ConfigNegocio,
+  propina = 0,
 ): ResumenPago {
-  const comision = metodo === "Pago en la app" ? Math.round((monto * config.comisionPct) / 100) : 0;
+  const comision = metodo === "Tarjeta" ? Math.round((monto * config.comisionPct) / 100) : 0;
   const tarifaUrgencia = urgente ? Math.round((monto * config.urgenciaPct) / 100) : 0;
-  return { monto, comision, tarifaUrgencia, total: monto + comision + tarifaUrgencia };
+  const total = monto + comision + tarifaUrgencia + propina;
+  const enEfectivo = metodo === "Efectivo" ? monto + propina : 0;
+  return { monto, comision, tarifaUrgencia, propina, total, enEfectivo, enTarjeta: total - enEfectivo };
 }

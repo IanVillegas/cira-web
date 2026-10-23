@@ -9,19 +9,28 @@ const ARCHIVO_LOCAL = path.join(__dirname, "..", "usuarios.local.json");
 
 const PIN = CONFIG.PIN_PRUEBAS;
 const EFECTIVO = "Efectivo";
-const APP = "Pago en la app";
+const APP = "Tarjeta";
 
 // Usuarios del equipo (login por teléfono + PIN de pruebas). Opcionalmente,
 // server/usuarios.local.json puede sobrescribir teléfono, nombre o correo por id
 // (p. ej. { "u-1": { "telefono": "8888-0000" } }); se aplica en cada arranque.
+const CORREOS = {
+  "u-1": "ian.villegas.jimenez@est.una.ac.cr",
+  "u-2": "marisol.hidalgo.murillo@est.una.ac.cr",
+  "u-3": "bayron.camacho.ledezma@est.una.ac.cr",
+  "u-4": "eduardo.picado.courrau@est.una.ac.cr",
+  "u-5": "jose.jara.arias@est.una.ac.cr",
+  "u-6": "jixi.morales.mendoza@est.una.ac.cr",
+};
+
 const USUARIOS = [
-  // id, nombre, cédula, teléfono, descripción, zona, lat, lng, plan, cédula✔, antecedentes✔, urgencias, base de trabajos
-  ["u-1", "Ian Villegas", "", "6104-4195", "Electricidad y reparaciones menores en Alajuela y alrededores.", "Alajuela Centro", 10.0163, -84.2113, "plus", 1, 0, 0, 23],
-  ["u-2", "Marisol Hidalgo", "", "6361-7541", "Limpieza de casas y cuidado de mascotas.", "San José, Escazú", 9.9189, -84.1394, "gratis", 0, 0, 0, 0],
-  ["u-3", "Bayron Camacho", "", "8512-8068", "Plomero y cerrajero. Respondo urgencias.", "Alajuela, Desamparados", 10.025, -84.25, "plus", 1, 0, 1, 8],
-  ["u-4", "Eduardo Picado", "", "6252-4226", "Electricista con 10 años de experiencia. Atiendo urgencias.", "Alajuela Centro", 10.018, -84.213, "plus", 1, 1, 1, 52],
-  ["u-5", "José Jara", "", "7064-2458", "Plomería básica y jardinería.", "Alajuela, Río Segundo", 10.0134, -84.2239, "gratis", 0, 0, 0, 0],
-  ["u-6", "Jixi Morales", "", "6481-8545", "Jardinería y mudanzas.", "Heredia Centro", 9.9989, -84.1174, "gratis", 1, 0, 0, 0],
+  // id, nombre, cédula (ficticia), teléfono, descripción, zona, lat, lng, plan, cédula✔, antecedentes✔, urgencias, base de trabajos
+  ["u-1", "Ian Villegas", "1-1234-5678", "6104-4195", "Electricidad y reparaciones menores en Alajuela y alrededores.", "Alajuela Centro", 10.0163, -84.2113, "plus", 1, 0, 0, 23],
+  ["u-2", "Marisol Hidalgo", "1-2345-6789", "6361-7541", "Limpieza de casas y cuidado de mascotas.", "San José, Escazú", 9.9189, -84.1394, "gratis", 0, 0, 0, 0],
+  ["u-3", "Bayron Camacho", "2-3456-7890", "8512-8068", "Plomero y cerrajero. Respondo urgencias.", "Alajuela, Desamparados", 10.025, -84.25, "plus", 1, 0, 1, 8],
+  ["u-4", "Eduardo Picado", "3-4567-8901", "6252-4226", "Electricista con 10 años de experiencia. Atiendo urgencias.", "Alajuela Centro", 10.018, -84.213, "plus", 1, 1, 1, 52],
+  ["u-5", "José Jara", "4-5678-9012", "7064-2458", "Plomería básica y jardinería.", "Alajuela, Río Segundo", 10.0134, -84.2239, "gratis", 0, 0, 0, 0],
+  ["u-6", "Jixi Morales", "5-6789-0123", "6481-8545", "Jardinería y mudanzas.", "Heredia Centro", 9.9989, -84.1174, "gratis", 1, 0, 0, 0],
 ];
 
 const SERVICIOS = [
@@ -89,13 +98,13 @@ function sembrar() {
   db.exec("BEGIN");
 
   const insertUsuario = db.prepare(
-    `INSERT INTO usuario (id, nombre, cedula, telefono, pin, descripcion, zona, lat, lng, metodos_pago, disponible, plan, plan_desde,
+    `INSERT INTO usuario (id, nombre, cedula, telefono, correo, pin, descripcion, zona, lat, lng, metodos_pago, disponible, plan, plan_desde,
                           cedula_verificada, antecedentes, responde_urgencias, trabajos_base)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?)`,
   );
   for (const [id, nombre, cedula, tel, desc, zona, lat, lng, plan, cedulaOk, antec, urg, base] of USUARIOS) {
     insertUsuario.run(
-      id, nombre, cedula, tel, PIN, desc, zona, lat, lng,
+      id, nombre, cedula, tel, CORREOS[id], PIN, desc, zona, lat, lng,
       JSON.stringify([EFECTIVO, APP]),
       plan, plan === "plus" ? new Date().toISOString() : null,
       cedulaOk, antec, urg, base,
@@ -124,7 +133,7 @@ function sembrar() {
     "INSERT INTO calificacion (id, trabajo_id, de_id, a_id, estrellas, comentario) VALUES (?, ?, ?, ?, ?, ?)",
   );
   const insertPago = db.prepare(
-    "INSERT INTO pago (id, trabajo_id, metodo, monto, comision, tarifa_urgencia, total) VALUES (?, ?, ?, ?, ?, 0, ?)",
+    "INSERT INTO pago (id, trabajo_id, metodo, monto, comision, tarifa_urgencia, propina, en_efectivo, total) VALUES (?, ?, ?, ?, ?, 0, 0, ?, ?)",
   );
   for (const [id, titulo, cat, ubic, fecha, pago, metodo, pub, trab, estado, estCliente, estTrab, comentario] of TRABAJOS_CERRADOS) {
     const finalizado = estado === "Finalizado";
@@ -136,7 +145,7 @@ function sembrar() {
     if (estCliente) insertCalificacion.run(`k-${id}-c`, id, pub, trab, estCliente, comentario);
     if (estTrab) insertCalificacion.run(`k-${id}-t`, id, trab, pub, estTrab, "");
     const comision = metodo === APP ? Math.round((pago * CONFIG.COMISION_PCT) / 100) : 0;
-    if (metodo === APP) insertPago.run(`pg-${id}`, id, metodo, pago, comision, pago + comision);
+    insertPago.run(`pg-${id}`, id, metodo, pago, comision, metodo === EFECTIVO ? pago : 0, pago + comision);
   }
 
   const insertSuscripcion = db.prepare("INSERT INTO suscripcion (id, usuario_id, monto) VALUES (?, ?, ?)");
@@ -148,7 +157,7 @@ function sembrar() {
   insertConversacion.run("c-1", "u-1", "u-2");
   insertConversacion.run("c-2", "u-1", "u-5");
   const insertMensaje = db.prepare(
-    "INSERT INTO mensaje (id, conversacion_id, autor_id, texto, hora) VALUES (?, ?, ?, ?, ?)",
+    "INSERT INTO mensaje (id, conversacion_id, autor_id, texto, hora, leido) VALUES (?, ?, ?, ?, ?, 1)",
   );
   for (const m of MENSAJES) insertMensaje.run(...m);
 

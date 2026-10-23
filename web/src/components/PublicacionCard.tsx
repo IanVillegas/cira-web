@@ -11,11 +11,13 @@ import { api } from "@/lib/api";
 import { formatoColones } from "@/lib/format";
 import type { Trabajador, Trabajo } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import { mostrarToast } from "@/lib/toast";
 
 interface PublicacionCardProps {
   trabajo: Trabajo;
   onChange: (trabajo: Trabajo) => void;
   onRate: (trabajo: Trabajo) => void;
+  onPay: (trabajo: Trabajo) => void;
 }
 
 const ESTADO_TONO: Record<string, string> = {
@@ -26,18 +28,19 @@ const ESTADO_TONO: Record<string, string> = {
 };
 
 /** Tarjeta de "Mis publicaciones": edita, elige postulante, sigue el trabajo, paga y califica. */
-export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardProps) {
+export function PublicacionCard({ trabajo, onChange, onRate, onPay }: PublicacionCardProps) {
   const navigate = useNavigate();
   const [postulantes, setPostulantes] = useState<Trabajador[] | null>(null);
   const [verPostulantes, setVerPostulantes] = useState(false);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const ejecutar = async (accion: () => Promise<Trabajo>) => {
+  const ejecutar = async (accion: () => Promise<Trabajo>, aviso?: string) => {
     setOcupado(true);
     setError(null);
     try {
       onChange(await accion());
+      if (aviso) mostrarToast(aviso);
     } catch (e) {
       setError(e instanceof Error ? e.message : tr("No se pudo completar la acción."));
     } finally {
@@ -52,7 +55,7 @@ export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardPr
   };
 
   const cancelar = () => {
-    if (window.confirm(tr("¿Cancelar esta publicación?"))) ejecutar(() => api.trabajos.cancelar(trabajo.id));
+    if (window.confirm(tr("¿Cancelar esta publicación?"))) ejecutar(() => api.trabajos.cancelar(trabajo.id), tr("Publicación cancelada"));
   };
 
   const abrirChat = async (usuarioId: string) => {
@@ -121,7 +124,7 @@ export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardPr
                     <Button variant="outlined" onClick={() => navigate(`/usuarios/${p.id}`)}>
                       {tr("VER PERFIL")}
                     </Button>
-                    <Button disabled={ocupado} onClick={() => ejecutar(() => api.trabajos.asignar(trabajo.id, p.id))}>
+                    <Button disabled={ocupado} onClick={() => ejecutar(() => api.trabajos.asignar(trabajo.id, p.id), tr("Trabajador elegido"))}>
                       {tr("ELEGIR")}
                     </Button>
                   </div>
@@ -163,8 +166,8 @@ export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardPr
       {trabajo.estado === "Finalizado" && !trabajo.pagado && (
         <>
           <PagoResumen resumen={trabajo.resumenPago} />
-          <Button disabled={ocupado} onClick={() => ejecutar(() => api.trabajos.pagar(trabajo.id))}>
-            {trabajo.metodoPago === "Pago en la app" ? tr("PAGAR EN LA APP") : tr("CONFIRMAR PAGO EN EFECTIVO")}
+          <Button onClick={() => onPay(trabajo)}>
+            {trabajo.metodoPago === "Tarjeta" ? tr("PAGAR CON TARJETA") : tr("PAGAR EL TRABAJO")}
           </Button>
         </>
       )}

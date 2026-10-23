@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Icon } from "./Icon";
 import { tr } from "@/lib/i18n";
+import { useNoLeidos } from "@/lib/noLeidos";
 
 // Cada ítem queda activo en su ruta y en las pantallas hijas/hermanas
 // (por ejemplo "Explorar" cubre trabajadores, mis publicaciones, etc.).
@@ -26,6 +27,7 @@ const ITEMS = [
 /** Réplica de CiraBottomNavBar: 4 ítems de 64 px mín., icono 28, etiqueta 12 semibold. */
 export function BottomNav() {
   const { pathname } = useLocation();
+  const noLeidos = useNoLeidos();
 
   return (
     <nav className="rounded-t-[28px] bg-cira-nav-bg px-3 pb-2.5 pt-1.5">
@@ -40,12 +42,22 @@ export function BottomNav() {
                 active ? "bg-cira-nav-item-selected-bg" : ""
               }`}
             >
-              <Icon
-                name={item.icon}
-                filled={active}
-                size={28}
-                className={active ? "text-cira-nav-active" : "text-cira-nav-inactive"}
-              />
+              <span className="relative">
+                <Icon
+                  name={item.icon}
+                  filled={active}
+                  size={28}
+                  className={active ? "text-cira-nav-active" : "text-cira-nav-inactive"}
+                />
+                {item.key === "chats" && noLeidos > 0 && (
+                  <span
+                    aria-label={`${noLeidos}`}
+                    className="absolute -top-1 -right-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-cira-btn-destructive-text px-1 text-[11px] font-bold text-white"
+                  >
+                    {noLeidos > 9 ? "9+" : noLeidos}
+                  </span>
+                )}
+              </span>
               <span
                 className={`text-cira-nav font-semibold ${
                   active ? "text-cira-nav-active" : "text-cira-nav-inactive"

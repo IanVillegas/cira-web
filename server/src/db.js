@@ -9,7 +9,7 @@ export const db = new DatabaseSync(DB_PATH);
 
 // Versión del esquema. Al subirla, la base local (solo datos de prueba) se recrea
 // y se vuelve a sembrar: el modelo pasó de un usuario fijo a varios usuarios reales.
-const VERSION_ESQUEMA = 4;
+const VERSION_ESQUEMA = 5;
 
 const TABLAS = [
   "alerta_descartada",
@@ -54,7 +54,11 @@ db.exec(`
     cedula_verificada INTEGER NOT NULL DEFAULT 0,
     antecedentes INTEGER NOT NULL DEFAULT 0,
     responde_urgencias INTEGER NOT NULL DEFAULT 0,
-    trabajos_base INTEGER NOT NULL DEFAULT 0
+    trabajos_base INTEGER NOT NULL DEFAULT 0,
+    tarjeta_marca TEXT,
+    tarjeta_ultimos4 TEXT,
+    tarjeta_titular TEXT,
+    tarjeta_vence TEXT
   );
 
   CREATE TABLE IF NOT EXISTS servicio (
@@ -105,6 +109,7 @@ db.exec(`
     autor_id TEXT NOT NULL REFERENCES usuario(id),
     texto TEXT NOT NULL,
     hora TEXT NOT NULL,
+    leido INTEGER NOT NULL DEFAULT 0,
     creado_en TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -136,6 +141,8 @@ db.exec(`
     monto INTEGER NOT NULL,
     comision INTEGER NOT NULL,
     tarifa_urgencia INTEGER NOT NULL,
+    propina INTEGER NOT NULL DEFAULT 0,
+    en_efectivo INTEGER NOT NULL DEFAULT 0,
     total INTEGER NOT NULL,
     creado_en TEXT NOT NULL DEFAULT (datetime('now'))
   );

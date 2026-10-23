@@ -84,6 +84,7 @@ export function mapUsuario(row) {
     lat: row.lat ?? undefined,
     lng: row.lng ?? undefined,
     metodosPago: JSON.parse(row.metodos_pago),
+    tarjeta: mapTarjeta(row),
     disponible: !!row.disponible,
     plan: row.plan,
     insignias: insigniasDe(row, completados),
@@ -127,14 +128,42 @@ export function mapPerfilPublico(row, viewer) {
 
 // ── Pagos ───────────────────────────────────────────────────────────
 /**
- * Resumen del pago. Las urgencias siempre se pagan en la app; la comisión de CIRA y la tarifa
- * de urgencia se suman al monto del trabajo (el trabajador recibe el monto completo).
+ * Resumen del pago. La comisión de CIRA (solo con tarjeta), la tarifa de urgencia y la propina se
+ * suman al monto del trabajo; el trabajador recibe el monto completo más la propina.
+ * Con efectivo, el cliente entrega en mano el monto (y la propina); lo demás se cobra con su tarjeta.
  */
-export function calcularResumenPago(monto, urgente, metodo) {
-  const enApp = metodo === "Pago en la app";
-  const comision = enApp ? Math.round((monto * CONFIG.COMISION_PCT) / 100) : 0;
+export function calcularResumenPago(monto, urgente, metodo, propina = 0) {
+  const comision = metodo === "Tarjeta" ? Math.round((monto * CONFIG.COMISION_PCT) / 100) : 0;
   const tarifaUrgencia = urgente ? Math.round((monto * CONFIG.URGENCIA_PCT) / 100) : 0;
-  return { monto, comision, tarifaUrgencia, total: monto + comision + tarifaUrgencia };
+  const total = monto + comision + tarifaUrgencia + propina;
+  const enEfectivo = metodo === "Efectivo" ? monto + propina : 0;
+  return { monto, comision, tarifaUrgencia, propina, total, enEfectivo, enTarjeta: total - enEfectivo };
+}
+
+/** Datos de la tarjeta registrada (nunca se guarda el número completo ni el CVV). */
+export function mapTarjeta(row) {
+  if (!row.tarjeta_ultimos4) return null;
+  return {
+    marca: row.tarjeta_marca,
+    ultimos4: row.tarjeta_ultimos4,
+    titular: row.tarjeta_titular,
+    vence: row.tarjeta_vence,
+  };
+}
+
+/** Pago ya realizado de un trabajo, con el mismo formato que el resumen. */
+function resumenPagado(trabajoId) {
+  const p = db.prepare("SELECT * FROM pago WHERE trabajo_id = ?").get(trabajoId);
+  if (!p) return null;
+  return {
+    monto: p.monto,
+    comision: p.comision,
+    tarifaUrgencia: p.tarifa_urgencia,
+    propina: p.propina,
+    total: p.total,
+    enEfectivo: p.en_efectivo,
+    enTarjeta: p.total - p.en_efectivo,
+  };
 }
 
 // ── Trabajos ────────────────────────────────────────────────────────
@@ -177,7 +206,7 @@ export function mapTrabajo(row, viewerId) {
     esMio: esPublicador,
     asignadoAMi: row.trabajador_id === viewerId,
     pagado: !!row.pagado,
-    resumenPago: calcularResumenPago(row.pago, !!row.urgente, row.metodo_pago),
+    resumenPago: resumenPagado(row.id) ?? calcularResumenPago(row.pago, !!row.urgente, row.metodo_pago),
     calificadoPorMi,
     contraparteId: contraparte?.id,
     contraparteNombre: contraparte?.nombre,
@@ -195,6 +224,12 @@ export function mapMensaje(row, viewerId) {
   };
 }
 
+export function contarNoLeidos(conversacionId, viewerId) {
+  return db
+    .prepare("SELECT COUNT(*) AS n FROM mensaje WHERE conversacion_id = ? AND autor_id != ? AND leido = 0")
+    .get(conversacionId, viewerId).n;
+}
+
 export function mapConversacion(row, viewerId) {
   const otroId = row.usuario_a === viewerId ? row.usuario_b : row.usuario_a;
   const otro = obtenerUsuario(otroId);
@@ -208,7 +243,7 @@ export function mapConversacion(row, viewerId) {
     contraparteId: otro.id,
     ultimoMensaje: ultimo?.texto ?? "",
     hora: ultimo?.hora ?? "",
-    noLeidos: 0,
+    noLeidos: contarNoLeidos(row.id, viewerId),
     mensajes: mensajes.map((m) => mapMensaje(m, viewerId)),
   };
 }

@@ -10,6 +10,7 @@ import { Icon } from "@/components/ui/Icon";
 import { api } from "@/lib/api";
 import type { Trabajo } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import { mostrarToast } from "@/lib/toast";
 
 export function ExplorarTrabajosPage() {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ export function ExplorarTrabajosPage() {
   const toggleApply = async (id: string) => {
     try {
       const actualizado = await api.trabajos.postular(id);
+      mostrarToast(actualizado.yaPostulado ? tr("Te postulaste al trabajo") : tr("Retiraste tu postulación"));
       setTrabajos((prev) => prev?.map((t) => (t.id === id ? actualizado : t)) ?? prev);
     } catch (e) {
       setAviso(e instanceof Error ? e.message : tr("No se pudo completar la acción."));
@@ -50,6 +52,7 @@ export function ExplorarTrabajosPage() {
   const aceptarUrgencia = async (id: string) => {
     try {
       await api.trabajos.aceptarUrgencia(id);
+      mostrarToast(tr("¡Urgencia aceptada! Avisa cuando vayas en camino."));
       navigate("/mis-trabajos");
     } catch (e) {
       setAviso(e instanceof Error ? e.message : tr("No se pudo aceptar la urgencia."));
@@ -107,6 +110,16 @@ export function ExplorarTrabajosPage() {
             />
           ))
         )}
+      </div>
+
+      <div className="pointer-events-none sticky bottom-[18px] flex justify-end px-5">
+        <button
+          onClick={() => navigate("/crear-trabajo")}
+          aria-label={tr("Crear publicación")}
+          className="pointer-events-auto flex h-[58px] w-[58px] items-center justify-center rounded-[20px] bg-cira-accent text-white shadow-[0_8px_18px_rgba(0,0,0,0.3)]"
+        >
+          <Icon name="add" size={32} />
+        </button>
       </div>
     </div>
   );

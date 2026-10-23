@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -6,6 +6,7 @@ import { Loader } from "@/components/ui/Loader";
 import { api } from "@/lib/api";
 import type { Conversacion } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import { usePolling } from "@/lib/usePolling";
 
 function iniciales(nombre: string) {
   return nombre
@@ -22,12 +23,19 @@ export function ChatsPage() {
   const [conversaciones, setConversaciones] = useState<Conversacion[] | null>(null);
   const [error, setError] = useState(false);
 
+  const cargar = useCallback(
+    () =>
+      api.conversaciones
+        .listar()
+        .then(setConversaciones)
+        .catch(() => setError(true)),
+    [],
+  );
+
   useEffect(() => {
-    api.conversaciones
-      .listar()
-      .then(setConversaciones)
-      .catch(() => setError(true));
-  }, []);
+    cargar();
+  }, [cargar]);
+  usePolling(cargar, 4000);
 
   return (
     <div className="pb-4">

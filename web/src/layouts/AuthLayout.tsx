@@ -59,5 +59,5 @@ export function IdentifierChip({ children }: { children: ReactNode }) {
 
 export function AuthError({ message }: { message: string | null }) {
   if (!message) return null;
-  return <p className="text-center text-[13px] text-cira-accent">{message}</p>;
+  return <p className="text-center text-[13px] font-semibold text-cira-btn-destructive-text">{message}</p>;
 }

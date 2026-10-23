@@ -13,10 +13,11 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { MetodoPago } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import { mostrarToast } from "@/lib/toast";
 
 const METODOS: { value: MetodoPago; icon: string }[] = [
   { value: "Efectivo", icon: "payments" },
-  { value: "Pago en la app", icon: "credit_card" },
+  { value: "Tarjeta", icon: "credit_card" },
 ];
 
 // El backend guarda un solo "nombre"; el formulario lo reparte en 4 campos como MAUI.
@@ -86,6 +87,7 @@ export function EditProfilePage() {
         metodosPago: metodos,
       });
       await refrescarUsuario();
+      mostrarToast(tr("Perfil actualizado"));
       navigate("/perfil");
     } catch {
       setError(tr("No se pudo guardar. Verifica que el servidor esté corriendo."));
@@ -208,7 +210,7 @@ export function EditProfilePage() {
           </div>
         </Card>
 
-        {error && <p className="text-center text-[13px] text-cira-accent">{error}</p>}
+        {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}
 
         <Button onClick={guardar} disabled={guardando}>
           {guardando ? tr("Guardando...") : tr("Guardar cambios")}

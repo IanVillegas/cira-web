@@ -7,7 +7,7 @@ const num = (valor, porDefecto) => {
 export const CONFIG = {
   /** PIN que usan todos los usuarios de prueba (fase de pruebas). */
   PIN_PRUEBAS: "1234",
-  /** Comisión de CIRA sobre el monto cuando se paga en la app (%). Se suma al total que paga el cliente. */
+  /** Comisión de CIRA sobre el monto cuando se paga con tarjeta (%). Se suma al total que paga el cliente. */
   COMISION_PCT: num(process.env.CIRA_COMISION_PCT, 10),
   /** Tarifa de urgencia sobre el monto del trabajo (%). Pago único por trabajo urgente. */
   URGENCIA_PCT: num(process.env.CIRA_URGENCIA_PCT, 15),
@@ -24,5 +24,5 @@ export const CONFIG = {
 };
 
 export const CATEGORIAS_URGENTES = ["Plomería", "Electricidad", "Cerrajería"];
-export const METODOS_PAGO = ["Efectivo", "Pago en la app"];
+export const METODOS_PAGO = ["Efectivo", "Tarjeta"];
 export const ETAPAS = ["Aceptado", "En camino", "Llegó", "Terminado"];

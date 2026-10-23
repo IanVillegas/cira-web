@@ -38,20 +38,20 @@ es usar **Dev Tunnels de VS Code**:
 
 Hay 6 usuarios sembrados (`src/seed.js`), todos con el PIN **1234** (fase de pruebas):
 
-| Id | Nombre | Teléfono | Plan | Servicios |
-| --- | --- | --- | --- | --- |
-| `u-1` | Ian Villegas | 6104-4195 | Plus | Electricidad, Reparaciones |
-| `u-2` | Marisol Hidalgo | 6361-7541 | Gratis | Limpieza, Cuidado de mascotas |
-| `u-3` | Bayron Camacho | 8512-8068 | Plus | Plomería, Cerrajería |
-| `u-4` | Eduardo Picado | 6252-4226 | Plus | Electricidad, Reparaciones |
-| `u-5` | José Jara | 7064-2458 | Gratis | Plomería, Jardinería |
-| `u-6` | Jixi Morales | 6481-8545 | Gratis | Jardinería, Mudanzas |
+| Id | Nombre | Teléfono | Correo | Plan | Servicios |
+| --- | --- | --- | --- | --- | --- |
+| `u-1` | Ian Villegas | 6104-4195 | ian.villegas.jimenez@est.una.ac.cr | Plus | Electricidad, Reparaciones |
+| `u-2` | Marisol Hidalgo | 6361-7541 | marisol.hidalgo.murillo@est.una.ac.cr | Gratis | Limpieza, Cuidado de mascotas |
+| `u-3` | Bayron Camacho | 8512-8068 | bayron.camacho.ledezma@est.una.ac.cr | Plus | Plomería, Cerrajería |
+| `u-4` | Eduardo Picado | 6252-4226 | eduardo.picado.courrau@est.una.ac.cr | Plus | Electricidad, Reparaciones |
+| `u-5` | José Jara | 7064-2458 | jose.jara.arias@est.una.ac.cr | Gratis | Plomería, Jardinería |
+| `u-6` | Jixi Morales | 6481-8545 | jixi.morales.mendoza@est.una.ac.cr | Gratis | Jardinería, Mudanzas |
 
-El login es `POST /api/auth/login` con **teléfono** (o correo) + PIN, y devuelve un
+El login es `POST /api/auth/login` con **teléfono o correo** + PIN, y devuelve un
 "token" que es el id del usuario; el frontend lo envía en la cabecera
 `X-Cira-User`. **No es seguridad real**, solo permite que varias personas usen la
 demo a la vez (cada pestaña del navegador guarda su propia sesión). La cédula es
-solo un dato del perfil (vacía, se completa en "Editar perfil").
+solo un dato del perfil (ficticia en los usuarios de prueba).
 
 Los planes, servicios, insignias y trabajos de ejemplo son datos de demostración
 para ver Plus vs. gratis (p. ej. dos plomeros: Bayron Plus y José gratis).
@@ -67,7 +67,7 @@ En `src/config.js` (se pueden sobrescribir con variables de entorno):
 
 | Variable | Defecto | Qué es |
 | --- | --- | --- |
-| `CIRA_COMISION_PCT` | 10 | Comisión de CIRA sobre pagos en la app |
+| `CIRA_COMISION_PCT` | 10 | Comisión de CIRA sobre pagos con tarjeta |
 | `CIRA_URGENCIA_PCT` | 15 | Tarifa de urgencia (pago único por trabajo urgente) |
 | `CIRA_PLUS_PRECIO` | 2500 | Precio mensual del Plan Plus (colones) |
 | `CIRA_RETRASO_ALERTAS_SEG` | 120 | Segundos que espera el plan gratis para ver una alerta (bajalo para la demo) |
@@ -79,9 +79,10 @@ Todos (salvo `auth` y `config`) requieren la cabecera `X-Cira-User`.
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| POST | `/api/auth/login`, `/api/auth/registro` | Inicia sesión / crea cuenta |
+| POST | `/api/auth/existe`, `/login`, `/registro` (`/api/auth/…`) | Verifica la cuenta, inicia sesión, crea cuenta |
 | GET | `/api/config` | Comisión, tarifa de urgencia, precio Plus |
 | GET/PUT | `/api/usuario` | Perfil del usuario actual |
+| PUT/DELETE | `/api/usuario/tarjeta` | Registra (simulada) o elimina la tarjeta |
 | PUT | `/api/usuario/disponibilidad`, `/api/usuario/plan` | Disponibilidad; cambio de plan Gratis/Plus (simulado) |
 | POST/PUT/DELETE | `/api/usuario/servicios[/:id]` | Servicios ofrecidos |
 | GET | `/api/usuarios/:id` | Perfil público: calificación, insignias, comentarios |
@@ -92,9 +93,10 @@ Todos (salvo `auth` y `config`) requieren la cabecera `X-Cira-User`.
 | GET/POST | `/api/trabajos/:id/postulantes`, `/asignar` | El publicador elige a un postulante |
 | POST | `/api/trabajos/:id/aceptar-urgencia` | El primero que acepta se queda con la urgencia |
 | PATCH | `/api/trabajos/:id/etapa` | Seguimiento: Aceptado → En camino → Llegó → Terminado |
-| POST | `/api/trabajos/:id/cancelar`, `/pagar`, `/calificar` | Cancelar/retirarse, pago simulado, calificación 1–5 |
+| POST | `/api/trabajos/:id/cancelar`, `/pagar`, `/calificar` | Cancelar/retirarse, pago simulado (con `propina` opcional), calificación 1–5 |
 | POST | `/api/reportes` | Reportar a un usuario |
 | GET | `/api/alertas`, POST `/api/alertas/:trabajoId/descartar` | Alertas por oficio y zona (Plus primero) |
 | GET | `/api/trabajadores` | Personas que ofrecen servicios |
 | GET/POST | `/api/conversaciones[/:id]`, `/api/conversaciones/:id/mensajes` | Chats entre dos usuarios |
-| GET | `/api/historial`, `/api/ingresos` | Historial propio; ingresos de CIRA (demo) |
+| GET | `/api/conversaciones/no-leidos` | Mensajes sin leer (insignia y avisos) |
+| GET | `/api/historial`, `/api/actividad`, `/api/ingresos` | Historial; pagos hechos y ganancias propias; ingresos de CIRA (demo) |

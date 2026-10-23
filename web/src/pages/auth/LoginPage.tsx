@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PinInput } from "@/components/ui/PinInput";
 import { AuthError, AuthHeading, AuthLayout, IdentifierChip } from "@/layouts/AuthLayout";
+import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
 
@@ -17,13 +18,18 @@ export function LoginPage() {
 
   if (isAuthenticated) return <Navigate to="/explorar" replace />;
 
-  const continuar = () => {
+  const continuar = async () => {
     if (!identifier.trim()) {
       setError(tr("Ingresa tu teléfono o correo."));
       return;
     }
     setError(null);
-    setStep("pin");
+    try {
+      await api.auth.existe(identifier.trim());
+      setStep("pin");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tr("No se pudo iniciar sesión."));
+    }
   };
 
   const ingresar = async () => {

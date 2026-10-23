@@ -22,6 +22,8 @@ import { AccountMenuPage } from "@/pages/AccountMenuPage";
 import { ConfigurarServiciosPage } from "@/pages/ConfigurarServiciosPage";
 import { ConfigurarDisponibilidadPage } from "@/pages/ConfigurarDisponibilidadPage";
 import { AlertasPage } from "@/pages/AlertasPage";
+import { TarjetaPage } from "@/pages/TarjetaPage";
+import { ActividadPage } from "@/pages/ActividadPage";
 import { PlanPage } from "@/pages/PlanPage";
 import { IngresosPage } from "@/pages/IngresosPage";
 import { PerfilPublicoPage } from "@/pages/PerfilPublicoPage";
@@ -55,6 +57,8 @@ export default function App() {
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/perfil/editar" element={<EditProfilePage />} />
             <Route path="/cuenta" element={<AccountMenuPage />} />
+            <Route path="/cuenta/tarjeta" element={<TarjetaPage />} />
+            <Route path="/cuenta/actividad" element={<ActividadPage />} />
             <Route path="/cuenta/plan" element={<PlanPage />} />
             <Route path="/cuenta/ingresos" element={<IngresosPage />} />
             <Route path="/cuenta/servicios" element={<ConfigurarServiciosPage />} />

@@ -12,6 +12,7 @@ import { useAlertas } from "@/lib/useAlertas";
 import { useConfig } from "@/lib/useConfig";
 import { useAuth } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
+import { mostrarToast } from "@/lib/toast";
 
 /** Todas las alertas activas. Las urgencias van primero. */
 export function AlertasPage() {
@@ -26,6 +27,7 @@ export function AlertasPage() {
     try {
       await api.trabajos.aceptarUrgencia(id);
       descartar(id);
+      mostrarToast(tr("¡Urgencia aceptada! Avisa cuando vayas en camino."));
       navigate("/mis-trabajos");
     } catch (e) {
       setError(e instanceof Error ? e.message : tr("No se pudo aceptar la urgencia."));

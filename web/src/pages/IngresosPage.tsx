@@ -27,7 +27,7 @@ export function IngresosPage() {
       total: ingresos.tarifaUrgencia.total,
     },
     {
-      titulo: tr("Comisión por pagos en la app"),
+      titulo: tr("Comisión por pagos con tarjeta"),
       detalle: tr("{n} pago(s) · {pct}%", { n: ingresos.comisiones.cantidad, pct: config.comisionPct }),
       total: ingresos.comisiones.total,
     },

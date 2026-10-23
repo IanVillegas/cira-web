@@ -9,6 +9,7 @@ import { SelectField } from "@/components/ui/SelectField";
 import { BudgetField } from "@/components/ui/BudgetField";
 import { CATEGORIAS } from "@/lib/mockData";
 import { api } from "@/lib/api";
+import { mostrarToast } from "@/lib/toast";
 import { useAuth } from "@/lib/auth";
 import { localeActual, tr } from "@/lib/i18n";
 
@@ -41,6 +42,7 @@ export function ConfigurarServiciosPage() {
       };
       if (editandoId) await api.usuario.actualizarServicio(editandoId, datos);
       else await api.usuario.agregarServicio(datos);
+      mostrarToast(editandoId ? tr("Servicio actualizado") : tr("Servicio agregado"));
       await refrescarUsuario();
       limpiar();
     } catch {
@@ -60,6 +62,7 @@ export function ConfigurarServiciosPage() {
 
   const eliminar = async (id: string) => {
     await api.usuario.eliminarServicio(id);
+    mostrarToast(tr("Servicio eliminado"), "info");
     if (editandoId === id) limpiar();
     await refrescarUsuario();
   };
@@ -107,7 +110,7 @@ export function ConfigurarServiciosPage() {
             />
           </Field>
 
-          {error && <p className="text-[13px] text-cira-accent">{error}</p>}
+          {error && <p className="text-[13px] text-cira-btn-destructive-text">{error}</p>}
 
           <Button onClick={guardar} disabled={guardando}>
             {editandoId ? tr("GUARDAR CAMBIOS") : tr("AGREGAR SERVICIO")}

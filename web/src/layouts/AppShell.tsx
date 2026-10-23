@@ -2,6 +2,8 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { AlertBanner } from "@/components/AlertBanner";
+import { ChatNotifier } from "@/components/ChatNotifier";
+import { ToastHost } from "@/components/ToastHost";
 import { PhoneFrame } from "./PhoneFrame";
 
 /**
@@ -24,6 +26,8 @@ export function AppShell() {
             <Outlet />
           </div>
           <AlertBanner />
+          <ToastHost />
+          <ChatNotifier />
         </div>
         <BottomNav />
       </div>

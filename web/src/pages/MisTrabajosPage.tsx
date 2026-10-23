@@ -14,6 +14,7 @@ import { ETAPAS } from "@/lib/etapas";
 import { usePolling } from "@/lib/usePolling";
 import type { Trabajo } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import { mostrarToast } from "@/lib/toast";
 
 // Colores del StatusBackground/StatusTextColor de MisTrabajosPage.xaml.cs
 function badgeDe(t: Trabajo): StatusBadge {
@@ -43,10 +44,11 @@ export function MisTrabajosPage() {
   // Si el publicador elige a otra persona, o cancela, se refleja sin recargar.
   usePolling(cargar, 5000);
 
-  const ejecutar = async (accion: () => Promise<Trabajo>) => {
+  const ejecutar = async (accion: () => Promise<Trabajo>, aviso?: string) => {
     setError(null);
     try {
       await accion();
+      if (aviso) mostrarToast(aviso, "info");
       await cargar();
     } catch (e) {
       setError(e instanceof Error ? e.message : tr("No se pudo completar la acción."));
@@ -95,7 +97,11 @@ export function MisTrabajosPage() {
                         icon="cancel"
                         label={t.asignadoAMi ? tr("Cancelar trabajo") : tr("Retirar postulación")}
                         destructive
-                        onClick={() => ejecutar(() => api.trabajos.cancelar(t.id))}
+                        onClick={() => ejecutar(
+                            () => api.trabajos.cancelar(t.id),
+                            t.asignadoAMi ? tr("Cancelaste el trabajo") : tr("Retiraste tu postulación"),
+                          )
+                        }
                       />
                     )}
                   </>
@@ -109,7 +115,7 @@ export function MisTrabajosPage() {
                     )}
                     {t.asignadoAMi && <SeguimientoTrabajo etapa={t.etapa} />}
                     {asignado && siguiente && (
-                      <Button onClick={() => ejecutar(() => api.trabajos.avanzarEtapa(t.id))}>
+                      <Button onClick={() => ejecutar(() => api.trabajos.avanzarEtapa(t.id), tr("Seguimiento actualizado"))}>
                         <Icon name={ICONO_ETAPA[siguiente]} size={20} />
                         {siguiente === "Terminado" ? tr("MARCAR COMO TERMINADO") : tr(siguiente === "En camino" ? "ESTOY EN CAMINO" : "YA LLEGUÉ")}
                       </Button>
@@ -140,6 +146,7 @@ export function MisTrabajosPage() {
         onClose={() => setACalificar(null)}
         onDone={() => {
           setACalificar(null);
+          mostrarToast(tr("¡Gracias por tu calificación!"));
           cargar();
         }}
       />

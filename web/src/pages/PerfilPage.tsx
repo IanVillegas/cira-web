@@ -20,7 +20,7 @@ function serviceIcon(categoria: string) {
 }
 
 function paymentIcon(metodo: string) {
-  return metodo === "Pago en la app" ? "credit_card" : "payments";
+  return metodo === "Tarjeta" ? "credit_card" : "payments";
 }
 
 /** Réplica de PerfilPage.xaml: avatar, tarjeta de disponibilidad, servicios y métodos de pago. */
@@ -141,10 +141,10 @@ export function PerfilPage() {
             usuario.metodosPago.map((m) => (
               <PaymentCard
                 key={m}
-                text={tr(m)}
+                text={m === "Tarjeta" && usuario.tarjeta ? `${tr(m)} ·${usuario.tarjeta.ultimos4}` : tr(m)}
                 icon={paymentIcon(m)}
                 active
-                onClick={() => navigate("/perfil/editar")}
+                onClick={() => navigate(m === "Tarjeta" ? "/cuenta/tarjeta" : "/perfil/editar")}
               />
             ))
           )}

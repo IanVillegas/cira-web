@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { formatoColones } from "@/lib/format";
 import { useAlertas } from "@/lib/useAlertas";
 import { tr } from "@/lib/i18n";
+import { mostrarToast } from "@/lib/toast";
 
 /**
  * Banner de alertas sobre la app: urgencias y trabajos nuevos de mi oficio cerca de mí.
@@ -26,6 +27,7 @@ export function AlertBanner() {
     try {
       await api.trabajos.aceptarUrgencia(trabajo.id);
       descartar(trabajo.id); // ya es mío: que el banner no siga mostrándola
+      mostrarToast(tr("¡Urgencia aceptada! Avisa cuando vayas en camino."));
       navigate("/mis-trabajos");
     } catch (e) {
       setError(e instanceof Error ? e.message : tr("No se pudo aceptar la urgencia."));

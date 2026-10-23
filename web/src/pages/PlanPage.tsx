@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { formatoColones } from "@/lib/format";
 import { useConfig } from "@/lib/useConfig";
 import { tr } from "@/lib/i18n";
+import { mostrarToast } from "@/lib/toast";
 
 /** Plan Gratis vs Plan Plus: la suscripción es simulada (no hay pasarela de pago real). */
 export function PlanPage() {
@@ -27,6 +28,7 @@ export function PlanPage() {
     try {
       await api.usuario.cambiarPlan(esPlus ? "gratis" : "plus");
       await refrescarUsuario();
+      mostrarToast(esPlus ? tr("Volviste al plan gratis") : tr("¡Ya eres Plus!"), esPlus ? "info" : "exito");
     } catch (e) {
       setError(e instanceof Error ? e.message : tr("No se pudo cambiar el plan."));
     } finally {

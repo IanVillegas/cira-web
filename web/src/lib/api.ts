@@ -1,4 +1,5 @@
 import type {
+  Actividad,
   Alerta,
   ConfigNegocio,
   Conversacion,
@@ -6,6 +7,7 @@ import type {
   Ingresos,
   Mensaje,
   MetodoPago,
+  NoLeidos,
   PerfilPublico,
   Plan,
   Trabajador,
@@ -70,6 +72,7 @@ const post = <T>(path: string, body?: unknown) =>
 
 export const api = {
   auth: {
+    existe: (identifier: string) => post<{ existe: boolean }>("/auth/existe", { identifier }),
     login: (identifier: string, pin: string) =>
       post<{ token: string; usuario: Usuario }>("/auth/login", { identifier, pin }),
     registro: (datos: { telefono: string; nombre: string; zona: string; lat?: number; lng?: number; pin: string }) =>
@@ -90,6 +93,9 @@ export const api = {
         method: "PUT",
         body: JSON.stringify({ disponible }),
       }),
+    guardarTarjeta: (datos: { numero: string; titular: string; vence: string; cvv: string }) =>
+      request<Usuario>("/usuario/tarjeta", { method: "PUT", body: JSON.stringify(datos) }),
+    eliminarTarjeta: () => request<void>("/usuario/tarjeta", { method: "DELETE" }),
     cambiarPlan: (plan: Plan) => request<Usuario>("/usuario/plan", { method: "PUT", body: JSON.stringify({ plan }) }),
     agregarServicio: (servicio: { categoria: string; descripcion: string; precioAproximado?: number }) =>
       request("/usuario/servicios", { method: "POST", body: JSON.stringify(servicio) }),
@@ -123,7 +129,7 @@ export const api = {
     aceptarUrgencia: (id: string) => post<Trabajo>(`/trabajos/${id}/aceptar-urgencia`),
     avanzarEtapa: (id: string) => request<Trabajo>(`/trabajos/${id}/etapa`, { method: "PATCH" }),
     cancelar: (id: string) => post<Trabajo>(`/trabajos/${id}/cancelar`),
-    pagar: (id: string) => post<Trabajo>(`/trabajos/${id}/pagar`),
+    pagar: (id: string, propina = 0) => post<Trabajo>(`/trabajos/${id}/pagar`, { propina }),
     calificar: (id: string, estrellas: number, comentario: string) =>
       post<Trabajo>(`/trabajos/${id}/calificar`, { estrellas, comentario }),
   },
@@ -144,6 +150,7 @@ export const api = {
 
   conversaciones: {
     listar: () => request<Conversacion[]>("/conversaciones"),
+    noLeidos: () => request<NoLeidos>("/conversaciones/no-leidos"),
     obtener: (id: string) => request<Conversacion>(`/conversaciones/${id}`),
     /** Abre (o reutiliza) la conversación con otra persona. */
     con: (usuarioId: string) => post<Conversacion>("/conversaciones", { usuarioId }),
@@ -153,6 +160,8 @@ export const api = {
   historial: {
     listar: () => request<HistorialItem[]>("/historial"),
   },
+
+  actividad: () => request<Actividad>("/actividad"),
 
   ingresos: () => request<Ingresos>("/ingresos"),
 };

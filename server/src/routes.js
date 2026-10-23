@@ -12,6 +12,7 @@ import {
   mapTrabajador,
   mapTrabajo,
   mapUsuario,
+  contarNoLeidos,
   obtenerUsuario,
   parseFechaSql,
   reputacionDe,
@@ -19,9 +20,16 @@ import {
 
 export const router = Router();
 
-const METODO_APP = "Pago en la app";
 const ESTADOS_CERRADOS = ["Finalizado", "Cancelado"];
 const error = (res, status, mensaje) => res.status(status).json({ error: mensaje });
+
+const MSG_SIN_TARJETA = "Registra una tarjeta en tu cuenta para pagar con tarjeta o publicar una urgencia.";
+
+/** Con tarjeta, o en una urgencia (la tarifa se cobra con tarjeta), el usuario necesita una tarjeta registrada. */
+function tarjetaOk(usuarioId, metodo, urgente) {
+  if (metodo !== "Tarjeta" && !urgente) return true;
+  return !!obtenerUsuario(usuarioId).tarjeta_ultimos4;
+}
 
 // ── Autenticación (fase de pruebas) ─────────────────────────────────
 // Login por teléfono (o correo) + PIN. El "token" es el id del usuario: alcanza para que
@@ -48,6 +56,23 @@ router.post("/auth/login", (req, res) => {
   if (!row) return error(res, 404, "No encontramos una cuenta con ese teléfono o correo.");
   if (row.pin !== String(pin ?? "")) return error(res, 401, "PIN incorrecto.");
   res.json({ token: row.id, usuario: mapUsuario(row) });
+});
+
+/** Paso 1 del login: avisa enseguida si la cuenta no existe. */
+router.post("/auth/existe", (req, res) => {
+  const buscado = String(req.body.identifier ?? "").trim();
+  if (!buscado) return error(res, 400, "Ingresa tu teléfono o correo.");
+  const tel = normalizarTelefono(buscado);
+  const existe = db
+    .prepare("SELECT telefono, correo FROM usuario")
+    .all()
+    .some(
+      (u) =>
+        (tel && normalizarTelefono(u.telefono) === tel) ||
+        (u.correo && u.correo.toLowerCase() === buscado.toLowerCase()),
+    );
+  if (!existe) return error(res, 404, "No encontramos una cuenta con ese teléfono o correo.");
+  res.json({ existe: true });
 });
 
 router.post("/auth/registro", (req, res) => {
@@ -125,6 +150,58 @@ router.put("/usuario/disponibilidad", (req, res) => {
   const { disponible } = req.body;
   db.prepare("UPDATE usuario SET disponible = ? WHERE id = ?").run(disponible ? 1 : 0, req.usuarioId);
   res.json({ disponible: !!disponible });
+});
+
+// ── Tarjeta (simulada): solo se guardan marca, últimos 4, titular y vencimiento ──
+function pasaLuhn(numero) {
+  let suma = 0;
+  for (let i = 0; i < numero.length; i++) {
+    let d = Number(numero[numero.length - 1 - i]);
+    if (i % 2 === 1) {
+      d *= 2;
+      if (d > 9) d -= 9;
+    }
+    suma += d;
+  }
+  return suma % 10 === 0;
+}
+
+function marcaDe(numero) {
+  if (/^4/.test(numero)) return "Visa";
+  if (/^(5[1-5]|2(2[2-9][1-9]|[3-6]\d\d|7[01]\d|720))/.test(numero)) return "Mastercard";
+  if (/^3[47]/.test(numero)) return "American Express";
+  return "Tarjeta";
+}
+
+router.put("/usuario/tarjeta", (req, res) => {
+  const numero = soloDigitos(req.body.numero);
+  const titular = String(req.body.titular ?? "").trim();
+  const vence = String(req.body.vence ?? "").trim();
+  const cvv = soloDigitos(req.body.cvv);
+  if (numero.length < 13 || numero.length > 19 || !pasaLuhn(numero)) {
+    return error(res, 400, "El número de tarjeta no es válido.");
+  }
+  if (!titular) return error(res, 400, "Ingresa el nombre del titular.");
+  const m = /^(\d{2})\/(\d{2})$/.exec(vence);
+  const mes = m ? Number(m[1]) : 0;
+  const anio = m ? 2000 + Number(m[2]) : 0;
+  const hoy = new Date();
+  if (!m || mes < 1 || mes > 12 || anio * 12 + mes < hoy.getFullYear() * 12 + hoy.getMonth() + 1) {
+    return error(res, 400, "La fecha de vencimiento no es válida.");
+  }
+  if (cvv.length < 3 || cvv.length > 4) return error(res, 400, "El código de seguridad no es válido.");
+
+  db.prepare(
+    "UPDATE usuario SET tarjeta_marca = ?, tarjeta_ultimos4 = ?, tarjeta_titular = ?, tarjeta_vence = ? WHERE id = ?",
+  ).run(marcaDe(numero), numero.slice(-4), titular, vence, req.usuarioId);
+  res.json(mapUsuario(obtenerUsuario(req.usuarioId)));
+});
+
+router.delete("/usuario/tarjeta", (req, res) => {
+  db.prepare(
+    "UPDATE usuario SET tarjeta_marca = NULL, tarjeta_ultimos4 = NULL, tarjeta_titular = NULL, tarjeta_vence = NULL WHERE id = ?",
+  ).run(req.usuarioId);
+  res.status(204).end();
 });
 
 router.put("/usuario/plan", (req, res) => {
@@ -227,9 +304,9 @@ router.post("/trabajos", (req, res) => {
   if (esUrgente && !CATEGORIAS_URGENTES.includes(categoria)) {
     return error(res, 400, "El modo urgencia solo aplica a las categorías críticas (plomería, electricidad y cerrajería).");
   }
-  // Las urgencias siempre se pagan en la app para poder cobrar la tarifa de urgencia.
-  const metodo = esUrgente ? METODO_APP : metodoPago;
+  const metodo = metodoPago;
   if (!METODOS_PAGO.includes(metodo)) return error(res, 400, "Método de pago no válido.");
+  if (!tarjetaOk(req.usuarioId, metodo, esUrgente)) return error(res, 400, MSG_SIN_TARJETA);
 
   const id = `t-${randomUUID()}`;
   db.prepare(
@@ -254,8 +331,9 @@ router.patch("/trabajos/:id", (req, res) => {
   if (row.urgente && categoria && !CATEGORIAS_URGENTES.includes(categoria)) {
     return error(res, 400, "Una urgencia debe mantener una categoría crítica.");
   }
-  const metodo = row.urgente ? METODO_APP : metodoPago;
+  const metodo = metodoPago;
   if (metodo && !METODOS_PAGO.includes(metodo)) return error(res, 400, "Método de pago no válido.");
+  if (!tarjetaOk(req.usuarioId, metodo ?? row.metodo_pago, !!row.urgente)) return error(res, 400, MSG_SIN_TARJETA);
 
   db.prepare(
     `UPDATE trabajo SET
@@ -384,10 +462,14 @@ router.post("/trabajos/:id/pagar", (req, res) => {
   if (row.estado !== "Finalizado") return error(res, 409, "El trabajo aún no está terminado.");
   if (row.pagado) return error(res, 409, "Este trabajo ya fue pagado.");
 
-  const r = calcularResumenPago(row.pago, !!row.urgente, row.metodo_pago);
+  const propina = Math.round(Number(req.body.propina ?? 0));
+  if (!Number.isFinite(propina) || propina < 0 || propina > 1_000_000) return error(res, 400, "La propina no es válida.");
+  const r = calcularResumenPago(row.pago, !!row.urgente, row.metodo_pago, propina);
+  if (r.enTarjeta > 0 && !obtenerUsuario(req.usuarioId).tarjeta_ultimos4) return error(res, 400, MSG_SIN_TARJETA);
   db.prepare(
-    "INSERT INTO pago (id, trabajo_id, metodo, monto, comision, tarifa_urgencia, total) VALUES (?, ?, ?, ?, ?, ?, ?)",
-  ).run(`pg-${randomUUID()}`, row.id, row.metodo_pago, r.monto, r.comision, r.tarifaUrgencia, r.total);
+    `INSERT INTO pago (id, trabajo_id, metodo, monto, comision, tarifa_urgencia, propina, en_efectivo, total)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ).run(`pg-${randomUUID()}`, row.id, row.metodo_pago, r.monto, r.comision, r.tarifaUrgencia, r.propina, r.enEfectivo, r.total);
   db.prepare("UPDATE trabajo SET pagado = 1 WHERE id = ?").run(row.id);
   responderTrabajo(req, res, row.id);
 });
@@ -556,9 +638,33 @@ router.post("/conversaciones", (req, res) => {
   res.status(201).json(mapConversacion(c, req.usuarioId));
 });
 
+/** Mensajes sin leer de todas mis conversaciones (insignia del chat y avisos dentro de la app). */
+router.get("/conversaciones/no-leidos", (req, res) => {
+  const filas = db
+    .prepare("SELECT * FROM conversacion WHERE usuario_a = ? OR usuario_b = ?")
+    .all(req.usuarioId, req.usuarioId);
+  const pendientes = [];
+  let total = 0;
+  for (const c of filas) {
+    const n = contarNoLeidos(c.id, req.usuarioId);
+    if (n === 0) continue;
+    total += n;
+    const ultimo = db
+      .prepare("SELECT texto FROM mensaje WHERE conversacion_id = ? AND autor_id != ? AND leido = 0 ORDER BY creado_en DESC, rowid DESC LIMIT 1")
+      .get(c.id, req.usuarioId);
+    const otro = obtenerUsuario(c.usuario_a === req.usuarioId ? c.usuario_b : c.usuario_a);
+    pendientes.push({ conversacionId: c.id, nombre: otro.nombre, texto: ultimo.texto, cantidad: n });
+  }
+  res.json({ total, pendientes });
+});
+
 router.get("/conversaciones/:id", (req, res) => {
   const c = conversacionDe(req, res);
-  if (c) res.json(mapConversacion(c, req.usuarioId));
+  if (!c) return;
+  const conversacion = mapConversacion(c, req.usuarioId);
+  // Abrir la conversación marca como leídos los mensajes de la otra persona.
+  db.prepare("UPDATE mensaje SET leido = 1 WHERE conversacion_id = ? AND autor_id != ?").run(c.id, req.usuarioId);
+  res.json(conversacion);
 });
 
 router.post("/conversaciones/:id/mensajes", (req, res) => {
@@ -585,6 +691,47 @@ router.get("/historial", (req, res) => {
     )
     .all(req.usuarioId, req.usuarioId);
   res.json(rows.map((r) => mapHistorial(r, req.usuarioId)));
+});
+
+// ── Actividad: lo que pagué y lo que gané ───────────────────────────
+router.get("/actividad", (req, res) => {
+  const filas = db
+    .prepare(
+      `SELECT p.*, t.titulo, t.publicador_id, t.trabajador_id
+         FROM pago p JOIN trabajo t ON t.id = p.trabajo_id
+        WHERE t.publicador_id = ? OR t.trabajador_id = ?
+        ORDER BY p.creado_en DESC, p.rowid DESC`,
+    )
+    .all(req.usuarioId, req.usuarioId);
+
+  const mapear = (p, otroId) => ({
+    id: p.id,
+    trabajoId: p.trabajo_id,
+    titulo: p.titulo,
+    contraparte: obtenerUsuario(otroId)?.nombre ?? "",
+    fecha: p.creado_en,
+    metodo: p.metodo,
+    monto: p.monto,
+    comision: p.comision,
+    tarifaUrgencia: p.tarifa_urgencia,
+    propina: p.propina,
+    total: p.total,
+    enEfectivo: p.en_efectivo,
+    enTarjeta: p.total - p.en_efectivo,
+  });
+
+  const pagos = filas.filter((p) => p.publicador_id === req.usuarioId).map((p) => mapear(p, p.trabajador_id));
+  // El trabajador recibe el monto completo más la propina; CIRA se queda con comisión y tarifa.
+  const ganancias = filas
+    .filter((p) => p.trabajador_id === req.usuarioId)
+    .map((p) => ({ ...mapear(p, p.publicador_id), total: p.monto + p.propina }));
+
+  res.json({
+    pagos,
+    ganancias,
+    totalPagado: pagos.reduce((a, p) => a + p.total, 0),
+    totalGanado: ganancias.reduce((a, p) => a + p.total, 0),
+  });
 });
 
 // ── Ingresos de CIRA (vista de demostración del modelo de negocio) ──

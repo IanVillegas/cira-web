@@ -1,6 +1,6 @@
 export type Rol = "trabajador" | "empleador";
 
-export type MetodoPago = "Efectivo" | "Pago en la app";
+export type MetodoPago = "Efectivo" | "Tarjeta";
 
 export type EstadoTrabajo =
   | "Pendiente"
@@ -27,6 +27,8 @@ export interface Usuario {
   lat?: number;
   lng?: number;
   metodosPago: MetodoPago[];
+  /** Tarjeta registrada (simulada): nunca se guarda el número completo. */
+  tarjeta: Tarjeta | null;
   servicios: ServicioUsuario[];
   disponible: boolean;
   plan: Plan;
@@ -76,11 +78,51 @@ export interface Trabajo {
   creadoEn: string;
 }
 
+export interface Tarjeta {
+  marca: string;
+  ultimos4: string;
+  titular: string;
+  vence: string;
+}
+
 export interface ResumenPago {
   monto: number;
   comision: number;
   tarifaUrgencia: number;
+  propina: number;
   total: number;
+  /** Parte que se entrega en mano (trabajos en efectivo). */
+  enEfectivo: number;
+  /** Parte que se cobra con la tarjeta registrada. */
+  enTarjeta: number;
+}
+
+export interface MovimientoActividad {
+  id: string;
+  trabajoId: string;
+  titulo: string;
+  contraparte: string;
+  fecha: string;
+  metodo: MetodoPago;
+  monto: number;
+  comision: number;
+  tarifaUrgencia: number;
+  propina: number;
+  total: number;
+  enEfectivo: number;
+  enTarjeta: number;
+}
+
+export interface Actividad {
+  pagos: MovimientoActividad[];
+  ganancias: MovimientoActividad[];
+  totalPagado: number;
+  totalGanado: number;
+}
+
+export interface NoLeidos {
+  total: number;
+  pendientes: { conversacionId: string; nombre: string; texto: string; cantidad: number }[];
 }
 
 export interface Trabajador {

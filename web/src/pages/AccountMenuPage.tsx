@@ -2,10 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { Icon } from "@/components/ui/Icon";
 import { Loader } from "@/components/ui/Loader";
 import { useAuth } from "@/lib/auth";
-import { cambiarIdioma, idioma, tr } from "@/lib/i18n";
+import { useState } from "react";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { cambiarIdioma, idioma, tr, type Idioma } from "@/lib/i18n";
 
 const OPTIONS = [
   { icon: "edit", label: tr("Editar perfil"), to: "/perfil/editar" },
+  { icon: "credit_card", label: tr("Mi tarjeta"), to: "/cuenta/tarjeta" },
+  { icon: "receipt_long", label: tr("Mi actividad"), to: "/cuenta/actividad" },
   { icon: "star", label: tr("Plan Plus"), to: "/cuenta/plan" },
   { icon: "notifications", label: tr("Alertas"), to: "/alertas" },
   { icon: "payments", label: tr("Ingresos de CIRA (demo)"), to: "/cuenta/ingresos" },
@@ -16,6 +20,7 @@ const OPTIONS = [
 export function AccountMenuPage() {
   const navigate = useNavigate();
   const { usuario, logout } = useAuth();
+  const [idiomaAbierto, setIdiomaAbierto] = useState(false);
 
   if (!usuario) return <Loader label={tr("Cargando cuenta...")} />;
 
@@ -46,11 +51,7 @@ export function AccountMenuPage() {
           {OPTIONS.map((o) => (
             <MenuOption key={o.to} icon={o.icon} label={o.label} onClick={() => navigate(o.to)} />
           ))}
-          <MenuOption
-            icon="language"
-            label={`${tr("Idioma")}: ${idioma() === "es" ? "Español" : "English"} → ${idioma() === "es" ? "English" : "Español"}`}
-            onClick={() => cambiarIdioma(idioma() === "es" ? "en" : "es")}
-          />
+          <MenuOption icon="language" label={tr("Idioma")} onClick={() => setIdiomaAbierto(true)} />
           <MenuOption
             icon="logout"
             label={tr("Cerrar sesion")}
@@ -61,9 +62,35 @@ export function AccountMenuPage() {
           />
         </div>
       </div>
+
+      <BottomSheet open={idiomaAbierto} onClose={() => setIdiomaAbierto(false)} title={tr("Idioma")} subtitle={tr("Elige el idioma de la app")}>
+        <div className="flex flex-col gap-2">
+          {IDIOMAS.map((i) => (
+            <button
+              key={i.value}
+              type="button"
+              aria-pressed={idioma() === i.value}
+              onClick={() => (i.value === idioma() ? setIdiomaAbierto(false) : cambiarIdioma(i.value))}
+              className={`flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left text-[15px] ${
+                idioma() === i.value
+                  ? "border-cira-accent bg-cira-nav-selected-bg font-semibold text-cira-accent"
+                  : "border-cira-border text-cira-text-primary"
+              }`}
+            >
+              {i.label}
+              {idioma() === i.value && <Icon name="check" size={22} />}
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
     </div>
   );
 }
+
+const IDIOMAS: { value: Idioma; label: string }[] = [
+  { value: "es", label: "Español" },
+  { value: "en", label: "English" },
+];
 
 function MenuOption({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
   return (

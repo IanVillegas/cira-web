@@ -15,7 +15,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 | 1 | Calificaciones (bidireccionales) y reportes | ✅ Implementada | Alta |
 | 2 | Diagnóstico / sugerencia de categoría con IA | ❌ Descartada → 🗺️ Roadmap | — |
 | 3 | Modo Urgencia con tarifa de urgencia | ✅ Implementada | Alta |
-| 4 | Pago en la app con comisión de CIRA | ✅ Implementada | Alta |
+| 4 | Pago con tarjeta y comisión de CIRA | ✅ Implementada | Alta |
 | 5 | Verificación con insignias | ✅ Implementada (datos de prueba) | Media |
 | 6 | Plan Plus para trabajadores (alertas prioritarias) | ✅ Implementada | Alta |
 | 7 | Seguimiento del trabajo tipo Uber | ✅ Implementada | Media (la primera extra) |
@@ -82,13 +82,13 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 ---
 
-## 4. Pago en la app con comisión de CIRA
+## 4. Pago con tarjeta y comisión de CIRA
 
 **Problema que resuelve:** Falta de confianza en los pagos: el cliente teme pagar por adelantado y que no se haga el trabajo; el trabajador teme no recibir su pago.
 
 **Cómo funciona:**
-- Solo quedan dos métodos de pago: **Efectivo** y **Pago en la app**. Se eliminan SINPE y Transferencia (ya se quitaron en el primer entregable, pero siguen en el código).
-- Con "Pago en la app" el resumen del pago muestra el monto del trabajo, la **comisión de CIRA** y, si aplica, la tarifa de urgencia.
+- Solo quedan dos métodos de pago: **Efectivo** y **Tarjeta**. Se eliminan SINPE y Transferencia (ya se quitaron en el primer entregable, pero siguen en el código).
+- Con "Tarjeta" el resumen del pago muestra el monto del trabajo, la **comisión de CIRA** y, si aplica, la tarifa de urgencia.
 - El pago es **simulado** (el profesor lo permite).
 - Opcional: el dinero queda retenido hasta que ambas partes confirmen que el trabajo terminó; confirmar y calificar (idea #1) es el mismo paso.
 
@@ -184,8 +184,11 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 ## Decisiones de implementación (para el documento)
 
-- **Cobros (todos simulados):** el cliente paga el monto del trabajo **+ comisión de CIRA (10 %, solo si paga en la app) + tarifa de urgencia (15 %, solo urgencias)**; el trabajador recibe el monto completo. Los porcentajes y el precio del Plus se cambian en `server/src/config.js`.
-- **Las urgencias siempre se pagan en la app**, para poder cobrar la tarifa de urgencia.
+- **Cobros (todos simulados):** el cliente paga el monto del trabajo **+ comisión de CIRA (10 %, solo si paga con tarjeta) + tarifa de urgencia (15 %, solo urgencias)**; el trabajador recibe el monto completo. Los porcentajes y el precio del Plus se cambian en `server/src/config.js`.
+- **Tarjeta (simulada):** se registra en Cuenta → Mi tarjeta (se valida el formato; solo se guardan marca, últimos 4, titular y vencimiento). Es obligatoria para pagar con tarjeta y para publicar urgencias. Una urgencia puede pagarse en efectivo: el monto se entrega en mano y la tarifa de urgencia se cobra a la tarjeta.
+- **Propina:** opcional al pagar (₡500, ₡1 000, ₡2 000 u otro monto); va completa para el trabajador y no genera comisión.
+- **Mi actividad:** en Cuenta, lo que pagó (publicaciones) y lo que ganó (trabajos) cada usuario; distinto de "Ingresos de CIRA".
+- **Avisos:** toasts y modal de éxito para confirmar acciones; los mensajes de chat sin leer se avisan con un toast y una insignia en la barra inferior.
 - **Alertas:** se consultan cada 5 s (sin notificaciones push). Radio de 15 km; los Plus las ven al instante (los mejor calificados primero, +10 s por puesto) y el plan gratis tras 2 minutos (`CIRA_RETRASO_ALERTAS_SEG` para acortarlo en la demo). Una alerta dura 30 minutos.
 - **Seguimiento:** aplica a cualquier trabajo asignado, no solo a urgencias. Al marcar "Terminado" el cliente paga y luego ambos califican.
 - **Insignias:** Plus (según el plan), cédula y hoja de delincuencia (campos de prueba), +50 trabajos (calculado) y "Responde urgencias" (se activa al aceptar una).
@@ -193,7 +196,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 ## Cambios técnicos pendientes (no son ideas nuevas)
 
-- ✅ **Quitar SINPE y Transferencia del código.** Siguen en `types.ts`, `CrearTrabajoPage.tsx` (SINPE viene por defecto), `EditProfilePage.tsx`, `PerfilPage.tsx` y `seed.js`. Solo deben quedar "Efectivo" y "Pago en la app".
+- ✅ **Quitar SINPE y Transferencia del código.** Siguen en `types.ts`, `CrearTrabajoPage.tsx` (SINPE viene por defecto), `EditProfilePage.tsx`, `PerfilPage.tsx` y `seed.js`. Solo deben quedar "Efectivo" y "Tarjeta".
 - ✅ **Editar publicaciones.** El backend ya permite editar un trabajo (`PATCH /trabajos/:id`); falta el botón y la pantalla en "Mis publicaciones".
 - ✅ **Usuarios definidos y multiusuario.** Login por teléfono con PIN `1234` para todos (fase de pruebas), para que varios compañeros puedan interactuar a la vez (postularse, chatear, calificar). Hoy el backend usa un usuario fijo (`u-1`). Los 6 usuarios del equipo (con sus teléfonos reales) están sembrados en `server/src/seed.js`; ver `server/README.md`.
 - **Publicar en internet:** no es necesario. La demo corre local con `npm run demo` y los demás dispositivos se conectan por la misma red WiFi.
@@ -205,7 +208,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 1. El cliente crea un trabajo de fontanería y activa **"Es urgente"**.
 2. La alerta llega primero a los fontaneros **Plus** cercanos y, minutos después, al resto.
 3. Un trabajador acepta y el cliente ve el **seguimiento**: Aceptado → En camino → Llegó → Terminado.
-4. El cliente paga con **Pago en la app**; el resumen muestra la tarifa de urgencia y la comisión de CIRA.
+4. El cliente paga con **Tarjeta** (con propina opcional); el resumen muestra la tarifa de urgencia y la comisión de CIRA.
 5. Ambos se **califican con estrellas** y, si hace falta, pueden **reportar** al otro usuario.
 
 ---
