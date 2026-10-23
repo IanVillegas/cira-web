@@ -34,23 +34,29 @@ es usar **Dev Tunnels de VS Code**:
    `VITE_API_URL` antes de compilar/servir, para que la app apunte al túnel
    en lugar de `localhost`.
 
-## Usuarios de prueba (multiusuario)
+## Usuarios del equipo (multiusuario)
 
-Hay 9 usuarios sembrados con teléfonos ficticios `8888-0001` … `8888-0009` y el
-PIN **1234** para todos (fase de pruebas). El login es
-`POST /api/auth/login` con teléfono (o correo) + PIN y devuelve un "token" que es
-el id del usuario; el frontend lo envía en la cabecera `X-Cira-User`. **No es
-seguridad real**, solo permite que varias personas usen la demo a la vez
-(cada pestaña del navegador guarda su propia sesión).
+Hay 6 usuarios sembrados (`src/seed.js`), todos con el PIN **1234** (fase de pruebas):
 
-Para usar los teléfonos reales del equipo sin subirlos al repo, creá
-`server/usuarios.local.json` (ya excluido de git por `*.local`):
+| Id | Nombre | Teléfono | Plan | Servicios |
+| --- | --- | --- | --- | --- |
+| `u-1` | Ian Villegas | 6104-4195 | Gratis | Electricidad, Reparaciones |
+| `u-2` | Marisol Hidalgo | 6361-7541 | Gratis | Limpieza, Cuidado de mascotas |
+| `u-3` | Bayron Camacho | 8512-8068 | Plus | Plomería, Cerrajería |
+| `u-4` | Eduardo Picado | 6252-4226 | Plus | Electricidad, Reparaciones |
+| `u-5` | José Jara | 7064-2458 | Gratis | Plomería, Jardinería |
+| `u-6` | Jixi Morales | 6481-8545 | Gratis | Jardinería, Mudanzas |
 
-```json
-{ "u-1": { "telefono": "8888-0000", "nombre": "Nombre Real" } }
-```
+El login es `POST /api/auth/login` con **teléfono** (o correo) + PIN, y devuelve un
+"token" que es el id del usuario; el frontend lo envía en la cabecera
+`X-Cira-User`. **No es seguridad real**, solo permite que varias personas usen la
+demo a la vez (cada pestaña del navegador guarda su propia sesión). La cédula es
+solo un dato del perfil (vacía, se completa en "Editar perfil").
 
-Se aplica en cada arranque. Los ids `u-1`…`u-9` salen de `src/seed.js`.
+Los planes, servicios, insignias y trabajos de ejemplo son datos de demostración
+para ver Plus vs. gratis (p. ej. dos plomeros: Bayron Plus y José gratis).
+Opcionalmente `server/usuarios.local.json` (`{ "u-1": { "telefono": "…" } }`)
+sobrescribe teléfono, nombre o correo por id en cada arranque.
 
 > Al cambiar el esquema (`VERSION_ESQUEMA` en `src/db.js`) la base local se
 > recrea y se vuelve a sembrar automáticamente: son solo datos de prueba.

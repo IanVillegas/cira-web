@@ -9,7 +9,7 @@ export const db = new DatabaseSync(DB_PATH);
 
 // Versión del esquema. Al subirla, la base local (solo datos de prueba) se recrea
 // y se vuelve a sembrar: el modelo pasó de un usuario fijo a varios usuarios reales.
-const VERSION_ESQUEMA = 2;
+const VERSION_ESQUEMA = 3;
 
 const TABLAS = [
   "alerta_descartada",

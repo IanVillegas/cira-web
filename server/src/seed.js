@@ -11,77 +11,71 @@ const PIN = CONFIG.PIN_PRUEBAS;
 const EFECTIVO = "Efectivo";
 const APP = "Pago en la app";
 
-// Usuarios de prueba con teléfonos ficticios. Los teléfonos reales del equipo van en
-// server/usuarios.local.json (excluido de git), por ejemplo:
-//   { "u-1": { "telefono": "8888-0000", "nombre": "Nombre Real" } }
-// Se aplican en cada arranque, sin tocar el resto de los datos.
+// Usuarios del equipo (login por teléfono + PIN de pruebas). Opcionalmente,
+// server/usuarios.local.json puede sobrescribir teléfono, nombre o correo por id
+// (p. ej. { "u-1": { "telefono": "8888-0000" } }); se aplica en cada arranque.
 const USUARIOS = [
   // id, nombre, cédula, teléfono, descripción, zona, lat, lng, plan, cédula✔, antecedentes✔, urgencias, base de trabajos
-  ["u-1", "Ian Villegas", "1-2345-6789", "8888-0001", "Disponible para trabajos de electricidad y reparaciones menores en Alajuela y alrededores.", "Alajuela Centro", 10.0163, -84.2113, "gratis", 1, 0, 0, 23],
-  ["u-2", "María Rojas", "1-1111-2222", "8888-0002", "Limpieza de casas y apartamentos.", "San José, Escazú", 9.9189, -84.1394, "gratis", 0, 0, 0, 0],
-  ["u-3", "Carlos Méndez", "2-3333-4444", "8888-0003", "Reparaciones generales y pintura.", "Alajuela, Río Segundo", 10.0134, -84.2239, "gratis", 0, 0, 0, 0],
-  ["u-4", "Douglas Solano", "2-5555-6666", "8888-0004", "Electricista con 10 años de experiencia. Atiendo urgencias.", "Alajuela Centro", 10.018, -84.213, "plus", 1, 1, 1, 52],
-  ["u-5", "Josué Fernández", "1-7777-8888", "8888-0005", "Plomero y cerrajero. Respondo urgencias.", "Alajuela, Desamparados", 10.025, -84.25, "plus", 1, 0, 1, 8],
-  ["u-6", "Kimberly Araya", "3-1212-3434", "8888-0006", "Limpieza profunda y cuidado de mascotas.", "Alajuela, Río Segundo", 10.0134, -84.2239, "gratis", 0, 0, 0, 0],
-  ["u-7", "Melissa Chacón", "4-5656-7878", "8888-0007", "Jardinería y mudanzas.", "Heredia Centro", 9.9989, -84.1174, "gratis", 1, 0, 0, 0],
-  ["u-8", "Laura Jiménez", "1-9090-1010", "8888-0008", "Busco ayuda para el hogar.", "Heredia Centro", 9.9989, -84.1174, "gratis", 0, 0, 0, 0],
-  ["u-9", "Esteban Vargas", "5-1357-2468", "8888-0009", "Plomería básica y jardinería.", "Alajuela, Desamparados", 10.025, -84.25, "gratis", 0, 0, 0, 0],
+  ["u-1", "Ian Villegas", "", "6104-4195", "Electricidad y reparaciones menores en Alajuela y alrededores.", "Alajuela Centro", 10.0163, -84.2113, "gratis", 1, 0, 0, 23],
+  ["u-2", "Marisol Hidalgo", "", "6361-7541", "Limpieza de casas y cuidado de mascotas.", "San José, Escazú", 9.9189, -84.1394, "gratis", 0, 0, 0, 0],
+  ["u-3", "Bayron Camacho", "", "8512-8068", "Plomero y cerrajero. Respondo urgencias.", "Alajuela, Desamparados", 10.025, -84.25, "plus", 1, 0, 1, 8],
+  ["u-4", "Eduardo Picado", "", "6252-4226", "Electricista con 10 años de experiencia. Atiendo urgencias.", "Alajuela Centro", 10.018, -84.213, "plus", 1, 1, 1, 52],
+  ["u-5", "José Jara", "", "7064-2458", "Plomería básica y jardinería.", "Alajuela, Río Segundo", 10.0134, -84.2239, "gratis", 0, 0, 0, 0],
+  ["u-6", "Jixi Morales", "", "6481-8545", "Jardinería y mudanzas.", "Heredia Centro", 9.9989, -84.1174, "gratis", 1, 0, 0, 0],
 ];
 
 const SERVICIOS = [
   ["s-1", "u-1", "Electricidad", "Instalación de tomacorrientes, lámparas y breakers.", 15000],
   ["s-2", "u-1", "Reparaciones", "Reparaciones generales del hogar.", 10000],
   ["s-3", "u-2", "Limpieza", "Limpieza de casas y apartamentos.", 20000],
-  ["s-4", "u-3", "Reparaciones", "Pintura y arreglos.", 25000],
-  ["s-5", "u-4", "Electricidad", "Instalaciones, cortos y urgencias eléctricas.", 18000],
-  ["s-6", "u-4", "Reparaciones", "Reparaciones eléctricas menores.", 12000],
-  ["s-7", "u-5", "Plomería", "Fugas, cañerías y cambio de piezas.", 20000],
-  ["s-8", "u-5", "Cerrajería", "Apertura de puertas y cambio de chapas.", 20000],
-  ["s-9", "u-6", "Limpieza", "Limpieza profunda.", 18000],
-  ["s-10", "u-6", "Cuidado de mascotas", "Paseo y cuidado de mascotas.", 8000],
-  ["s-11", "u-7", "Jardinería", "Poda y mantenimiento de jardines.", 12000],
-  ["s-12", "u-7", "Mudanzas", "Ayuda para mudanzas pequeñas.", 25000],
-  ["s-13", "u-9", "Plomería", "Reparaciones básicas de plomería.", 15000],
-  ["s-14", "u-9", "Jardinería", "Poda y limpieza de zacate.", 10000],
+  ["s-4", "u-2", "Cuidado de mascotas", "Paseo y cuidado de mascotas.", 8000],
+  ["s-5", "u-3", "Plomería", "Fugas, cañerías y cambio de piezas.", 20000],
+  ["s-6", "u-3", "Cerrajería", "Apertura de puertas y cambio de chapas.", 20000],
+  ["s-7", "u-4", "Electricidad", "Instalaciones, cortos y urgencias eléctricas.", 18000],
+  ["s-8", "u-4", "Reparaciones", "Reparaciones eléctricas menores.", 12000],
+  ["s-9", "u-5", "Plomería", "Reparaciones básicas de plomería.", 15000],
+  ["s-10", "u-5", "Jardinería", "Poda y limpieza de zacate.", 10000],
+  ["s-11", "u-6", "Jardinería", "Poda y mantenimiento de jardines.", 12000],
+  ["s-12", "u-6", "Mudanzas", "Ayuda para mudanzas pequeñas.", 25000],
 ];
 
 // Trabajos abiertos. id, título, descripción, categoría, ubicación, lat, lng, fecha, pago, método, publicador
 const TRABAJOS_ABIERTOS = [
   ["t-1", "Reparar fuga de agua en cocina", "Se necesita plomero para revisar y reparar una fuga debajo del fregadero de la cocina. Herramientas propias.", "Plomería", "San José, Escazú", 9.9189, -84.1394, "Hoy, 3:00 p.m.", 18000, APP, "u-2"],
-  ["t-2", "Pintar sala y comedor", "Pintura de dos ambientes, aproximadamente 40 m². La pintura ya está comprada.", "Reparaciones", "Alajuela, Río Segundo", 10.0134, -84.2239, "Mañana, 8:00 a.m.", 45000, APP, "u-3"],
-  ["t-3", "Mudanza de apartamento pequeño", "Ayuda para mover cajas y muebles de un apartamento de 1 habitación a otro edificio cercano.", "Mudanzas", "Heredia Centro", 9.9989, -84.1174, "Sábado, 9:00 a.m.", 25000, EFECTIVO, "u-8"],
-  ["t-4", "Poda de jardín y limpieza de zacate", "Jardín de casa con zacate alto y algunos arbustos que necesitan poda.", "Jardinería", "Alajuela, Desamparados", 10.025, -84.25, "Hoy, 5:30 p.m.", 12000, APP, "u-9"],
+  ["t-2", "Pintar sala y comedor", "Pintura de dos ambientes, aproximadamente 40 m². La pintura ya está comprada.", "Reparaciones", "Alajuela, Río Segundo", 10.0134, -84.2239, "Mañana, 8:00 a.m.", 45000, APP, "u-5"],
+  ["t-3", "Mudanza de apartamento pequeño", "Ayuda para mover cajas y muebles de un apartamento de 1 habitación a otro edificio cercano.", "Mudanzas", "Heredia Centro", 9.9989, -84.1174, "Sábado, 9:00 a.m.", 25000, EFECTIVO, "u-5"],
+  ["t-4", "Poda de jardín y limpieza de zacate", "Jardín de casa con zacate alto y algunos arbustos que necesitan poda.", "Jardinería", "Alajuela, Desamparados", 10.025, -84.25, "Hoy, 5:30 p.m.", 12000, APP, "u-3"],
   ["p-1", "Limpieza profunda de apartamento", "Limpieza general de apartamento de 2 habitaciones antes de mudanza.", "Limpieza", "Alajuela Centro", 10.0163, -84.2113, "Viernes, 1:00 p.m.", 20000, APP, "u-1"],
 ];
 
 const POSTULACIONES = [
-  ["t-1", "u-1"], ["t-1", "u-9"], ["t-1", "u-3"],
-  ["t-2", "u-1"], ["t-2", "u-6"],
-  ["t-3", "u-1"],
-  ["t-4", "u-7"],
-  ["p-1", "u-6"], ["p-1", "u-2"], ["p-1", "u-3"], ["p-1", "u-7"],
+  ["t-1", "u-1"], ["t-1", "u-5"], ["t-1", "u-3"],
+  ["t-2", "u-1"], ["t-2", "u-4"],
+  ["t-3", "u-1"], ["t-3", "u-6"],
+  ["t-4", "u-6"], ["t-4", "u-5"],
+  ["p-1", "u-2"], ["p-1", "u-6"], ["p-1", "u-4"], ["p-1", "u-3"],
 ];
 
 // Trabajos terminados (historial y base de las calificaciones reales).
 // id, título, categoría, ubicación, fecha, pago, método, publicador, trabajador, estado, ⭐ del cliente al trabajador, ⭐ del trabajador al cliente, comentario
 const TRABAJOS_CERRADOS = [
   ["h-1", "Instalación de lámparas", "Electricidad", "San José, Escazú", "12 sept 2026", 15000, EFECTIVO, "u-2", "u-1", "Finalizado", 5, 5, "Muy puntual y ordenado."],
-  ["h-2", "Reparación de breaker", "Electricidad", "Alajuela, Río Segundo", "2 sept 2026", 9000, APP, "u-3", "u-1", "Finalizado", 5, 4, "Resolvió el problema rápido."],
-  ["h-3", "Cambio de tomacorrientes", "Electricidad", "Heredia Centro", "20 ago 2026", 12000, EFECTIVO, "u-8", "u-1", "Cancelado", null, null, ""],
-  ["h-4", "Corto circuito en la cocina", "Electricidad", "Alajuela Centro", "28 ago 2026", 20000, APP, "u-3", "u-4", "Finalizado", 5, 5, "Llegó en 15 minutos."],
-  ["h-5", "Instalación de ventiladores", "Electricidad", "Heredia Centro", "30 ago 2026", 16000, EFECTIVO, "u-8", "u-4", "Finalizado", 5, 3, "Excelente trabajo."],
+  ["h-2", "Reparación de breaker", "Electricidad", "Alajuela, Río Segundo", "2 sept 2026", 9000, APP, "u-5", "u-1", "Finalizado", 5, 4, "Resolvió el problema rápido."],
+  ["h-3", "Cambio de tomacorrientes", "Electricidad", "Heredia Centro", "20 ago 2026", 12000, EFECTIVO, "u-6", "u-1", "Cancelado", null, null, ""],
+  ["h-4", "Corto circuito en la cocina", "Electricidad", "Alajuela Centro", "28 ago 2026", 20000, APP, "u-5", "u-4", "Finalizado", 5, 5, "Llegó en 15 minutos."],
+  ["h-5", "Instalación de ventiladores", "Electricidad", "Heredia Centro", "30 ago 2026", 16000, EFECTIVO, "u-6", "u-4", "Finalizado", 5, 3, "Excelente trabajo."],
   ["h-6", "Cambio de panel eléctrico", "Electricidad", "San José, Escazú", "5 sept 2026", 40000, APP, "u-2", "u-4", "Finalizado", 4, 5, "Buen servicio, un poco caro."],
-  ["h-7", "Reparar tubería del baño", "Plomería", "Alajuela Centro", "1 sept 2026", 22000, APP, "u-3", "u-5", "Finalizado", 5, 4, "Muy profesional."],
-  ["h-8", "Cambio de chapa de puerta", "Cerrajería", "Heredia Centro", "8 sept 2026", 18000, EFECTIVO, "u-8", "u-5", "Finalizado", 4, 2, "Cumplió con lo acordado."],
-  ["h-9", "Limpieza de apartamento", "Limpieza", "San José, Escazú", "10 sept 2026", 18000, EFECTIVO, "u-2", "u-6", "Finalizado", 4, 5, "Todo quedó limpio."],
-  ["h-10", "Fuga en el lavatorio", "Plomería", "Alajuela, Río Segundo", "15 sept 2026", 12000, EFECTIVO, "u-3", "u-9", "Finalizado", 3, 5, "Tardó un poco más de lo esperado."],
+  ["h-7", "Reparar tubería del baño", "Plomería", "Alajuela Centro", "1 sept 2026", 22000, APP, "u-5", "u-3", "Finalizado", 5, 4, "Muy profesional."],
+  ["h-8", "Cambio de chapa de puerta", "Cerrajería", "Heredia Centro", "8 sept 2026", 18000, EFECTIVO, "u-6", "u-3", "Finalizado", 4, 2, "Cumplió con lo acordado."],
+  ["h-9", "Limpieza de apartamento", "Limpieza", "Alajuela Centro", "10 sept 2026", 18000, EFECTIVO, "u-1", "u-2", "Finalizado", 4, 5, "Todo quedó limpio."],
+  ["h-10", "Fuga en el lavatorio", "Plomería", "Alajuela Centro", "15 sept 2026", 12000, EFECTIVO, "u-1", "u-5", "Finalizado", 3, 5, "Tardó un poco más de lo esperado."],
 ];
 
 const MENSAJES = [
   ["m-1", "c-1", "u-2", "Hola, vi que aplicaste al trabajo de la fuga de agua", "10:10 a.m."],
   ["m-2", "c-1", "u-1", "Sí, tengo experiencia con ese tipo de reparaciones", "10:15 a.m."],
   ["m-3", "c-1", "u-2", "Perfecto, te espero a las 3pm entonces", "10:24 a.m."],
-  ["m-4", "c-2", "u-3", "¿Cuánto tiempo estimás para la pintura?", "Ayer, 6:40 p.m."],
+  ["m-4", "c-2", "u-5", "¿Cuánto tiempo estimás para la pintura?", "Ayer, 6:40 p.m."],
 ];
 
 export function seedIfEmpty() {
@@ -152,7 +146,7 @@ function sembrar() {
 
   const insertConversacion = db.prepare("INSERT INTO conversacion (id, usuario_a, usuario_b) VALUES (?, ?, ?)");
   insertConversacion.run("c-1", "u-1", "u-2");
-  insertConversacion.run("c-2", "u-1", "u-3");
+  insertConversacion.run("c-2", "u-1", "u-5");
   const insertMensaje = db.prepare(
     "INSERT INTO mensaje (id, conversacion_id, autor_id, texto, hora) VALUES (?, ?, ?, ?, ?)",
   );

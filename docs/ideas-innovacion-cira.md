@@ -195,7 +195,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 - ✅ **Quitar SINPE y Transferencia del código.** Siguen en `types.ts`, `CrearTrabajoPage.tsx` (SINPE viene por defecto), `EditProfilePage.tsx`, `PerfilPage.tsx` y `seed.js`. Solo deben quedar "Efectivo" y "Pago en la app".
 - ✅ **Editar publicaciones.** El backend ya permite editar un trabajo (`PATCH /trabajos/:id`); falta el botón y la pantalla en "Mis publicaciones".
-- ✅ **Usuarios definidos y multiusuario.** Login por teléfono con PIN `1234` para todos (fase de pruebas), para que varios compañeros puedan interactuar a la vez (postularse, chatear, calificar). Hoy el backend usa un usuario fijo (`u-1`). Los teléfonos reales van en un archivo local excluido de git, no en el repo.
+- ✅ **Usuarios definidos y multiusuario.** Login por teléfono con PIN `1234` para todos (fase de pruebas), para que varios compañeros puedan interactuar a la vez (postularse, chatear, calificar). Hoy el backend usa un usuario fijo (`u-1`). Los 6 usuarios del equipo (con sus teléfonos reales) están sembrados en `server/src/seed.js`; ver `server/README.md`.
 - **Publicar en internet:** no es necesario. La demo corre local con `npm run demo` y los demás dispositivos se conectan por la misma red WiFi.
 
 ---
