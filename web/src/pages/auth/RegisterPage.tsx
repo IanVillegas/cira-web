@@ -14,7 +14,7 @@ type Step = "phone" | "details" | "district" | "token" | "pin";
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { registrar } = useAuth();
   const [step, setStep] = useState<Step>("phone");
   const [error, setError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -49,10 +49,26 @@ export function RegisterPage() {
     ir("token");
   };
 
-  const crearCuenta = () => {
+  const crearCuenta = async () => {
     if (pin !== confirmPin) return setError("Los PIN no coinciden.");
-    login(telefono);
-    navigate("/explorar", { replace: true });
+    const nombre = [nombres.nombre, nombres.nombre2, nombres.apellido, nombres.apellido2]
+      .map((n) => n.trim())
+      .filter(Boolean)
+      .join(" ");
+    setError(null);
+    try {
+      await registrar({
+        telefono,
+        nombre,
+        zona: distrito ? `${distrito.nombre}, ${distrito.canton}` : "",
+        lat: distrito?.lat,
+        lng: distrito?.lng,
+        pin,
+      });
+      navigate("/explorar", { replace: true });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo crear la cuenta.");
+    }
   };
 
   return (

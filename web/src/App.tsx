@@ -21,6 +21,10 @@ import { EditProfilePage } from "@/pages/EditProfilePage";
 import { AccountMenuPage } from "@/pages/AccountMenuPage";
 import { ConfigurarServiciosPage } from "@/pages/ConfigurarServiciosPage";
 import { ConfigurarDisponibilidadPage } from "@/pages/ConfigurarDisponibilidadPage";
+import { AlertasPage } from "@/pages/AlertasPage";
+import { PlanPage } from "@/pages/PlanPage";
+import { IngresosPage } from "@/pages/IngresosPage";
+import { PerfilPublicoPage } from "@/pages/PerfilPublicoPage";
 import { InhabilitarCuentaPage } from "@/pages/InhabilitarCuentaPage";
 
 export default function App() {
@@ -41,6 +45,9 @@ export default function App() {
             <Route path="/mapa" element={<MapaPage />} />
             <Route path="/crear-trabajo" element={<CrearTrabajoPage />} />
             <Route path="/publicaciones" element={<MisPublicacionesPage />} />
+            <Route path="/publicaciones/:id/editar" element={<CrearTrabajoPage />} />
+            <Route path="/alertas" element={<AlertasPage />} />
+            <Route path="/usuarios/:id" element={<PerfilPublicoPage />} />
             <Route path="/mis-trabajos" element={<MisTrabajosPage />} />
             <Route path="/historial" element={<HistorialTrabajosPage />} />
             <Route path="/chats" element={<ChatsPage />} />
@@ -48,6 +55,8 @@ export default function App() {
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/perfil/editar" element={<EditProfilePage />} />
             <Route path="/cuenta" element={<AccountMenuPage />} />
+            <Route path="/cuenta/plan" element={<PlanPage />} />
+            <Route path="/cuenta/ingresos" element={<IngresosPage />} />
             <Route path="/cuenta/servicios" element={<ConfigurarServiciosPage />} />
             <Route path="/cuenta/disponibilidad" element={<ConfigurarDisponibilidadPage />} />
             <Route path="/cuenta/inhabilitar" element={<InhabilitarCuentaPage />} />

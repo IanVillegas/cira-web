@@ -5,6 +5,8 @@ import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { Loader } from "@/components/ui/Loader";
 import { Switch } from "@/components/ui/Switch";
+import { Calificacion } from "@/components/Estrellas";
+import { InsigniaChips } from "@/components/InsigniaChips";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
@@ -17,10 +19,7 @@ function serviceIcon(categoria: string) {
 }
 
 function paymentIcon(metodo: string) {
-  const v = metodo.toLowerCase();
-  if (v.includes("sinpe") || v.includes("movil") || v.includes("móvil")) return "smartphone";
-  if (v.includes("transfer") || v.includes("banco")) return "account_balance";
-  return "payments";
+  return metodo === "Pago en la app" ? "credit_card" : "payments";
 }
 
 /** Réplica de PerfilPage.xaml: avatar, tarjeta de disponibilidad, servicios y métodos de pago. */
@@ -67,6 +66,13 @@ export function PerfilPage() {
         <p className="text-center text-cira-body text-cira-text-secondary">
           {usuario.zona || "Sin ubicación"}
         </p>
+        <Calificacion valor={usuario.calificacion} total={usuario.numCalificaciones} />
+        <InsigniaChips insignias={usuario.insignias} />
+        {usuario.plan !== "plus" && (
+          <button onClick={() => navigate("/cuenta/plan")} className="text-[13px] font-semibold text-cira-accent underline">
+            Conoce el Plan Plus
+          </button>
+        )}
       </div>
 
       <div className="flex items-center gap-3.5 rounded-[18px] bg-cira-surface-muted p-4">

@@ -14,9 +14,8 @@ import { useAuth } from "@/lib/auth";
 import type { MetodoPago } from "@/lib/types";
 
 const METODOS: { value: MetodoPago; icon: string }[] = [
-  { value: "SINPE", icon: "smartphone" },
   { value: "Efectivo", icon: "payments" },
-  { value: "Transferencia", icon: "account_balance" },
+  { value: "Pago en la app", icon: "credit_card" },
 ];
 
 // El backend guarda un solo "nombre"; el formulario lo reparte en 4 campos como MAUI.
@@ -81,6 +80,8 @@ export function EditProfilePage() {
         correo: contacto.correo.trim(),
         cedula: contacto.cedula.trim(),
         zona: zonaTexto,
+        lat: distrito?.lat,
+        lng: distrito?.lng,
         metodosPago: metodos,
       });
       await refrescarUsuario();

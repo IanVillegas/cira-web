@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Icon } from "@/components/ui/Icon";
 import { Loader } from "@/components/ui/Loader";
+import { ReportSheet } from "@/components/ReportSheet";
 import { api } from "@/lib/api";
+import { usePolling } from "@/lib/usePolling";
 import type { Conversacion } from "@/lib/types";
 
 function iniciales(nombre: string) {
@@ -23,6 +25,7 @@ export function ConversacionPage() {
   const [notFound, setNotFound] = useState(false);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [reportando, setReportando] = useState(false);
   const finRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,6 +35,11 @@ export function ConversacionPage() {
       .then(setConversacion)
       .catch(() => setNotFound(true));
   }, [id]);
+
+  // Mensajes del otro usuario sin recargar.
+  usePolling(() => {
+    if (id) api.conversaciones.obtener(id).then(setConversacion).catch(() => {});
+  }, 3000);
 
   useEffect(() => {
     finRef.current?.scrollIntoView({ block: "end" });
@@ -69,8 +77,21 @@ export function ConversacionPage() {
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cira-header-icon-bg text-[15px] font-semibold text-cira-accent">
           {iniciales(conversacion.nombre)}
         </span>
-        <p className="truncate text-[15px] font-semibold text-cira-text-primary">{conversacion.nombre}</p>
+        <button
+          onClick={() => navigate(`/usuarios/${conversacion.contraparteId}`)}
+          className="min-w-0 flex-1 truncate text-left text-[15px] font-semibold text-cira-text-primary"
+        >
+          {conversacion.nombre}
+        </button>
+        <button onClick={() => setReportando(true)} aria-label="Reportar usuario" className="text-cira-text-secondary">
+          <Icon name="flag" size={24} />
+        </button>
       </div>
+
+      <ReportSheet
+        usuario={reportando ? { id: conversacion.contraparteId, nombre: conversacion.nombre } : null}
+        onClose={() => setReportando(false)}
+      />
 
       <div className="relative min-h-0 flex-1">
         <img

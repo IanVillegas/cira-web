@@ -5,6 +5,9 @@ import { useAuth } from "@/lib/auth";
 
 const OPTIONS = [
   { icon: "edit", label: "Editar perfil", to: "/perfil/editar" },
+  { icon: "star", label: "Plan Plus", to: "/cuenta/plan" },
+  { icon: "notifications", label: "Alertas", to: "/alertas" },
+  { icon: "payments", label: "Ingresos de CIRA (demo)", to: "/cuenta/ingresos" },
   { icon: "person_off", label: "Inhabilitar cuenta", to: "/cuenta/inhabilitar" },
 ];
 

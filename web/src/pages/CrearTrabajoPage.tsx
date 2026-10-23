@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
@@ -10,16 +10,18 @@ import { SelectField } from "@/components/ui/SelectField";
 import { BudgetField } from "@/components/ui/BudgetField";
 import { DateTimeField } from "@/components/ui/DateTimeField";
 import { Card } from "@/components/ui/Card";
+import { Switch } from "@/components/ui/Switch";
+import { Loader } from "@/components/ui/Loader";
+import { PagoResumen } from "@/components/PagoResumen";
 import { LocationPicker } from "@/components/LocationPicker";
 import { CATEGORIAS } from "@/lib/mockData";
 import { api } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { calcularResumen, useConfig } from "@/lib/useConfig";
 import type { MetodoPago } from "@/lib/types";
 
 const METODOS: { value: MetodoPago; icon: string; label: string }[] = [
-  { value: "SINPE", icon: "smartphone", label: "SINPE" },
   { value: "Efectivo", icon: "payments", label: "EFECTIVO" },
-  { value: "Transferencia", icon: "account_balance", label: "TRANSFER." },
+  { value: "Pago en la app", icon: "credit_card", label: "PAGO EN LA APP" },
 ];
 
 function formatearFecha(fecha: string, hora: string) {
@@ -28,10 +30,17 @@ function formatearFecha(fecha: string, hora: string) {
   return d.toLocaleString("es-CR", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 }
 
-/** Réplica de CrearTrabajoPage.xaml: tres tarjetas (datos, ubicación y fecha, presupuesto y pago). */
+/**
+ * Réplica de CrearTrabajoPage.xaml: tres tarjetas (datos, ubicación y fecha, presupuesto y pago).
+ * Con `:id` en la ruta funciona como "Editar publicación" (solo mientras esté pendiente).
+ */
 export function CrearTrabajoPage() {
   const navigate = useNavigate();
-  const { usuario } = useAuth();
+  const { id } = useParams();
+  const editando = id !== undefined;
+  const config = useConfig();
+  const [cargando, setCargando] = useState(editando);
+  const [urgente, setUrgente] = useState(false);
   const [publicado, setPublicado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,11 +53,41 @@ export function CrearTrabajoPage() {
     fecha: "",
     hora: "",
     pago: "",
-    metodoPago: "SINPE" as MetodoPago,
+    metodoPago: "Pago en la app" as MetodoPago,
   });
 
+  useEffect(() => {
+    if (!id) return;
+    api.trabajos
+      .obtener(id)
+      .then((t) => {
+        if (!t.esMio || t.estado !== "Pendiente") {
+          setError("Solo puedes editar tus publicaciones pendientes.");
+          return;
+        }
+        setUrgente(t.urgente);
+        setForm({
+          titulo: t.titulo,
+          descripcion: t.descripcion,
+          categoria: t.categoria,
+          ubicacion: t.ubicacion,
+          coords: t.lat != null && t.lng != null ? { lat: t.lat, lng: t.lng } : null,
+          fecha: t.fecha, // al editar la fecha se maneja como texto libre
+          hora: "",
+          pago: String(t.pago),
+          metodoPago: t.metodoPago,
+        });
+      })
+      .catch(() => setError("No se pudo cargar la publicación."))
+      .finally(() => setCargando(false));
+  }, [id]);
+
+  const puedeUrgencia = !editando && config.categoriasUrgentes.includes(form.categoria);
+  const esUrgente = urgente && (editando || puedeUrgencia);
+  const metodoEfectivo: MetodoPago = esUrgente ? "Pago en la app" : form.metodoPago;
+
   const valido =
-    form.titulo.trim() && form.categoria && form.ubicacion && form.fecha && Number(form.pago) > 0;
+    form.titulo.trim() && form.categoria && form.ubicacion && (esUrgente || form.fecha) && Number(form.pago) > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,25 +95,28 @@ export function CrearTrabajoPage() {
     setEnviando(true);
     setError(null);
     try {
-      await api.trabajos.crear({
+      const datos = {
         titulo: form.titulo.trim(),
         descripcion: form.descripcion,
         categoria: form.categoria,
         ubicacion: form.ubicacion,
         lat: form.coords?.lat,
         lng: form.coords?.lng,
-        fecha: formatearFecha(form.fecha, form.hora),
+        fecha: editando ? form.fecha : esUrgente ? "Lo antes posible" : formatearFecha(form.fecha, form.hora),
         pago: Number(form.pago),
-        metodoPago: form.metodoPago,
-        publicador: usuario?.nombre,
-      });
+        metodoPago: metodoEfectivo,
+      };
+      if (id) await api.trabajos.editar(id, datos);
+      else await api.trabajos.crear({ ...datos, urgente: esUrgente });
       setPublicado(true);
-    } catch {
-      setError("No se pudo publicar el trabajo. Verifica que el servidor esté corriendo.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo publicar el trabajo.");
     } finally {
       setEnviando(false);
     }
   };
+
+  if (cargando) return <Loader label="Cargando publicación..." />;
 
   if (publicado) {
     return (
@@ -82,9 +124,15 @@ export function CrearTrabajoPage() {
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
           <Icon name="check_circle" filled size={36} className="text-emerald-600" />
         </div>
-        <h1 className="text-cira-title font-semibold text-cira-text-primary">Trabajo publicado</h1>
+        <h1 className="text-cira-title font-semibold text-cira-text-primary">
+          {editando ? "Cambios guardados" : esUrgente ? "Urgencia publicada" : "Trabajo publicado"}
+        </h1>
         <p className="text-sm text-cira-text-secondary">
-          Ya es visible en la lista y el mapa para los trabajadores cercanos.
+          {esUrgente
+            ? "Avisamos a los trabajadores disponibles de esa categoría. El primero que acepte se queda con el trabajo."
+            : editando
+              ? "Los trabajadores verán la información actualizada."
+              : "Ya es visible en la lista y el mapa para los trabajadores cercanos."}
         </p>
         <Button onClick={() => navigate("/publicaciones")}>Ver mis publicaciones</Button>
       </div>
@@ -93,7 +141,7 @@ export function CrearTrabajoPage() {
 
   return (
     <div>
-      <PageHeader title="Crear Publicación" icon="work" showBack />
+      <PageHeader title={editando ? "Editar Publicación" : "Crear Publicación"} icon="work" showBack />
 
       <form className="flex flex-col gap-3.5 px-5 pt-2 pb-9" onSubmit={handleSubmit}>
         <Card className="flex flex-col gap-3.5">
@@ -125,6 +173,22 @@ export function CrearTrabajoPage() {
           </Field>
         </Card>
 
+        {(puedeUrgencia || (editando && urgente)) && (
+          <Card className="flex items-start gap-3 border border-cira-btn-destructive-text/30">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cira-btn-destructive-bg">
+              <Icon name="bolt" filled size={22} className="text-cira-btn-destructive-text" />
+            </span>
+            <div className="flex-1">
+              <p className="text-[15px] font-semibold text-cira-text-primary">Es urgente</p>
+              <p className="text-xs text-cira-text-secondary">
+                Alertamos primero a los trabajadores más cercanos y disponibles. Tiene una tarifa de urgencia del{" "}
+                {config.urgenciaPct}% y se paga en la app.
+              </p>
+            </div>
+            {!editando && <Switch checked={urgente} onChange={setUrgente} label="Es urgente" />}
+          </Card>
+        )}
+
         <Card className="flex flex-col gap-3.5">
           <LocationPicker
             value={form.coords}
@@ -132,22 +196,33 @@ export function CrearTrabajoPage() {
             onChange={(coords, direccion) => setForm({ ...form, coords, ubicacion: direccion })}
           />
 
-          <div className="grid grid-cols-2 gap-3">
-            <DateTimeField
-              label="Fecha"
-              icon="calendar_month"
-              type="date"
-              value={form.fecha}
-              onChange={(fecha) => setForm({ ...form, fecha })}
-            />
-            <DateTimeField
-              label="Hora"
-              icon="schedule"
-              type="time"
-              value={form.hora}
-              onChange={(hora) => setForm({ ...form, hora })}
-            />
-          </div>
+          {esUrgente ? (
+            <p className="flex items-center gap-2 rounded-2xl bg-cira-btn-destructive-bg p-3 text-[13px] font-semibold text-cira-btn-destructive-text">
+              <Icon name="schedule" size={18} />
+              Se atiende lo antes posible
+            </p>
+          ) : editando ? (
+            <Field label="Fecha y hora">
+              <Input value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
+            </Field>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <DateTimeField
+                label="Fecha"
+                icon="calendar_month"
+                type="date"
+                value={form.fecha}
+                onChange={(fecha) => setForm({ ...form, fecha })}
+              />
+              <DateTimeField
+                label="Hora"
+                icon="schedule"
+                type="time"
+                value={form.hora}
+                onChange={(hora) => setForm({ ...form, hora })}
+              />
+            </div>
+          )}
         </Card>
 
         <Card className="flex flex-col gap-3.5">
@@ -157,24 +232,28 @@ export function CrearTrabajoPage() {
 
           <div className="flex flex-col gap-2">
             <FieldCaption>Método de pago</FieldCaption>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-2 gap-2.5">
               {METODOS.map((m) => (
                 <SelectableCard
                   key={m.value}
                   icon={m.icon}
                   text={m.label}
-                  selected={form.metodoPago === m.value}
-                  onClick={() => setForm({ ...form, metodoPago: m.value })}
+                  selected={metodoEfectivo === m.value}
+                  onClick={() => !esUrgente && setForm({ ...form, metodoPago: m.value })}
                 />
               ))}
             </div>
           </div>
+
+          {Number(form.pago) > 0 && (
+            <PagoResumen resumen={calcularResumen(Number(form.pago), esUrgente, metodoEfectivo, config)} />
+          )}
         </Card>
 
         {error && <p className="text-center text-[13px] text-cira-accent">{error}</p>}
 
         <Button type="submit" disabled={!valido || enviando} className="my-2">
-          {enviando ? "PUBLICANDO..." : "PUBLICAR AHORA"}
+          {enviando ? "GUARDANDO..." : editando ? "GUARDAR CAMBIOS" : esUrgente ? "PUBLICAR URGENCIA" : "PUBLICAR AHORA"}
         </Button>
       </form>
     </div>

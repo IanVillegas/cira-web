@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ExploreTabs } from "@/components/ui/ExploreTabs";
 import { FilterChip } from "@/components/ui/FilterChip";
@@ -10,9 +11,14 @@ import { api } from "@/lib/api";
 import type { Trabajo } from "@/lib/types";
 
 export function ExplorarTrabajosPage() {
+  const navigate = useNavigate();
+  // Link compartido por WhatsApp (/explorar?trabajo=ID): ese trabajo va primero y abierto.
+  const [searchParams] = useSearchParams();
+  const destacado = searchParams.get("trabajo");
   const [trabajos, setTrabajos] = useState<Trabajo[] | null>(null);
   const [ordenPorCercania, setOrdenPorCercania] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   useEffect(() => {
     api.trabajos
@@ -23,13 +29,31 @@ export function ExplorarTrabajosPage() {
 
   const lista = useMemo(() => {
     if (!trabajos) return [];
-    if (!ordenPorCercania) return trabajos;
-    return [...trabajos].sort((a, b) => a.distanciaKm - b.distanciaKm);
-  }, [trabajos, ordenPorCercania]);
+    const base = ordenPorCercania ? [...trabajos].sort((a, b) => a.distanciaKm - b.distanciaKm) : trabajos;
+    // Las urgencias siempre arriba; el trabajo compartido por link, antes que todo.
+    return [...base].sort(
+      (a, b) =>
+        Number(b.id === destacado) - Number(a.id === destacado) || Number(b.urgente) - Number(a.urgente),
+    );
+  }, [trabajos, ordenPorCercania, destacado]);
 
   const toggleApply = async (id: string) => {
-    const actualizado = await api.trabajos.postular(id);
-    setTrabajos((prev) => prev?.map((t) => (t.id === id ? actualizado : t)) ?? prev);
+    try {
+      const actualizado = await api.trabajos.postular(id);
+      setTrabajos((prev) => prev?.map((t) => (t.id === id ? actualizado : t)) ?? prev);
+    } catch (e) {
+      setAviso(e instanceof Error ? e.message : "No se pudo completar la acción.");
+    }
+  };
+
+  const aceptarUrgencia = async (id: string) => {
+    try {
+      await api.trabajos.aceptarUrgencia(id);
+      navigate("/mis-trabajos");
+    } catch (e) {
+      setAviso(e instanceof Error ? e.message : "No se pudo aceptar la urgencia.");
+      api.trabajos.listar().then(setTrabajos).catch(() => {});
+    }
   };
 
   return (
@@ -57,6 +81,11 @@ export function ExplorarTrabajosPage() {
       </div>
 
       <div className="px-5 pt-4">
+        {aviso && (
+          <p role="alert" className="mb-3 rounded-2xl bg-cira-btn-destructive-bg p-3 text-[13px] font-semibold text-cira-btn-destructive-text">
+            {aviso}
+          </p>
+        )}
         {error ? (
           <EmptyState image="empty_no_signal" title="Sin conexión" message={error} />
         ) : trabajos === null ? (
@@ -68,7 +97,13 @@ export function ExplorarTrabajosPage() {
           />
         ) : (
           lista.map((trabajo) => (
-            <JobCard key={trabajo.id} trabajo={trabajo} onApply={toggleApply} />
+            <JobCard
+              key={trabajo.id}
+              trabajo={trabajo}
+              onApply={toggleApply}
+              onAcceptUrgent={aceptarUrgencia}
+              defaultExpanded={trabajo.id === destacado}
+            />
           ))
         )}
       </div>

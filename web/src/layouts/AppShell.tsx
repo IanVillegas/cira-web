@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { BottomNav } from "@/components/ui/BottomNav";
+import { AlertBanner } from "@/components/AlertBanner";
 import { PhoneFrame } from "./PhoneFrame";
 
 /**
@@ -18,8 +19,11 @@ export function AppShell() {
   return (
     <PhoneFrame>
       <div className="flex min-h-0 flex-1 flex-col bg-cira-nav-bg">
-        <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto rounded-b-[28px] bg-cira-base">
-          <Outlet />
+        <div className="relative min-h-0 flex-1">
+          <div className="no-scrollbar h-full overflow-y-auto rounded-b-[28px] bg-cira-base">
+            <Outlet />
+          </div>
+          <AlertBanner />
         </div>
         <BottomNav />
       </div>

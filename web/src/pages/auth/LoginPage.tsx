@@ -25,10 +25,15 @@ export function LoginPage() {
     setStep("pin");
   };
 
-  const ingresar = () => {
-    // Mockup: cualquier PIN de 4 dígitos se acepta (sin validación real).
-    login(identifier.trim());
-    navigate("/explorar", { replace: true });
+  const ingresar = async () => {
+    setError(null);
+    try {
+      await login(identifier.trim(), pin);
+      navigate("/explorar", { replace: true });
+    } catch (e) {
+      setPin("");
+      setError(e instanceof Error ? e.message : "No se pudo iniciar sesión.");
+    }
   };
 
   return (

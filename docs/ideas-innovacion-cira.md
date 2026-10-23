@@ -12,14 +12,14 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 | # | Idea | Estado | Prioridad |
 |---|------|--------|-----------|
-| 1 | Calificaciones (bidireccionales) y reportes | ✔️ Aprobada | Alta |
+| 1 | Calificaciones (bidireccionales) y reportes | ✅ Implementada | Alta |
 | 2 | Diagnóstico / sugerencia de categoría con IA | ❌ Descartada → 🗺️ Roadmap | — |
-| 3 | Modo Urgencia con tarifa de urgencia | ✔️ Aprobada | Alta |
-| 4 | Pago en la app con comisión de CIRA | ✔️ Aprobada | Alta |
-| 5 | Verificación con insignias | 💡 Propuesta | Media |
-| 6 | Plan Plus para trabajadores (alertas prioritarias) | ✔️ Aprobada | Alta |
-| 7 | Seguimiento del trabajo tipo Uber | 💡 Propuesta | Media (la primera extra) |
-| 8 | Compartir un trabajo por WhatsApp | 💡 Propuesta | Baja |
+| 3 | Modo Urgencia con tarifa de urgencia | ✅ Implementada | Alta |
+| 4 | Pago en la app con comisión de CIRA | ✅ Implementada | Alta |
+| 5 | Verificación con insignias | ✅ Implementada (datos de prueba) | Media |
+| 6 | Plan Plus para trabajadores (alertas prioritarias) | ✅ Implementada | Alta |
+| 7 | Seguimiento del trabajo tipo Uber | ✅ Implementada | Media (la primera extra) |
+| 8 | Compartir un trabajo por WhatsApp | ✅ Implementada | Baja |
 | 9 | Idioma español / inglés | 💡 Propuesta | Baja |
 
 **Monetización (freemium):** la app es gratis para todos y CIRA gana dinero con tres fuentes, todas simuladas en la demo:
@@ -182,11 +182,20 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 ---
 
+## Decisiones de implementación (para el documento)
+
+- **Cobros (todos simulados):** el cliente paga el monto del trabajo **+ comisión de CIRA (10 %, solo si paga en la app) + tarifa de urgencia (15 %, solo urgencias)**; el trabajador recibe el monto completo. Los porcentajes y el precio del Plus se cambian en `server/src/config.js`.
+- **Las urgencias siempre se pagan en la app**, para poder cobrar la tarifa de urgencia.
+- **Alertas:** se consultan cada 5 s (sin notificaciones push). Radio de 15 km; los Plus las ven al instante (los mejor calificados primero, +10 s por puesto) y el plan gratis tras 2 minutos (`CIRA_RETRASO_ALERTAS_SEG` para acortarlo en la demo). Una alerta dura 30 minutos.
+- **Seguimiento:** aplica a cualquier trabajo asignado, no solo a urgencias. Al marcar "Terminado" el cliente paga y luego ambos califican.
+- **Insignias:** Plus (según el plan), cédula y hoja de delincuencia (campos de prueba), +50 trabajos (calculado) y "Responde urgencias" (se activa al aceptar una).
+- **Pendiente:** idea #9 (idioma español/inglés), que conviene hacer al final.
+
 ## Cambios técnicos pendientes (no son ideas nuevas)
 
-- **Quitar SINPE y Transferencia del código.** Siguen en `types.ts`, `CrearTrabajoPage.tsx` (SINPE viene por defecto), `EditProfilePage.tsx`, `PerfilPage.tsx` y `seed.js`. Solo deben quedar "Efectivo" y "Pago en la app".
-- **Editar publicaciones.** El backend ya permite editar un trabajo (`PATCH /trabajos/:id`); falta el botón y la pantalla en "Mis publicaciones".
-- **Usuarios definidos y multiusuario.** Login por teléfono con PIN `1234` para todos (fase de pruebas), para que varios compañeros puedan interactuar a la vez (postularse, chatear, calificar). Hoy el backend usa un usuario fijo (`u-1`). Los teléfonos reales van en un archivo local excluido de git, no en el repo.
+- ✅ **Quitar SINPE y Transferencia del código.** Siguen en `types.ts`, `CrearTrabajoPage.tsx` (SINPE viene por defecto), `EditProfilePage.tsx`, `PerfilPage.tsx` y `seed.js`. Solo deben quedar "Efectivo" y "Pago en la app".
+- ✅ **Editar publicaciones.** El backend ya permite editar un trabajo (`PATCH /trabajos/:id`); falta el botón y la pantalla en "Mis publicaciones".
+- ✅ **Usuarios definidos y multiusuario.** Login por teléfono con PIN `1234` para todos (fase de pruebas), para que varios compañeros puedan interactuar a la vez (postularse, chatear, calificar). Hoy el backend usa un usuario fijo (`u-1`). Los teléfonos reales van en un archivo local excluido de git, no en el repo.
 - **Publicar en internet:** no es necesario. La demo corre local con `npm run demo` y los demás dispositivos se conectan por la misma red WiFi.
 
 ---

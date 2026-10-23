@@ -16,6 +16,8 @@ interface JobStatusCardProps {
   /** Color del ícono de trabajo (acento en "Mis trabajos", gris en el historial). */
   iconClassName?: string;
   actions?: ReactNode;
+  /** Contenido a todo el ancho debajo de la tarjeta (seguimiento, botones largos). */
+  footer?: ReactNode;
 }
 
 /** Tarjeta de "Mis trabajos" / "Historial" (Border radio 14, padding 14, ícono 46 a la derecha). */
@@ -26,9 +28,11 @@ export function JobStatusCard({
   badge,
   iconClassName = "text-cira-accent",
   actions,
+  footer,
 }: JobStatusCardProps) {
   return (
-    <div className="mb-3 flex items-stretch gap-3 rounded-[14px] bg-cira-card p-3.5">
+    <div className="mb-3 rounded-[14px] bg-cira-card p-3.5">
+    <div className="flex items-stretch gap-3">
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <p className="text-base font-semibold text-cira-text-primary">{titulo}</p>
         {publicador && <p className="text-[13px] text-cira-text-secondary">{publicador}</p>}
@@ -47,6 +51,8 @@ export function JobStatusCard({
         </span>
         {actions && <div className="flex gap-2">{actions}</div>}
       </div>
+    </div>
+    {footer && <div className="mt-3 flex flex-col gap-3">{footer}</div>}
     </div>
   );
 }
