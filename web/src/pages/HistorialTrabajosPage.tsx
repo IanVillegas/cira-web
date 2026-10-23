@@ -5,12 +5,13 @@ import { Loader } from "@/components/ui/Loader";
 import { JobStatusCard, type StatusBadge } from "@/components/JobStatusCard";
 import { api } from "@/lib/api";
 import type { HistorialItem } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 // Colores de HistorialTrabajosPage.xaml.cs
 function badgeDe(estado: HistorialItem["estado"]): StatusBadge {
-  if (estado === "Finalizado") return { text: "Completado", bg: "#E8F5E9", color: "#2E7D32" };
-  if (estado === "Cancelado") return { text: "Cancelado", bg: "#FFE8EC", color: "#D94B5F" };
-  return { text: estado, bg: "#F6F8FB", color: "#464555" };
+  if (estado === "Finalizado") return { text: tr("Completado"), bg: "#E8F5E9", color: "#2E7D32" };
+  if (estado === "Cancelado") return { text: tr("Cancelado"), bg: "#FFE8EC", color: "#D94B5F" };
+  return { text: tr(estado), bg: "#F6F8FB", color: "#464555" };
 }
 
 export function HistorialTrabajosPage() {
@@ -23,26 +24,26 @@ export function HistorialTrabajosPage() {
   return (
     <div className="pb-4">
       <PageHeader
-        title="Historial de trabajos"
-        subtitle="Consulta tus trabajos finalizados y cancelados."
+        title={tr("Historial de trabajos")}
+        subtitle={tr("Consulta tus trabajos finalizados y cancelados.")}
         icon="history"
         showBack
       />
 
       <div className="px-5 pt-2">
         {historial === null ? (
-          <Loader label="Cargando historial..." />
+          <Loader label={tr("Cargando historial...")} />
         ) : historial.length === 0 ? (
           <EmptyState
-            title="Sin historial de trabajos"
-            message="Aquí aparecerán los trabajos que hayas completado o cancelado."
+            title={tr("Sin historial de trabajos")}
+            message={tr("Aquí aparecerán los trabajos que hayas completado o cancelado.")}
           />
         ) : (
           historial.map((h) => (
             <JobStatusCard
               key={h.id}
               titulo={h.titulo}
-              publicador={h.contraparte}
+              publicador={tr(h.contraparte)}
               fecha={h.fecha}
               badge={badgeDe(h.estado)}
               iconClassName="text-cira-text-helper"

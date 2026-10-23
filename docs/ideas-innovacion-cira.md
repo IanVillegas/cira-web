@@ -20,7 +20,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 | 6 | Plan Plus para trabajadores (alertas prioritarias) | ✅ Implementada | Alta |
 | 7 | Seguimiento del trabajo tipo Uber | ✅ Implementada | Media (la primera extra) |
 | 8 | Compartir un trabajo por WhatsApp | ✅ Implementada | Baja |
-| 9 | Idioma español / inglés | 💡 Propuesta | Baja |
+| 9 | Idioma español / inglés | ✅ Implementada | Baja |
 
 **Monetización (freemium):** la app es gratis para todos y CIRA gana dinero con tres fuentes, todas simuladas en la demo:
 1. **Plan Plus**: suscripción mensual del trabajador (idea #6).
@@ -189,7 +189,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 - **Alertas:** se consultan cada 5 s (sin notificaciones push). Radio de 15 km; los Plus las ven al instante (los mejor calificados primero, +10 s por puesto) y el plan gratis tras 2 minutos (`CIRA_RETRASO_ALERTAS_SEG` para acortarlo en la demo). Una alerta dura 30 minutos.
 - **Seguimiento:** aplica a cualquier trabajo asignado, no solo a urgencias. Al marcar "Terminado" el cliente paga y luego ambos califican.
 - **Insignias:** Plus (según el plan), cédula y hoja de delincuencia (campos de prueba), +50 trabajos (calculado) y "Responde urgencias" (se activa al aceptar una).
-- **Pendiente:** idea #9 (idioma español/inglés), que conviene hacer al final.
+- **Idioma (#9):** selector en Cuenta (recarga la app). Los textos viven en el código en español y `web/src/lib/i18n/en.ts` trae la traducción al inglés (clave = texto en español; si falta, se muestra en español). Los errores del servidor también se traducen. El contenido escrito por los usuarios (títulos, descripciones, chats) no se traduce.
 
 ## Cambios técnicos pendientes (no son ideas nuevas)
 

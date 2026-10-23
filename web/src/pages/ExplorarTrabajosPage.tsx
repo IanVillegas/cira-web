@@ -9,6 +9,7 @@ import { JobCard } from "@/components/JobCard";
 import { Icon } from "@/components/ui/Icon";
 import { api } from "@/lib/api";
 import type { Trabajo } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 export function ExplorarTrabajosPage() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export function ExplorarTrabajosPage() {
     api.trabajos
       .listar()
       .then(setTrabajos)
-      .catch(() => setError("No se pudo conectar con el servidor local (CIRA-Server)."));
+      .catch(() => setError(tr("No se pudo conectar con el servidor local (CIRA-Server).")));
   }, []);
 
   const lista = useMemo(() => {
@@ -42,7 +43,7 @@ export function ExplorarTrabajosPage() {
       const actualizado = await api.trabajos.postular(id);
       setTrabajos((prev) => prev?.map((t) => (t.id === id ? actualizado : t)) ?? prev);
     } catch (e) {
-      setAviso(e instanceof Error ? e.message : "No se pudo completar la acción.");
+      setAviso(e instanceof Error ? e.message : tr("No se pudo completar la acción."));
     }
   };
 
@@ -51,29 +52,29 @@ export function ExplorarTrabajosPage() {
       await api.trabajos.aceptarUrgencia(id);
       navigate("/mis-trabajos");
     } catch (e) {
-      setAviso(e instanceof Error ? e.message : "No se pudo aceptar la urgencia.");
+      setAviso(e instanceof Error ? e.message : tr("No se pudo aceptar la urgencia."));
       api.trabajos.listar().then(setTrabajos).catch(() => {});
     }
   };
 
   return (
     <div className="pb-4">
-      <PageHeader title="Explorar" subtitle="Encuentra tu próximo servicio hoy." icon="work" />
+      <PageHeader title={tr("Explorar")} subtitle={tr("Encuentra tu próximo servicio hoy.")} icon="work" />
 
       <ExploreTabs />
 
       <div className="mt-4 flex items-center gap-2 overflow-x-auto px-5 pb-1">
-        <FilterChip label="Precio" />
+        <FilterChip label={tr("Precio")} />
         <FilterChip
-          label="Cercanía"
+          label={tr("Cercanía")}
           active={ordenPorCercania}
           onClick={() => setOrdenPorCercania((v) => !v)}
         />
-        <FilterChip label="Fecha" />
-        <FilterChip label="Categoría" />
+        <FilterChip label={tr("Fecha")} />
+        <FilterChip label={tr("Categoría")} />
         <button
           className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cira-card text-cira-accent shadow"
-          aria-label="Limpiar filtros"
+          aria-label={tr("Limpiar filtros")}
           onClick={() => setOrdenPorCercania(false)}
         >
           <Icon name="cleaning_services" size={20} />
@@ -87,13 +88,13 @@ export function ExplorarTrabajosPage() {
           </p>
         )}
         {error ? (
-          <EmptyState image="empty_no_signal" title="Sin conexión" message={error} />
+          <EmptyState image="empty_no_signal" title={tr("Sin conexión")} message={error} />
         ) : trabajos === null ? (
-          <Loader label="Cargando trabajos..." />
+          <Loader label={tr("Cargando trabajos...")} />
         ) : lista.length === 0 ? (
           <EmptyState
-            title="Sin trabajos disponibles"
-            message="Cuando existan publicaciones activas aparecerán aquí."
+            title={tr("Sin trabajos disponibles")}
+            message={tr("Cuando existan publicaciones activas aparecerán aquí.")}
           />
         ) : (
           lista.map((trabajo) => (

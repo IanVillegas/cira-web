@@ -6,6 +6,7 @@ import { ReportSheet } from "@/components/ReportSheet";
 import { api } from "@/lib/api";
 import { usePolling } from "@/lib/usePolling";
 import type { Conversacion } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 function iniciales(nombre: string) {
   return nombre
@@ -48,12 +49,12 @@ export function ConversacionPage() {
   if (notFound) {
     return (
       <div className="flex h-full items-center justify-center text-cira-text-secondary">
-        Conversación no encontrada.
+        {tr("Conversación no encontrada.")}
       </div>
     );
   }
 
-  if (!conversacion) return <Loader label="Cargando conversación..." />;
+  if (!conversacion) return <Loader label={tr("Cargando conversación...")} />;
 
   const enviar = async () => {
     if (!texto.trim() || !id) return;
@@ -71,7 +72,7 @@ export function ConversacionPage() {
   return (
     <div className="flex h-full min-h-[480px] flex-col">
       <div className="flex items-center gap-2.5 px-4 pt-5 pb-3">
-        <button onClick={() => navigate(-1)} aria-label="Volver" className="text-cira-accent">
+        <button onClick={() => navigate(-1)} aria-label={tr("Volver")} className="text-cira-accent">
           <Icon name="chevron_backward" size={28} />
         </button>
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cira-header-icon-bg text-[15px] font-semibold text-cira-accent">
@@ -83,7 +84,7 @@ export function ConversacionPage() {
         >
           {conversacion.nombre}
         </button>
-        <button onClick={() => setReportando(true)} aria-label="Reportar usuario" className="text-cira-text-secondary">
+        <button onClick={() => setReportando(true)} aria-label={tr("Reportar usuario")} className="text-cira-text-secondary">
           <Icon name="flag" size={24} />
         </button>
       </div>
@@ -106,9 +107,9 @@ export function ConversacionPage() {
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
               <Icon name="chat" size={48} className="text-cira-text-helper" />
               <p className="text-cira-body text-cira-text-secondary">
-                Aún no hay mensajes.
+                {tr("Aún no hay mensajes.")}
                 <br />
-                ¡Sé el primero en escribir!
+                {tr("¡Sé el primero en escribir!")}
               </p>
             </div>
           ) : (
@@ -147,14 +148,14 @@ export function ConversacionPage() {
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && enviar()}
-          placeholder="Escribe un mensaje..."
+          placeholder={tr("Escribe un mensaje...")}
           maxLength={2000}
           className="min-h-10 flex-1 bg-transparent pl-2 text-[15px] text-cira-text-primary placeholder:text-cira-text-helper focus:outline-none"
         />
         <button
           onClick={enviar}
           disabled={enviando}
-          aria-label="Enviar"
+          aria-label={tr("Enviar")}
           className="m-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cira-accent text-white disabled:opacity-60"
         >
           <Icon name="send" size={22} filled />

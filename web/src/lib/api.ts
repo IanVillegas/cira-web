@@ -12,6 +12,7 @@ import type {
   Trabajo,
   Usuario,
 } from "./types";
+import { tr } from "@/lib/i18n";
 
 // En desarrollo apunta al backend local (CIRA-Server). Durante la presentación,
 // si se expone el puerto 3001 con Dev Tunnels, basta con definir VITE_API_URL
@@ -58,7 +59,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error ?? `Error ${res.status} al llamar ${path}`);
+    throw new Error(tr(body.error ?? `Error ${res.status} al llamar ${path}`));
   }
   if (res.status === 204) return undefined as T;
   return res.json();

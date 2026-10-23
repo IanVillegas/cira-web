@@ -10,6 +10,7 @@ import { RatingSheet } from "@/components/RatingSheet";
 import { api } from "@/lib/api";
 import { usePolling } from "@/lib/usePolling";
 import type { Trabajo } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 export function MisPublicacionesPage() {
   const navigate = useNavigate();
@@ -37,20 +38,20 @@ export function MisPublicacionesPage() {
 
   return (
     <div className="pb-4">
-      <PageHeader title="Explorar" subtitle="Consulta y administra tus publicaciones." icon="article" />
+      <PageHeader title={tr("Explorar")} subtitle={tr("Consulta y administra tus publicaciones.")} icon="article" />
       <ExploreTabs />
 
       <div className="px-5 pt-4">
         <Button className="mb-4" onClick={() => navigate("/crear-trabajo")}>
-          Crear publicación
+          {tr("Crear publicación")}
         </Button>
 
         {publicaciones === null ? (
-          <Loader label="Cargando publicaciones..." />
+          <Loader label={tr("Cargando publicaciones...")} />
         ) : publicaciones.length === 0 ? (
           <EmptyState
-            title="No tienes publicaciones todavía"
-            message="Crea tu primera publicación para recibir postulantes."
+            title={tr("No tienes publicaciones todavía")}
+            message={tr("Crea tu primera publicación para recibir postulantes.")}
           />
         ) : (
           publicaciones.map((trabajo) => (

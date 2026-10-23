@@ -18,16 +18,17 @@ import { CATEGORIAS } from "@/lib/mockData";
 import { api } from "@/lib/api";
 import { calcularResumen, useConfig } from "@/lib/useConfig";
 import type { MetodoPago } from "@/lib/types";
+import { localeActual, tr } from "@/lib/i18n";
 
 const METODOS: { value: MetodoPago; icon: string; label: string }[] = [
-  { value: "Efectivo", icon: "payments", label: "EFECTIVO" },
-  { value: "Pago en la app", icon: "credit_card", label: "PAGO EN LA APP" },
+  { value: "Efectivo", icon: "payments", label: tr("EFECTIVO") },
+  { value: "Pago en la app", icon: "credit_card", label: tr("PAGO EN LA APP") },
 ];
 
 function formatearFecha(fecha: string, hora: string) {
   const d = new Date(`${fecha}T${hora || "00:00"}`);
   if (Number.isNaN(d.getTime())) return `${fecha} ${hora}`.trim();
-  return d.toLocaleString("es-CR", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  return d.toLocaleString(localeActual(), { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 }
 
 /**
@@ -62,7 +63,7 @@ export function CrearTrabajoPage() {
       .obtener(id)
       .then((t) => {
         if (!t.esMio || t.estado !== "Pendiente") {
-          setError("Solo puedes editar tus publicaciones pendientes.");
+          setError(tr("Solo puedes editar tus publicaciones pendientes."));
           return;
         }
         setUrgente(t.urgente);
@@ -78,7 +79,7 @@ export function CrearTrabajoPage() {
           metodoPago: t.metodoPago,
         });
       })
-      .catch(() => setError("No se pudo cargar la publicación."))
+      .catch(() => setError(tr("No se pudo cargar la publicación.")))
       .finally(() => setCargando(false));
   }, [id]);
 
@@ -110,13 +111,13 @@ export function CrearTrabajoPage() {
       else await api.trabajos.crear({ ...datos, urgente: esUrgente });
       setPublicado(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo publicar el trabajo.");
+      setError(e instanceof Error ? e.message : tr("No se pudo publicar el trabajo."));
     } finally {
       setEnviando(false);
     }
   };
 
-  if (cargando) return <Loader label="Cargando publicación..." />;
+  if (cargando) return <Loader label={tr("Cargando publicación...")} />;
 
   if (publicado) {
     return (
@@ -125,47 +126,47 @@ export function CrearTrabajoPage() {
           <Icon name="check_circle" filled size={36} className="text-emerald-600" />
         </div>
         <h1 className="text-cira-title font-semibold text-cira-text-primary">
-          {editando ? "Cambios guardados" : esUrgente ? "Urgencia publicada" : "Trabajo publicado"}
+          {editando ? tr("Cambios guardados") : esUrgente ? tr("Urgencia publicada") : tr("Trabajo publicado")}
         </h1>
         <p className="text-sm text-cira-text-secondary">
           {esUrgente
-            ? "Avisamos a los trabajadores disponibles de esa categoría. El primero que acepte se queda con el trabajo."
+            ? tr("Avisamos a los trabajadores disponibles de esa categoría. El primero que acepte se queda con el trabajo.")
             : editando
-              ? "Los trabajadores verán la información actualizada."
-              : "Ya es visible en la lista y el mapa para los trabajadores cercanos."}
+              ? tr("Los trabajadores verán la información actualizada.")
+              : tr("Ya es visible en la lista y el mapa para los trabajadores cercanos.")}
         </p>
-        <Button onClick={() => navigate("/publicaciones")}>Ver mis publicaciones</Button>
+        <Button onClick={() => navigate("/publicaciones")}>{tr("Ver mis publicaciones")}</Button>
       </div>
     );
   }
 
   return (
     <div>
-      <PageHeader title={editando ? "Editar Publicación" : "Crear Publicación"} icon="work" showBack />
+      <PageHeader title={editando ? tr("Editar Publicación") : tr("Crear Publicación")} icon="work" showBack />
 
       <form className="flex flex-col gap-3.5 px-5 pt-2 pb-9" onSubmit={handleSubmit}>
         <Card className="flex flex-col gap-3.5">
-          <Field label="Título del trabajo">
+          <Field label={tr("Título del trabajo")}>
             <Input
-              placeholder="Ej: Reparación de fuga"
+              placeholder={tr("Ej: Reparación de fuga")}
               value={form.titulo}
               onChange={(e) => setForm({ ...form, titulo: e.target.value })}
             />
           </Field>
 
-          <Field label="Categoría">
+          <Field label={tr("Categoría")}>
             <SelectField
               value={form.categoria}
               onChange={(categoria) => setForm({ ...form, categoria })}
-              placeholder="Selecciona una categoría"
+              placeholder={tr("Selecciona una categoría")}
               options={CATEGORIAS}
             />
           </Field>
 
-          <Field label="Descripción detallada">
+          <Field label={tr("Descripción detallada")}>
             <textarea
               rows={4}
-              placeholder="Describe el problema o necesidad con detalle..."
+              placeholder={tr("Describe el problema o necesidad con detalle...")}
               value={form.descripcion}
               onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
               className="min-h-[104px] w-full resize-y rounded-cira-input bg-cira-input-bg px-3.5 py-2.5 text-cira-body text-cira-text-primary placeholder:text-cira-text-helper focus:outline-none"
@@ -179,13 +180,12 @@ export function CrearTrabajoPage() {
               <Icon name="bolt" filled size={22} className="text-cira-btn-destructive-text" />
             </span>
             <div className="flex-1">
-              <p className="text-[15px] font-semibold text-cira-text-primary">Es urgente</p>
+              <p className="text-[15px] font-semibold text-cira-text-primary">{tr("Es urgente")}</p>
               <p className="text-xs text-cira-text-secondary">
-                Alertamos primero a los trabajadores más cercanos y disponibles. Tiene una tarifa de urgencia del{" "}
-                {config.urgenciaPct}% y se paga en la app.
+                {tr("Alertamos primero a los trabajadores más cercanos y disponibles. Tiene una tarifa de urgencia del {pct}% y se paga en la app.", { pct: config.urgenciaPct })}
               </p>
             </div>
-            {!editando && <Switch checked={urgente} onChange={setUrgente} label="Es urgente" />}
+            {!editando && <Switch checked={urgente} onChange={setUrgente} label={tr("Es urgente")} />}
           </Card>
         )}
 
@@ -199,23 +199,23 @@ export function CrearTrabajoPage() {
           {esUrgente ? (
             <p className="flex items-center gap-2 rounded-2xl bg-cira-btn-destructive-bg p-3 text-[13px] font-semibold text-cira-btn-destructive-text">
               <Icon name="schedule" size={18} />
-              Se atiende lo antes posible
+              {tr("Se atiende lo antes posible")}
             </p>
           ) : editando ? (
-            <Field label="Fecha y hora">
+            <Field label={tr("Fecha y hora")}>
               <Input value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
             </Field>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <DateTimeField
-                label="Fecha"
+                label={tr("Fecha")}
                 icon="calendar_month"
                 type="date"
                 value={form.fecha}
                 onChange={(fecha) => setForm({ ...form, fecha })}
               />
               <DateTimeField
-                label="Hora"
+                label={tr("Hora")}
                 icon="schedule"
                 type="time"
                 value={form.hora}
@@ -226,12 +226,12 @@ export function CrearTrabajoPage() {
         </Card>
 
         <Card className="flex flex-col gap-3.5">
-          <Field label="Presupuesto ofrecido">
+          <Field label={tr("Presupuesto ofrecido")}>
             <BudgetField value={form.pago} onChange={(pago) => setForm({ ...form, pago })} />
           </Field>
 
           <div className="flex flex-col gap-2">
-            <FieldCaption>Método de pago</FieldCaption>
+            <FieldCaption>{tr("Método de pago")}</FieldCaption>
             <div className="grid grid-cols-2 gap-2.5">
               {METODOS.map((m) => (
                 <SelectableCard
@@ -253,7 +253,7 @@ export function CrearTrabajoPage() {
         {error && <p className="text-center text-[13px] text-cira-accent">{error}</p>}
 
         <Button type="submit" disabled={!valido || enviando} className="my-2">
-          {enviando ? "GUARDANDO..." : editando ? "GUARDAR CAMBIOS" : esUrgente ? "PUBLICAR URGENCIA" : "PUBLICAR AHORA"}
+          {enviando ? tr("GUARDANDO...") : editando ? tr("GUARDAR CAMBIOS") : esUrgente ? tr("PUBLICAR URGENCIA") : tr("PUBLICAR AHORA")}
         </Button>
       </form>
     </div>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { PinInput } from "@/components/ui/PinInput";
 import { AuthError, AuthHeading, AuthLayout, IdentifierChip } from "@/layouts/AuthLayout";
 import { useAuth } from "@/lib/auth";
+import { tr } from "@/lib/i18n";
 
 /** "Sesión expirada": la sesión se perdió pero la cuenta sigue recordada, solo pide el PIN. */
 export function PinLoginPage() {
@@ -19,7 +20,7 @@ export function PinLoginPage() {
     <AuthLayout>
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
-          <AuthHeading title="Sesión expirada" subtitle="Confirma tu PIN para volver a entrar." />
+          <AuthHeading title={tr("Sesión expirada")} subtitle={tr("Confirma tu PIN para volver a entrar.")} />
           <IdentifierChip>{lastIdentifier}</IdentifierChip>
         </div>
 
@@ -35,11 +36,11 @@ export function PinLoginPage() {
               navigate("/explorar", { replace: true });
             } catch (e) {
               setPin("");
-              setError(e instanceof Error ? e.message : "No se pudo iniciar sesión.");
+              setError(e instanceof Error ? e.message : tr("No se pudo iniciar sesión."));
             }
           }}
         >
-          Ingresar
+          {tr("Ingresar")}
         </Button>
 
         <Button
@@ -49,7 +50,7 @@ export function PinLoginPage() {
             navigate("/login", { replace: true });
           }}
         >
-          Cambiar de cuenta
+          {tr("Cambiar de cuenta")}
         </Button>
       </div>
     </AuthLayout>

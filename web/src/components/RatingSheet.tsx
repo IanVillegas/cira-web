@@ -4,6 +4,7 @@ import { Button } from "./ui/Button";
 import { EstrellasInput } from "./Estrellas";
 import { api } from "@/lib/api";
 import type { Trabajo } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 interface RatingSheetProps {
   trabajo: Trabajo | null;
@@ -28,7 +29,7 @@ export function RatingSheet({ trabajo, onClose, onDone }: RatingSheetProps) {
       setComentario("");
       onDone(actualizado);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo enviar la calificación.");
+      setError(e instanceof Error ? e.message : tr("No se pudo enviar la calificación."));
     } finally {
       setEnviando(false);
     }
@@ -38,24 +39,24 @@ export function RatingSheet({ trabajo, onClose, onDone }: RatingSheetProps) {
     <BottomSheet
       open={trabajo !== null}
       onClose={onClose}
-      title={`Califica a ${trabajo?.contraparteNombre ?? "la otra persona"}`}
+      title={tr("Califica a {nombre}", { nombre: trabajo?.contraparteNombre ?? tr("la otra persona") })}
       subtitle={trabajo?.titulo}
     >
       <EstrellasInput value={estrellas} onChange={setEstrellas} />
       <textarea
         rows={3}
         maxLength={500}
-        placeholder="Cuéntanos cómo fue (opcional)"
+        placeholder={tr("Cuéntanos cómo fue (opcional)")}
         value={comentario}
         onChange={(e) => setComentario(e.target.value)}
         className="w-full resize-none rounded-cira-input bg-cira-input-bg px-3.5 py-2.5 text-cira-body text-cira-text-primary ring-1 ring-cira-border placeholder:text-cira-text-helper focus:outline-none"
       />
       {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}
       <Button disabled={estrellas === 0 || enviando} onClick={enviar}>
-        {enviando ? "ENVIANDO..." : "ENVIAR CALIFICACIÓN"}
+        {enviando ? tr("ENVIANDO...") : tr("ENVIAR CALIFICACIÓN")}
       </Button>
       <Button variant="outlined" onClick={onClose}>
-        Ahora no
+        {tr("Ahora no")}
       </Button>
     </BottomSheet>
   );

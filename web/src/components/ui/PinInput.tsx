@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { tr } from "@/lib/i18n";
 
 interface PinInputProps {
   value: string;
@@ -57,7 +58,7 @@ export function PinInput({
           inputMode={allowLetters ? "text" : "numeric"}
           autoComplete="one-time-code"
           maxLength={length}
-          aria-label={label ?? "PIN"}
+          aria-label={label ?? tr("PIN")}
           className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
         />
 

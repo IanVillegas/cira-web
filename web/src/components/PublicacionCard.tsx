@@ -10,6 +10,7 @@ import { SeguimientoTrabajo } from "./SeguimientoTrabajo";
 import { api } from "@/lib/api";
 import { formatoColones } from "@/lib/format";
 import type { Trabajador, Trabajo } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 interface PublicacionCardProps {
   trabajo: Trabajo;
@@ -38,7 +39,7 @@ export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardPr
     try {
       onChange(await accion());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo completar la acción.");
+      setError(e instanceof Error ? e.message : tr("No se pudo completar la acción."));
     } finally {
       setOcupado(false);
     }
@@ -51,7 +52,7 @@ export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardPr
   };
 
   const cancelar = () => {
-    if (window.confirm("¿Cancelar esta publicación?")) ejecutar(() => api.trabajos.cancelar(trabajo.id));
+    if (window.confirm(tr("¿Cancelar esta publicación?"))) ejecutar(() => api.trabajos.cancelar(trabajo.id));
   };
 
   const abrirChat = async (usuarioId: string) => {
@@ -67,28 +68,28 @@ export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardPr
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-cira-accent uppercase">
-            {trabajo.categoria}
+            {tr(trabajo.categoria)}
             {trabajo.urgente && (
               <span className="inline-flex items-center gap-0.5 rounded-full bg-cira-btn-destructive-bg px-1.5 py-0.5 text-[10px] text-cira-btn-destructive-text">
                 <Icon name="bolt" filled size={12} />
-                URGENTE
+                {tr("URGENTE")}
               </span>
             )}
           </p>
           <p className="font-semibold text-cira-text-primary">{trabajo.titulo}</p>
           <p className="text-xs text-cira-text-helper">
-            {trabajo.fecha} · {formatoColones.format(trabajo.pago)}
+            {tr(trabajo.fecha)} · {formatoColones.format(trabajo.pago)}
           </p>
         </div>
         <span className={`shrink-0 rounded-lg px-2 py-[3px] text-[11px] font-semibold ${ESTADO_TONO[trabajo.estado]}`}>
-          {trabajo.estado}
+          {tr(trabajo.estado)}
         </span>
       </div>
 
       {pendiente && trabajo.urgente && (
         <p className="flex items-center gap-2 rounded-2xl bg-cira-btn-destructive-bg p-3 text-[13px] text-cira-btn-destructive-text">
           <Icon name="notifications_active" size={18} />
-          Buscando al trabajador más cercano disponible…
+          {tr("Buscando al trabajador más cercano disponible…")}
         </p>
       )}
 
@@ -100,14 +101,14 @@ export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardPr
           >
             <span className="flex items-center gap-2">
               <Icon name="groups" size={18} className="text-cira-accent" />
-              {trabajo.postulantes} postulante(s)
+              {tr("{n} postulante(s)", { n: trabajo.postulantes })}
             </span>
             <Icon name={verPostulantes ? "expand_less" : "expand_more"} size={20} className="text-cira-accent" />
           </button>
 
           {verPostulantes &&
             (postulantes === null ? null : postulantes.length === 0 ? (
-              <p className="text-center text-[13px] text-cira-text-secondary">Aún no hay postulantes.</p>
+              <p className="text-center text-[13px] text-cira-text-secondary">{tr("Aún no hay postulantes.")}</p>
             ) : (
               postulantes.map((p) => (
                 <div key={p.id} className="flex flex-col gap-2 rounded-2xl border border-cira-border p-3">
@@ -118,10 +119,10 @@ export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardPr
                   <InsigniaChips insignias={p.insignias} compact />
                   <div className="grid grid-cols-2 gap-2">
                     <Button variant="outlined" onClick={() => navigate(`/usuarios/${p.id}`)}>
-                      VER PERFIL
+                      {tr("VER PERFIL")}
                     </Button>
                     <Button disabled={ocupado} onClick={() => ejecutar(() => api.trabajos.asignar(trabajo.id, p.id))}>
-                      ELEGIR
+                      {tr("ELEGIR")}
                     </Button>
                   </div>
                 </div>
@@ -130,10 +131,10 @@ export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardPr
 
           <div className="grid grid-cols-2 gap-3">
             <Button variant="outlined" onClick={() => navigate(`/publicaciones/${trabajo.id}/editar`)}>
-              EDITAR
+              {tr("EDITAR")}
             </Button>
             <Button variant="destructive" disabled={ocupado} onClick={cancelar}>
-              CANCELAR
+              {tr("CANCELAR")}
             </Button>
           </div>
         </>
@@ -155,7 +156,7 @@ export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardPr
 
       {enCurso && (
         <Button variant="destructive" disabled={ocupado} onClick={cancelar}>
-          CANCELAR TRABAJO
+          {tr("CANCELAR TRABAJO")}
         </Button>
       )}
 
@@ -163,13 +164,14 @@ export function PublicacionCard({ trabajo, onChange, onRate }: PublicacionCardPr
         <>
           <PagoResumen resumen={trabajo.resumenPago} />
           <Button disabled={ocupado} onClick={() => ejecutar(() => api.trabajos.pagar(trabajo.id))}>
-            {trabajo.metodoPago === "Pago en la app" ? "PAGAR EN LA APP" : "CONFIRMAR PAGO EN EFECTIVO"}
+            {trabajo.metodoPago === "Pago en la app" ? tr("PAGAR EN LA APP") : tr("CONFIRMAR PAGO EN EFECTIVO")}
           </Button>
         </>
       )}
 
       {trabajo.estado === "Finalizado" && trabajo.pagado && !trabajo.calificadoPorMi && (
-        <Button onClick={() => onRate(trabajo)}>CALIFICAR A {trabajo.trabajadorNombre?.toUpperCase()}</Button>
+        <Button onClick={() => onRate(trabajo)}>
+          {tr("CALIFICAR A {nombre}", { nombre: (trabajo.trabajadorNombre ?? "").toUpperCase() })}</Button>
       )}
 
       {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}

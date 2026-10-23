@@ -7,10 +7,11 @@ import { buscarDireccion, obtenerUbicacionActual, type ResultadoBusquedaDireccio
 import { iconoTrabajador, iconoTrabajo, iconoUsuario } from "@/lib/leafletIcons";
 import { CATEGORIAS } from "@/lib/mockData";
 import type { Trabajador, Trabajo } from "@/lib/types";
+import { localeActual, tr } from "@/lib/i18n";
 
 // Centro por defecto: Alajuela Centro, Costa Rica.
 const CENTRO_DEFECTO: [number, number] = [10.0163, -84.2113];
-const TODOS = "Todos los servicios";
+const TODOS = tr("Todos los servicios");
 
 function RecenterMap({ center, zoom }: { center: [number, number]; zoom: number }) {
   const map = useMap();
@@ -87,7 +88,7 @@ export function MapaPage() {
   const buscarAhora = async () => {
     const resultados = await buscarDireccion(busqueda);
     if (resultados[0]) irA(resultados[0]);
-    else setAviso("No encontramos esa ubicación.");
+    else setAviso(tr("No encontramos esa ubicación."));
   };
 
   const centrar = async () => {
@@ -97,7 +98,7 @@ export function MapaPage() {
       setMiUbicacion([lat, lng]);
       setVista({ center: [lat, lng], zoom: 15 });
     } catch {
-      setAviso("No se pudo obtener tu ubicación. Revisa los permisos del navegador.");
+      setAviso(tr("No se pudo obtener tu ubicación. Revisa los permisos del navegador."));
     }
   };
 
@@ -105,7 +106,7 @@ export function MapaPage() {
     <div className="relative h-full min-h-[480px] bg-cira-card">
       {cargando ? (
         <div className="flex h-full items-center justify-center">
-          <Loader label="Cargando mapa..." />
+          <Loader label={tr("Cargando mapa...")} />
         </div>
       ) : (
         <MapContainer
@@ -124,17 +125,17 @@ export function MapaPage() {
 
           {miUbicacion && (
             <Marker position={miUbicacion} icon={iconoUsuario}>
-              <Popup>Tu ubicación</Popup>
+              <Popup>{tr("Tu ubicación")}</Popup>
             </Marker>
           )}
 
           {trabajosVisibles.map((t) => (
             <Marker key={t.id} position={[t.lat!, t.lng!]} icon={iconoTrabajo}>
               <Popup>
-                <p className="text-[11px] font-semibold uppercase text-cira-accent">{t.categoria}</p>
+                <p className="text-[11px] font-semibold uppercase text-cira-accent">{tr(t.categoria)}</p>
                 <p className="font-semibold">{t.titulo}</p>
                 <p className="text-sm text-gray-600">{t.ubicacion}</p>
-                <p className="mt-1 text-sm font-semibold text-cira-accent">₡{t.pago.toLocaleString("es-CR")}</p>
+                <p className="mt-1 text-sm font-semibold text-cira-accent">₡{t.pago.toLocaleString(localeActual())}</p>
               </Popup>
             </Marker>
           ))}
@@ -143,8 +144,8 @@ export function MapaPage() {
             <Marker key={w.id} position={[w.lat!, w.lng!]} icon={iconoTrabajador}>
               <Popup>
                 <p className="font-semibold">{w.nombre}</p>
-                <p className="text-sm text-gray-600">{w.servicios.join(" · ")}</p>
-                <p className="text-sm text-gray-600">{w.disponible ? "Disponible" : "Ocupado"}</p>
+                <p className="text-sm text-gray-600">{w.servicios.map((s) => tr(s)).join(" · ")}</p>
+                <p className="text-sm text-gray-600">{w.disponible ? tr("Disponible") : tr("Ocupado")}</p>
               </Popup>
             </Marker>
           ))}
@@ -159,10 +160,10 @@ export function MapaPage() {
             value={busqueda}
             onChange={(e) => onBusqueda(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && buscarAhora()}
-            placeholder="Buscar ubicación"
+            placeholder={tr("Buscar ubicación")}
             className="min-w-0 flex-1 bg-transparent text-cira-control text-cira-text-primary placeholder:text-cira-text-helper focus:outline-none"
           />
-          <button onClick={buscarAhora} aria-label="Buscar" className="flex h-[34px] w-[34px] items-center justify-center text-cira-accent">
+          <button onClick={buscarAhora} aria-label={tr("Buscar")} className="flex h-[34px] w-[34px] items-center justify-center text-cira-accent">
             <Icon name="arrow_forward" size={22} />
           </button>
         </div>
@@ -222,7 +223,7 @@ export function MapaPage() {
 
       <button
         onClick={centrar}
-        aria-label="Centrar en mi ubicación"
+        aria-label={tr("Centrar en mi ubicación")}
         className="absolute right-4 bottom-[22px] z-[1000] flex h-[52px] w-[52px] items-center justify-center rounded-[18px] border border-cira-border bg-cira-card shadow-[0_8px_18px_rgba(0,0,0,0.22)]"
       >
         <Icon name="my_location" size={28} className="text-cira-accent" />

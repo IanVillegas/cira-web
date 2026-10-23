@@ -225,7 +225,7 @@ router.post("/trabajos", (req, res) => {
     return error(res, 400, "Faltan campos obligatorios o el pago no es válido.");
   }
   if (esUrgente && !CATEGORIAS_URGENTES.includes(categoria)) {
-    return error(res, 400, `El modo urgencia solo aplica a: ${CATEGORIAS_URGENTES.join(", ")}.`);
+    return error(res, 400, "El modo urgencia solo aplica a las categorías críticas (plomería, electricidad y cerrajería).");
   }
   // Las urgencias siempre se pagan en la app para poder cobrar la tarifa de urgencia.
   const metodo = esUrgente ? METODO_APP : metodoPago;

@@ -9,6 +9,7 @@ import { Calificacion } from "@/components/Estrellas";
 import { InsigniaChips } from "@/components/InsigniaChips";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { tr } from "@/lib/i18n";
 
 function serviceIcon(categoria: string) {
   const v = categoria.toLowerCase();
@@ -30,7 +31,7 @@ export function PerfilPage() {
   const [usarRango, setUsarRango] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
-  if (!usuario) return <Loader label="Cargando perfil..." />;
+  if (!usuario) return <Loader label={tr("Cargando perfil...")} />;
 
   const guardarDisponibilidad = async (disponible: boolean) => {
     setGuardando(true);
@@ -52,7 +53,7 @@ export function PerfilPage() {
   return (
     <div className="flex flex-col gap-6 px-6 pb-7">
       <PageHeader
-        title="Perfil"
+        title={tr("Perfil")}
         icon="settings"
         onIconClick={() => navigate("/cuenta")}
         className="px-0 pt-6 pb-3"
@@ -64,13 +65,13 @@ export function PerfilPage() {
         </div>
         <p className="text-center text-[26px] font-semibold text-cira-text-primary">{usuario.nombre}</p>
         <p className="text-center text-cira-body text-cira-text-secondary">
-          {usuario.zona || "Sin ubicación"}
+          {usuario.zona || tr("Sin ubicación")}
         </p>
         <Calificacion valor={usuario.calificacion} total={usuario.numCalificaciones} />
         <InsigniaChips insignias={usuario.insignias} />
         {usuario.plan !== "plus" && (
           <button onClick={() => navigate("/cuenta/plan")} className="text-[13px] font-semibold text-cira-accent underline">
-            Conoce el Plan Plus
+            {tr("Conoce el Plan Plus")}
           </button>
         )}
       </div>
@@ -80,27 +81,27 @@ export function PerfilPage() {
           <Icon name="event_available" size={24} className="text-cira-accent" />
         </div>
         <div className="flex-1">
-          <p className="text-[15px] font-semibold text-cira-text-primary">Disponibilidad</p>
+          <p className="text-[15px] font-semibold text-cira-text-primary">{tr("Disponibilidad")}</p>
           <p className="text-[10px] font-semibold tracking-[0.12em] text-cira-text-secondary">
-            {usuario.disponible ? "ESTADO ACTUAL" : "NO DISPONIBLE"}
+            {usuario.disponible ? tr("ESTADO ACTUAL") : tr("NO DISPONIBLE")}
           </p>
         </div>
         <Switch
           checked={usuario.disponible}
           onChange={onToggle}
           disabled={guardando}
-          label="Disponibilidad"
+          label={tr("Disponibilidad")}
         />
       </div>
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-cira-text-primary">Mis Servicios</h2>
+          <h2 className="text-lg font-semibold text-cira-text-primary">{tr("Mis Servicios")}</h2>
           <button
             onClick={() => navigate("/cuenta/servicios")}
             className="text-[13px] font-semibold text-cira-accent"
           >
-            Editar
+            {tr("Editar")}
           </button>
         </div>
         <div className="flex flex-wrap gap-x-2.5 gap-y-2.5">
@@ -110,7 +111,7 @@ export function PerfilPage() {
               className="flex items-center gap-1.5 rounded-[18px] bg-cira-card px-3.5 py-[9px] text-[13px] text-cira-text-primary"
             >
               <Icon name={serviceIcon(s.categoria)} size={16} className="text-cira-accent" />
-              {s.categoria}
+              {tr(s.categoria)}
             </span>
           ))}
           <button
@@ -118,29 +119,29 @@ export function PerfilPage() {
             className="flex items-center gap-1.5 rounded-[18px] border border-cira-border bg-cira-card px-3.5 py-[9px] text-[13px] text-cira-text-primary"
           >
             <Icon name="add" size={16} className="text-cira-text-secondary" />
-            {servicios.length === 0 ? "Añadir servicio" : "Añadir"}
+            {servicios.length === 0 ? tr("Añadir servicio") : tr("Añadir")}
           </button>
         </div>
       </section>
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-cira-text-primary">Métodos de Pago</h2>
+          <h2 className="text-lg font-semibold text-cira-text-primary">{tr("Métodos de Pago")}</h2>
           <button
             onClick={() => navigate("/perfil/editar")}
             className="text-[13px] font-semibold text-cira-accent"
           >
-            Editar
+            {tr("Editar")}
           </button>
         </div>
         <div className="flex flex-wrap gap-3">
           {usuario.metodosPago.length === 0 ? (
-            <PaymentCard text="Añadir" icon="add" active={false} onClick={() => navigate("/perfil/editar")} />
+            <PaymentCard text={tr("Añadir")} icon="add" active={false} onClick={() => navigate("/perfil/editar")} />
           ) : (
             usuario.metodosPago.map((m) => (
               <PaymentCard
                 key={m}
-                text={m}
+                text={tr(m)}
                 icon={paymentIcon(m)}
                 active
                 onClick={() => navigate("/perfil/editar")}
@@ -159,9 +160,9 @@ export function PerfilPage() {
             className="w-full max-w-[420px] rounded-[22px] bg-cira-card p-[22px]"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-[21px] font-semibold text-cira-text-primary">Activar disponibilidad</h3>
+            <h3 className="text-[21px] font-semibold text-cira-text-primary">{tr("Activar disponibilidad")}</h3>
             <p className="mt-1 text-[13px] text-cira-text-secondary">
-              Puedes activarla ahora o definir un rango opcional.
+              {tr("Puedes activarla ahora o definir un rango opcional.")}
             </p>
 
             <label className="mt-4 flex items-center gap-2.5 text-sm font-semibold text-cira-text-primary">
@@ -171,21 +172,21 @@ export function PerfilPage() {
                 onChange={(e) => setUsarRango(e.target.checked)}
                 className="h-5 w-5 accent-cira-accent"
               />
-              Usar rango opcional
+              {tr("Usar rango opcional")}
             </label>
 
             {usarRango && (
               <div className="mt-3 grid grid-cols-2 gap-2.5">
-                <RangeField label="DESDE" type="date" />
-                <RangeField label="HORA" type="time" />
-                <RangeField label="HASTA" type="date" />
-                <RangeField label="HORA" type="time" />
+                <RangeField label={tr("DESDE")} type="date" />
+                <RangeField label={tr("HORA")} type="time" />
+                <RangeField label={tr("HASTA")} type="date" />
+                <RangeField label={tr("HORA")} type="time" />
               </div>
             )}
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Button variant="secondary" onClick={() => setModalOpen(false)}>
-                Cancelar
+                {tr("Cancelar")}
               </Button>
               <Button
                 onClick={async () => {
@@ -194,7 +195,7 @@ export function PerfilPage() {
                   await guardarDisponibilidad(true);
                 }}
               >
-                Activar
+                {tr("Activar")}
               </Button>
             </div>
           </div>

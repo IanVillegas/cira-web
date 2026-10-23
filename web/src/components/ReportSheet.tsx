@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BottomSheet } from "./ui/BottomSheet";
 import { Button } from "./ui/Button";
 import { api } from "@/lib/api";
+import { tr } from "@/lib/i18n";
 
 const MOTIVOS = ["No se presentó", "Mal trato", "Cobro indebido", "Perfil falso", "Otro"];
 
@@ -35,7 +36,7 @@ export function ReportSheet({ usuario, trabajoId, onClose }: ReportSheetProps) {
       await api.reportes.crear({ usuarioId: usuario.id, motivo, detalle, trabajoId });
       setEnviado(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo enviar el reporte.");
+      setError(e instanceof Error ? e.message : tr("No se pudo enviar el reporte."));
     } finally {
       setEnviando(false);
     }
@@ -45,11 +46,11 @@ export function ReportSheet({ usuario, trabajoId, onClose }: ReportSheetProps) {
     <BottomSheet
       open={usuario !== null}
       onClose={cerrar}
-      title={enviado ? "Reporte enviado" : `Reportar a ${usuario?.nombre ?? ""}`}
-      subtitle={enviado ? "Gracias, el equipo de CIRA lo revisará." : "Elige el motivo del reporte."}
+      title={enviado ? tr("Reporte enviado") : tr("Reportar a {nombre}", { nombre: usuario?.nombre ?? "" })}
+      subtitle={enviado ? tr("Gracias, el equipo de CIRA lo revisará.") : tr("Elige el motivo del reporte.")}
     >
       {enviado ? (
-        <Button onClick={cerrar}>Cerrar</Button>
+        <Button onClick={cerrar}>{tr("Cerrar")}</Button>
       ) : (
         <>
           <div className="flex flex-col gap-2">
@@ -65,24 +66,24 @@ export function ReportSheet({ usuario, trabajoId, onClose }: ReportSheetProps) {
                     : "border-cira-border text-cira-text-primary"
                 }`}
               >
-                {m}
+                {tr(m)}
               </button>
             ))}
           </div>
           <textarea
             rows={3}
             maxLength={500}
-            placeholder="Detalles (opcional)"
+            placeholder={tr("Detalles (opcional)")}
             value={detalle}
             onChange={(e) => setDetalle(e.target.value)}
             className="w-full resize-none rounded-cira-input bg-cira-input-bg px-3.5 py-2.5 text-cira-body text-cira-text-primary ring-1 ring-cira-border placeholder:text-cira-text-helper focus:outline-none"
           />
           {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}
           <Button variant="destructive" disabled={!motivo || enviando} onClick={enviar}>
-            {enviando ? "ENVIANDO..." : "ENVIAR REPORTE"}
+            {enviando ? tr("ENVIANDO...") : tr("ENVIAR REPORTE")}
           </Button>
           <Button variant="outlined" onClick={cerrar}>
-            Cancelar
+            {tr("Cancelar")}
           </Button>
         </>
       )}

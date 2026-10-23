@@ -1,4 +1,5 @@
 import { Icon } from "./Icon";
+import { tr } from "@/lib/i18n";
 
 interface SelectFieldProps {
   value: string;
@@ -21,7 +22,7 @@ export function SelectField({ value, onChange, placeholder, options }: SelectFie
         <option value="">{placeholder}</option>
         {options.map((o) => (
           <option key={o} value={o}>
-            {o}
+            {tr(o)}
           </option>
         ))}
       </select>

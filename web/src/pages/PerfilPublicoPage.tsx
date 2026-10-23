@@ -11,6 +11,7 @@ import { InsigniaChips } from "@/components/InsigniaChips";
 import { ReportSheet } from "@/components/ReportSheet";
 import { api } from "@/lib/api";
 import type { PerfilPublico } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 /** Perfil visible para otros usuarios: reputación, insignias, comentarios y botón de reporte. */
 export function PerfilPublicoPage() {
@@ -28,8 +29,8 @@ export function PerfilPublicoPage() {
       .catch(() => setNoEncontrado(true));
   }, [id]);
 
-  if (noEncontrado) return <EmptyState title="Perfil no encontrado" message="Es posible que la cuenta ya no exista." />;
-  if (!perfil) return <Loader label="Cargando perfil..." />;
+  if (noEncontrado) return <EmptyState title={tr("Perfil no encontrado")} message={tr("Es posible que la cuenta ya no exista.")} />;
+  if (!perfil) return <Loader label={tr("Cargando perfil...")} />;
 
   const contactar = async () => {
     const conversacion = await api.conversaciones.con(perfil.id);
@@ -38,7 +39,7 @@ export function PerfilPublicoPage() {
 
   return (
     <div className="pb-6">
-      <PageHeader title="Perfil" icon="flag" onIconClick={() => setReportando(true)} showBack />
+      <PageHeader title={tr("Perfil")} icon="flag" onIconClick={() => setReportando(true)} showBack />
 
       <div className="flex flex-col gap-4 px-5">
         <div className="flex flex-col items-center gap-2">
@@ -46,7 +47,7 @@ export function PerfilPublicoPage() {
             <Icon name="account_circle" size={58} className="text-cira-accent" />
           </div>
           <p className="text-center text-[24px] font-semibold text-cira-text-primary">{perfil.nombre}</p>
-          <p className="text-cira-body text-cira-text-secondary">{perfil.zona || "Sin ubicación"}</p>
+          <p className="text-cira-body text-cira-text-secondary">{perfil.zona || tr("Sin ubicación")}</p>
           <Calificacion valor={perfil.calificacion} total={perfil.numCalificaciones} />
           <InsigniaChips insignias={perfil.insignias} />
         </div>
@@ -56,29 +57,29 @@ export function PerfilPublicoPage() {
         <div className="grid grid-cols-2 gap-3 text-center">
           <Card>
             <p className="text-xl font-semibold text-cira-text-primary">{perfil.trabajosCompletados}</p>
-            <p className="text-[11px] text-cira-text-secondary">Trabajos completados</p>
+            <p className="text-[11px] text-cira-text-secondary">{tr("Trabajos completados")}</p>
           </Card>
           <Card>
-            <p className="text-xl font-semibold text-cira-text-primary">{perfil.disponible ? "Sí" : "No"}</p>
-            <p className="text-[11px] text-cira-text-secondary">Disponible</p>
+            <p className="text-xl font-semibold text-cira-text-primary">{perfil.disponible ? tr("Sí") : tr("No")}</p>
+            <p className="text-[11px] text-cira-text-secondary">{tr("Disponible")}</p>
           </Card>
         </div>
 
         <section className="flex flex-col gap-2.5">
-          <h2 className="text-lg font-semibold text-cira-text-primary">Servicios</h2>
+          <h2 className="text-lg font-semibold text-cira-text-primary">{tr("Servicios")}</h2>
           <div className="flex flex-wrap gap-2">
             {perfil.servicios.map((s) => (
               <span key={s} className="rounded-[18px] bg-cira-card px-3.5 py-[9px] text-[13px] text-cira-text-primary">
-                {s}
+                {tr(s)}
               </span>
             ))}
           </div>
         </section>
 
         <section className="flex flex-col gap-2.5">
-          <h2 className="text-lg font-semibold text-cira-text-primary">Comentarios</h2>
+          <h2 className="text-lg font-semibold text-cira-text-primary">{tr("Comentarios")}</h2>
           {perfil.comentarios.length === 0 ? (
-            <p className="text-[13px] text-cira-text-secondary">Todavía no tiene comentarios.</p>
+            <p className="text-[13px] text-cira-text-secondary">{tr("Todavía no tiene comentarios.")}</p>
           ) : (
             perfil.comentarios.map((c, i) => (
               <Card key={i} className="flex flex-col gap-1">
@@ -92,9 +93,9 @@ export function PerfilPublicoPage() {
           )}
         </section>
 
-        <Button onClick={contactar}>CONTACTAR</Button>
+        <Button onClick={contactar}>{tr("CONTACTAR")}</Button>
         <Button variant="destructive" onClick={() => setReportando(true)}>
-          REPORTAR USUARIO
+          {tr("REPORTAR USUARIO")}
         </Button>
       </div>
 

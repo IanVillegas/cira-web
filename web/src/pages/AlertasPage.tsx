@@ -11,6 +11,7 @@ import { formatoColones } from "@/lib/format";
 import { useAlertas } from "@/lib/useAlertas";
 import { useConfig } from "@/lib/useConfig";
 import { useAuth } from "@/lib/auth";
+import { tr } from "@/lib/i18n";
 
 /** Todas las alertas activas. Las urgencias van primero. */
 export function AlertasPage() {
@@ -27,14 +28,14 @@ export function AlertasPage() {
       descartar(id);
       navigate("/mis-trabajos");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo aceptar la urgencia.");
+      setError(e instanceof Error ? e.message : tr("No se pudo aceptar la urgencia."));
       recargar();
     }
   };
 
   return (
     <div className="pb-4">
-      <PageHeader title="Alertas" subtitle="Trabajos de tu oficio cerca de ti" icon="notifications" showBack />
+      <PageHeader title={tr("Alertas")} subtitle={tr("Trabajos de tu oficio cerca de ti")} icon="notifications" showBack />
 
       <div className="flex flex-col gap-3 px-5 pt-2">
         {usuario?.plan !== "plus" && (
@@ -44,8 +45,7 @@ export function AlertasPage() {
           >
             <Icon name="star" filled size={22} />
             <span className="flex-1">
-              Con el plan gratis recibes las alertas {Math.round(config.retrasoGratisSeg / 60)} min después. Con{" "}
-              <strong>Plus</strong> las recibes primero.
+              {tr("Con el plan gratis recibes las alertas {min} min después. Con Plus las recibes primero.", { min: Math.round(config.retrasoGratisSeg / 60) })}
             </span>
           </button>
         )}
@@ -53,20 +53,20 @@ export function AlertasPage() {
         {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}
 
         {!cargado ? (
-          <Loader label="Buscando alertas..." />
+          <Loader label={tr("Buscando alertas...")} />
         ) : alertas.length === 0 ? (
           <EmptyState
-            title="Sin alertas por ahora"
-            message="Te avisaremos cuando alguien cerca publique un trabajo de tu oficio. Revisa que estés disponible y tengas servicios configurados."
+            title={tr("Sin alertas por ahora")}
+            message={tr("Te avisaremos cuando alguien cerca publique un trabajo de tu oficio. Revisa que estés disponible y tengas servicios configurados.")}
           />
         ) : (
           alertas.map(({ trabajo, urgente, prioritaria }) => (
             <Card key={trabajo.id} className="flex flex-col gap-2.5">
               <div className="flex items-center gap-2 text-[11px] font-semibold tracking-wider uppercase">
                 <span className={urgente ? "text-cira-btn-destructive-text" : "text-cira-accent"}>
-                  {urgente ? "⚡ Urgencia" : trabajo.categoria}
+                  {urgente ? tr("⚡ Urgencia") : tr(trabajo.categoria)}
                 </span>
-                {prioritaria && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">Prioridad Plus</span>}
+                {prioritaria && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">{tr("Prioridad Plus")}</span>}
               </div>
               <p className="font-semibold text-cira-text-primary">{trabajo.titulo}</p>
               <p className="text-[13px] text-cira-text-secondary">
@@ -74,12 +74,12 @@ export function AlertasPage() {
               </p>
               <div className="grid grid-cols-2 gap-2.5">
                 <Button variant="outlined" onClick={() => descartar(trabajo.id)}>
-                  DESCARTAR
+                  {tr("DESCARTAR")}
                 </Button>
                 {urgente ? (
-                  <Button onClick={() => aceptar(trabajo.id)}>ACEPTAR</Button>
+                  <Button onClick={() => aceptar(trabajo.id)}>{tr("ACEPTAR")}</Button>
                 ) : (
-                  <Button onClick={() => navigate(`/explorar?trabajo=${trabajo.id}`)}>VER TRABAJO</Button>
+                  <Button onClick={() => navigate(`/explorar?trabajo=${trabajo.id}`)}>{tr("VER TRABAJO")}</Button>
                 )}
               </div>
             </Card>

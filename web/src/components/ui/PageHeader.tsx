@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Icon } from "./Icon";
+import { tr } from "@/lib/i18n";
 
 interface PageHeaderProps {
   title: string;
@@ -20,7 +21,7 @@ export function PageHeader({ title, subtitle, icon, showBack = false, onIconClic
         <button
           onClick={() => navigate(-1)}
           className="text-cira-header-text"
-          aria-label="Volver"
+          aria-label={tr("Volver")}
         >
           <Icon name="chevron_backward" size={28} />
         </button>

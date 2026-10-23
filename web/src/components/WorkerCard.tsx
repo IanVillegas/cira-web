@@ -7,6 +7,7 @@ import { Calificacion } from "./Estrellas";
 import { InsigniaChips } from "./InsigniaChips";
 import { api } from "@/lib/api";
 import type { Trabajador } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 interface WorkerCardProps {
   trabajador: Trabajador;
@@ -36,7 +37,7 @@ export function WorkerCard({ trabajador }: WorkerCardProps) {
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-[3px] self-center">
           <span className="truncate text-[11px] font-semibold tracking-[0.08em] text-cira-accent uppercase">
-            {trabajador.servicios[0] ?? "Servicio"}
+            {tr(trabajador.servicios[0] ?? "Servicio")}
           </span>
           <span className="flex items-center gap-2">
             <span className="truncate text-[17px] font-semibold text-cira-text-primary">{trabajador.nombre}</span>
@@ -63,22 +64,22 @@ export function WorkerCard({ trabajador }: WorkerCardProps) {
 
       <div className="mt-3.5 grid grid-cols-2 gap-3">
         <Button variant="outlined" onClick={() => navigate(`/usuarios/${trabajador.id}`)}>
-          VER PERFIL
+          {tr("VER PERFIL")}
         </Button>
         <Button onClick={contactar} disabled={abriendoChat}>
-          CONTACTAR
+          {tr("CONTACTAR")}
         </Button>
       </div>
 
       {expanded && (
         <div className="mt-3.5 flex flex-col gap-3 border-t border-cira-border pt-3.5">
-          <Detail icon="person" label="Trabajador" text={trabajador.nombre} />
-          <Detail icon="location_on" label="Ubicación" text={trabajador.zona} />
-          <Detail icon="design_services" label="Servicios" text={trabajador.servicios.join(", ")} />
+          <Detail icon="person" label={tr("Trabajador")} text={trabajador.nombre} />
+          <Detail icon="location_on" label={tr("Ubicación")} text={trabajador.zona} />
+          <Detail icon="design_services" label={tr("Servicios")} text={trabajador.servicios.map((s) => tr(s)).join(", ")} />
           <Detail
             icon="event_available"
-            label="Disponibilidad"
-            text={trabajador.disponible ? "Disponible" : "Ocupado"}
+            label={tr("Disponibilidad")}
+            text={trabajador.disponible ? tr("Disponible") : tr("Ocupado")}
           />
         </div>
       )}

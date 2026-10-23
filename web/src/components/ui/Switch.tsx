@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 interface SwitchProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -6,7 +7,7 @@ interface SwitchProps {
 }
 
 /** Interruptor con el acento de CIRA (OnColor = CiraAccent, thumb blanco). */
-export function Switch({ checked, onChange, disabled = false, label = "Interruptor" }: SwitchProps) {
+export function Switch({ checked, onChange, disabled = false, label = tr("Interruptor") }: SwitchProps) {
   return (
     <button
       type="button"

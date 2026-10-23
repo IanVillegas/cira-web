@@ -2,13 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { Icon } from "@/components/ui/Icon";
 import { Loader } from "@/components/ui/Loader";
 import { useAuth } from "@/lib/auth";
+import { cambiarIdioma, idioma, tr } from "@/lib/i18n";
 
 const OPTIONS = [
-  { icon: "edit", label: "Editar perfil", to: "/perfil/editar" },
-  { icon: "star", label: "Plan Plus", to: "/cuenta/plan" },
-  { icon: "notifications", label: "Alertas", to: "/alertas" },
-  { icon: "payments", label: "Ingresos de CIRA (demo)", to: "/cuenta/ingresos" },
-  { icon: "person_off", label: "Inhabilitar cuenta", to: "/cuenta/inhabilitar" },
+  { icon: "edit", label: tr("Editar perfil"), to: "/perfil/editar" },
+  { icon: "star", label: tr("Plan Plus"), to: "/cuenta/plan" },
+  { icon: "notifications", label: tr("Alertas"), to: "/alertas" },
+  { icon: "payments", label: tr("Ingresos de CIRA (demo)"), to: "/cuenta/ingresos" },
+  { icon: "person_off", label: tr("Inhabilitar cuenta"), to: "/cuenta/inhabilitar" },
 ];
 
 /** Réplica de AccountMenuPage.xaml: avatar, nombre, teléfono y tres opciones. */
@@ -16,19 +17,19 @@ export function AccountMenuPage() {
   const navigate = useNavigate();
   const { usuario, logout } = useAuth();
 
-  if (!usuario) return <Loader label="Cargando cuenta..." />;
+  if (!usuario) return <Loader label={tr("Cargando cuenta...")} />;
 
   return (
     <div className="flex h-full min-h-[560px] flex-col px-6 py-7">
       <div className="grid grid-cols-[44px_1fr_44px] items-center">
         <button
           onClick={() => navigate(-1)}
-          aria-label="Volver"
+          aria-label={tr("Volver")}
           className="flex h-11 w-11 items-center justify-center rounded-full bg-cira-header-icon-bg text-cira-accent"
         >
           <Icon name="chevron_backward" size={24} />
         </button>
-        <h1 className="text-center text-cira-title font-semibold text-cira-text-primary">Cuenta</h1>
+        <h1 className="text-center text-cira-title font-semibold text-cira-text-primary">{tr("Cuenta")}</h1>
       </div>
 
       <div className="mx-auto flex w-full max-w-[460px] flex-1 flex-col justify-center gap-6">
@@ -46,8 +47,13 @@ export function AccountMenuPage() {
             <MenuOption key={o.to} icon={o.icon} label={o.label} onClick={() => navigate(o.to)} />
           ))}
           <MenuOption
+            icon="language"
+            label={`${tr("Idioma")}: ${idioma() === "es" ? "Español" : "English"} → ${idioma() === "es" ? "English" : "Español"}`}
+            onClick={() => cambiarIdioma(idioma() === "es" ? "en" : "es")}
+          />
+          <MenuOption
             icon="logout"
-            label="Cerrar sesion"
+            label={tr("Cerrar sesion")}
             onClick={() => {
               logout();
               navigate("/login", { replace: true });

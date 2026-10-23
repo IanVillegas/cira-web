@@ -13,14 +13,15 @@ import { api } from "@/lib/api";
 import { ETAPAS } from "@/lib/etapas";
 import { usePolling } from "@/lib/usePolling";
 import type { Trabajo } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 // Colores del StatusBackground/StatusTextColor de MisTrabajosPage.xaml.cs
 function badgeDe(t: Trabajo): StatusBadge {
-  if (t.estado === "Pendiente") return { text: "Postulado", bg: "#EEF3FF", color: "#3E7BE1" };
-  if (t.estado === "Asignado") return { text: "Asignado", bg: "#FFF8E1", color: "#F57C00" };
-  if (t.estado === "En progreso") return { text: "En proceso", bg: "#E8F5E9", color: "#2E7D32" };
-  if (t.estado === "Finalizado") return { text: "Por calificar", bg: "#E8F5E9", color: "#2E7D32" };
-  return { text: t.estado, bg: "#EEF3FF", color: "#3E7BE1" };
+  if (t.estado === "Pendiente") return { text: tr("Postulado"), bg: "#EEF3FF", color: "#3E7BE1" };
+  if (t.estado === "Asignado") return { text: tr("Asignado"), bg: "#FFF8E1", color: "#F57C00" };
+  if (t.estado === "En progreso") return { text: tr("En proceso"), bg: "#E8F5E9", color: "#2E7D32" };
+  if (t.estado === "Finalizado") return { text: tr("Por calificar"), bg: "#E8F5E9", color: "#2E7D32" };
+  return { text: tr(t.estado), bg: "#EEF3FF", color: "#3E7BE1" };
 }
 
 const ICONO_ETAPA: Record<string, string> = { "En camino": "directions_car", Llegó: "pin_drop", Terminado: "task_alt" };
@@ -48,7 +49,7 @@ export function MisTrabajosPage() {
       await accion();
       await cargar();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo completar la acción.");
+      setError(e instanceof Error ? e.message : tr("No se pudo completar la acción."));
     }
   };
 
@@ -59,7 +60,7 @@ export function MisTrabajosPage() {
 
   return (
     <div className="flex min-h-full flex-col pb-4">
-      <PageHeader title="Mis trabajos" subtitle="Consulta y gestiona tus trabajos activos." icon="work" />
+      <PageHeader title={tr("Mis trabajos")} subtitle={tr("Consulta y gestiona tus trabajos activos.")} icon="work" />
       <ExploreTabs />
 
       <div className="flex-1 px-5 pt-4">
@@ -69,11 +70,11 @@ export function MisTrabajosPage() {
           </p>
         )}
         {trabajos === null ? (
-          <Loader label="Cargando tus trabajos..." />
+          <Loader label={tr("Cargando tus trabajos...")} />
         ) : trabajos.length === 0 ? (
           <EmptyState
-            title="No tienes trabajos activos"
-            message="Aquí aparecerán los trabajos a los que te postules o que te asignen."
+            title={tr("No tienes trabajos activos")}
+            message={tr("Aquí aparecerán los trabajos a los que te postules o que te asignen.")}
           />
         ) : (
           trabajos.map((t) => {
@@ -88,11 +89,11 @@ export function MisTrabajosPage() {
                 badge={badgeDe(t)}
                 actions={
                   <>
-                    <CardAction icon="chat" label="Escribir al publicador" onClick={() => abrirChat(t.publicadorId)} />
+                    <CardAction icon="chat" label={tr("Escribir al publicador")} onClick={() => abrirChat(t.publicadorId)} />
                     {t.estado !== "Finalizado" && (
                       <CardAction
                         icon="cancel"
-                        label={t.asignadoAMi ? "Cancelar trabajo" : "Retirar postulación"}
+                        label={t.asignadoAMi ? tr("Cancelar trabajo") : tr("Retirar postulación")}
                         destructive
                         onClick={() => ejecutar(() => api.trabajos.cancelar(t.id))}
                       />
@@ -103,18 +104,18 @@ export function MisTrabajosPage() {
                   <>
                     {t.urgente && (
                       <p className="flex items-center gap-1 text-xs font-semibold text-cira-btn-destructive-text">
-                        <Icon name="bolt" filled size={14} /> Urgencia
+                        <Icon name="bolt" filled size={14} /> {tr("Urgencia")}
                       </p>
                     )}
                     {t.asignadoAMi && <SeguimientoTrabajo etapa={t.etapa} />}
                     {asignado && siguiente && (
                       <Button onClick={() => ejecutar(() => api.trabajos.avanzarEtapa(t.id))}>
                         <Icon name={ICONO_ETAPA[siguiente]} size={20} />
-                        {siguiente === "Terminado" ? "MARCAR COMO TERMINADO" : `ESTOY ${siguiente.toUpperCase()}`}
+                        {siguiente === "Terminado" ? tr("MARCAR COMO TERMINADO") : tr(siguiente === "En camino" ? "ESTOY EN CAMINO" : "YA LLEGUÉ")}
                       </Button>
                     )}
                     {t.estado === "Finalizado" && (
-                      <Button onClick={() => setACalificar(t)}>CALIFICAR A {t.publicador.toUpperCase()}</Button>
+                      <Button onClick={() => setACalificar(t)}>{tr("CALIFICAR A {nombre}", { nombre: t.publicador.toUpperCase() })}</Button>
                     )}
                   </>
                 }
@@ -127,7 +128,7 @@ export function MisTrabajosPage() {
       <div className="sticky bottom-[18px] flex justify-end px-5">
         <button
           onClick={() => navigate("/historial")}
-          aria-label="Ver historial"
+          aria-label={tr("Ver historial")}
           className="flex h-[58px] w-[58px] items-center justify-center rounded-[20px] bg-cira-header-icon-bg shadow-[0_8px_18px_rgba(0,0,0,0.26)]"
         >
           <Icon name="history" size={30} className="text-cira-accent" />

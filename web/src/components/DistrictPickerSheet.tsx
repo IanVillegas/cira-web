@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Icon } from "./ui/Icon";
 import { DISTRITOS, type Distrito } from "@/lib/districts";
+import { tr } from "@/lib/i18n";
 
 interface DistrictPickerSheetProps {
   open: boolean;
@@ -30,10 +31,10 @@ export function DistrictPickerSheet({ open, onClose, onSelect }: DistrictPickerS
       >
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h2 className="text-[21px] font-bold text-cira-text-primary">Selecciona distrito</h2>
-            <p className="text-[13px] text-cira-text-secondary">Se centrará el mapa en esa zona.</p>
+            <h2 className="text-[21px] font-bold text-cira-text-primary">{tr("Selecciona distrito")}</h2>
+            <p className="text-[13px] text-cira-text-secondary">{tr("Se centrará el mapa en esa zona.")}</p>
           </div>
-          <button onClick={onClose} aria-label="Cerrar" className="flex h-10 w-10 items-center justify-center text-cira-text-primary">
+          <button onClick={onClose} aria-label={tr("Cerrar")} className="flex h-10 w-10 items-center justify-center text-cira-text-primary">
             <Icon name="close" size={24} />
           </button>
         </div>
@@ -45,7 +46,7 @@ export function DistrictPickerSheet({ open, onClose, onSelect }: DistrictPickerS
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar"
+            placeholder={tr("Buscar")}
             className="min-h-12 w-full bg-transparent text-cira-control focus:outline-none placeholder:text-cira-text-helper"
           />
         </div>
@@ -70,7 +71,7 @@ export function DistrictPickerSheet({ open, onClose, onSelect }: DistrictPickerS
             </button>
           ))}
           {lista.length === 0 && (
-            <p className="py-6 text-center text-sm text-cira-text-secondary">Sin resultados.</p>
+            <p className="py-6 text-center text-sm text-cira-text-secondary">{tr("Sin resultados.")}</p>
           )}
         </div>
       </div>

@@ -12,6 +12,7 @@ import { DISTRITOS, type Distrito } from "@/lib/districts";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { MetodoPago } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 const METODOS: { value: MetodoPago; icon: string }[] = [
   { value: "Efectivo", icon: "payments" },
@@ -54,7 +55,7 @@ export function EditProfilePage() {
     setMetodos(usuario.metodosPago);
   }, [usuario]);
 
-  if (!usuario) return <Loader label="Cargando perfil..." />;
+  if (!usuario) return <Loader label={tr("Cargando perfil...")} />;
 
   const nombreCompleto = [nombres.nombre, nombres.nombre2, nombres.apellido, nombres.apellido2]
     .map((n) => n.trim())
@@ -66,10 +67,10 @@ export function EditProfilePage() {
 
   const guardar = async () => {
     if (!nombres.nombre.trim() || !nombres.apellido.trim())
-      return setError("El primer nombre y el primer apellido son obligatorios.");
-    if (!/^\d{8}$/.test(contacto.telefono)) return setError("El teléfono debe tener 8 dígitos.");
-    if (!zonaTexto) return setError("Selecciona tu distrito.");
-    if (metodos.length === 0) return setError("Selecciona al menos un método de pago.");
+      return setError(tr("El primer nombre y el primer apellido son obligatorios."));
+    if (!/^\d{8}$/.test(contacto.telefono)) return setError(tr("El teléfono debe tener 8 dígitos."));
+    if (!zonaTexto) return setError(tr("Selecciona tu distrito."));
+    if (metodos.length === 0) return setError(tr("Selecciona al menos un método de pago."));
 
     setGuardando(true);
     setError(null);
@@ -87,7 +88,7 @@ export function EditProfilePage() {
       await refrescarUsuario();
       navigate("/perfil");
     } catch {
-      setError("No se pudo guardar. Verifica que el servidor esté corriendo.");
+      setError(tr("No se pudo guardar. Verifica que el servidor esté corriendo."));
     } finally {
       setGuardando(false);
     }
@@ -96,8 +97,8 @@ export function EditProfilePage() {
   return (
     <div>
       <PageHeader
-        title="Editar perfil"
-        subtitle="Mantén tu información visible para clientes."
+        title={tr("Editar perfil")}
+        subtitle={tr("Mantén tu información visible para clientes.")}
         icon="person"
         showBack
       />
@@ -108,40 +109,40 @@ export function EditProfilePage() {
             <Icon name="person" size={38} className="text-cira-accent" />
           </div>
           <div className="flex min-w-0 flex-col gap-1">
-            <span className="text-[11px] text-cira-text-secondary">PERFIL PUBLICO</span>
+            <span className="text-[11px] text-cira-text-secondary">{tr("PERFIL PUBLICO")}</span>
             <span className="truncate text-[21px] font-semibold text-cira-text-primary">
-              {nombreCompleto || "Tus datos"}
+              {nombreCompleto || tr("Tus datos")}
             </span>
             <span className="truncate text-[13px] text-cira-text-secondary">{zonaTexto}</span>
           </div>
         </Card>
 
         <Card className="flex flex-col gap-3.5">
-          <h2 className="text-base font-semibold text-cira-text-primary">Nombre</h2>
-          <Input placeholder="Primer nombre" value={nombres.nombre} onChange={(e) => setNombres({ ...nombres, nombre: e.target.value })} />
-          <Input placeholder="Segundo nombre" value={nombres.nombre2} onChange={(e) => setNombres({ ...nombres, nombre2: e.target.value })} />
-          <Input placeholder="Primer apellido" value={nombres.apellido} onChange={(e) => setNombres({ ...nombres, apellido: e.target.value })} />
-          <Input placeholder="Segundo apellido" value={nombres.apellido2} onChange={(e) => setNombres({ ...nombres, apellido2: e.target.value })} />
+          <h2 className="text-base font-semibold text-cira-text-primary">{tr("Nombre")}</h2>
+          <Input placeholder={tr("Primer nombre")} value={nombres.nombre} onChange={(e) => setNombres({ ...nombres, nombre: e.target.value })} />
+          <Input placeholder={tr("Segundo nombre")} value={nombres.nombre2} onChange={(e) => setNombres({ ...nombres, nombre2: e.target.value })} />
+          <Input placeholder={tr("Primer apellido")} value={nombres.apellido} onChange={(e) => setNombres({ ...nombres, apellido: e.target.value })} />
+          <Input placeholder={tr("Segundo apellido")} value={nombres.apellido2} onChange={(e) => setNombres({ ...nombres, apellido2: e.target.value })} />
         </Card>
 
         <Card className="flex flex-col gap-3.5">
-          <h2 className="text-base font-semibold text-cira-text-primary">Contacto</h2>
+          <h2 className="text-base font-semibold text-cira-text-primary">{tr("Contacto")}</h2>
           <Input
             type="tel"
             inputMode="numeric"
             maxLength={8}
-            placeholder="Telefono"
+            placeholder={tr("Telefono")}
             value={contacto.telefono}
             onChange={(e) => setContacto({ ...contacto, telefono: e.target.value.replace(/\D/g, "") })}
           />
           <Input
             type="email"
-            placeholder="Correo"
+            placeholder={tr("Correo")}
             value={contacto.correo}
             onChange={(e) => setContacto({ ...contacto, correo: e.target.value })}
           />
           <Input
-            placeholder="Cedula opcional"
+            placeholder={tr("Cedula opcional")}
             value={contacto.cedula}
             onChange={(e) => setContacto({ ...contacto, cedula: e.target.value })}
           />
@@ -149,9 +150,9 @@ export function EditProfilePage() {
 
         <Card className="flex flex-col gap-3.5">
           <div className="flex flex-col gap-[3px]">
-            <h2 className="text-base font-semibold text-cira-text-primary">Ubicacion</h2>
+            <h2 className="text-base font-semibold text-cira-text-primary">{tr("Ubicacion")}</h2>
             <p className="text-xs text-cira-text-secondary">
-              Selecciona el distrito y ajusta el pin si necesitas una ubicación más exacta.
+              {tr("Selecciona el distrito y ajusta el pin si necesitas una ubicación más exacta.")}
             </p>
           </div>
           <button
@@ -160,24 +161,24 @@ export function EditProfilePage() {
             className="flex min-h-14 items-center justify-between rounded-cira-input bg-cira-input-bg px-3.5 text-left text-cira-control"
           >
             <span className={zonaTexto ? "text-cira-text-primary" : "text-cira-text-helper"}>
-              {distrito ? `${distrito.nombre}, ${distrito.canton}` : zonaTexto || "Selecciona tu distrito"}
+              {distrito ? `${distrito.nombre}, ${distrito.canton}` : zonaTexto || tr("Selecciona tu distrito")}
             </span>
             <Icon name="keyboard_arrow_down" size={24} className="text-cira-text-secondary" />
           </button>
           <LocationPreview
             center={distrito ? [distrito.lat, distrito.lng] : null}
-            text={zonaTexto || "Ajusta tu ubicación en el mapa"}
+            text={zonaTexto || tr("Ajusta tu ubicación en el mapa")}
           />
         </Card>
 
         <Card className="flex flex-col gap-3">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-0.5">
-              <h2 className="text-base font-semibold text-cira-text-primary">Métodos de pago</h2>
-              <p className="text-xs text-cira-text-secondary">Elige como prefieres recibir pagos.</p>
+              <h2 className="text-base font-semibold text-cira-text-primary">{tr("Métodos de pago")}</h2>
+              <p className="text-xs text-cira-text-secondary">{tr("Elige como prefieres recibir pagos.")}</p>
             </div>
             <span className="self-center text-xs font-semibold text-cira-accent">
-              {metodos.length} seleccionados
+              {tr("{n} seleccionados", { n: metodos.length })}
             </span>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -200,7 +201,7 @@ export function EditProfilePage() {
                   >
                     <Icon name={m.icon} size={22} className={active ? "text-cira-card" : "text-cira-accent"} />
                   </span>
-                  <span className="text-[9px] font-semibold text-cira-text-primary uppercase">{m.value}</span>
+                  <span className="text-[9px] font-semibold text-cira-text-primary uppercase">{tr(m.value)}</span>
                 </button>
               );
             })}
@@ -210,7 +211,7 @@ export function EditProfilePage() {
         {error && <p className="text-center text-[13px] text-cira-accent">{error}</p>}
 
         <Button onClick={guardar} disabled={guardando}>
-          {guardando ? "Guardando..." : "Guardar cambios"}
+          {guardando ? tr("Guardando...") : tr("Guardar cambios")}
         </Button>
       </div>
 

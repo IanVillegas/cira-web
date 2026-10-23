@@ -7,6 +7,7 @@ import { Calificacion } from "./Estrellas";
 import { api } from "@/lib/api";
 import { formatoColones as formatoPago } from "@/lib/format";
 import type { Trabajo } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 interface JobCardProps {
   trabajo: Trabajo;
@@ -19,7 +20,7 @@ interface JobCardProps {
 /** Link de WhatsApp con el mensaje listo para enviar (canal de captación de usuarios). */
 function enlaceWhatsApp(trabajo: Trabajo) {
   const link = `${window.location.origin}/explorar?trabajo=${trabajo.id}`;
-  const mensaje = `Mira este trabajo en CIRA: ${trabajo.titulo} (${formatoPago.format(trabajo.pago)}). ${link}`;
+  const mensaje = tr("Mira este trabajo en CIRA: {titulo} ({pago}). {link}", { titulo: trabajo.titulo, pago: formatoPago.format(trabajo.pago), link });
   return `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
 }
 
@@ -49,11 +50,11 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
         </div>
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-cira-accent uppercase">
-            {trabajo.categoria}
+            {tr(trabajo.categoria)}
             {trabajo.urgente && (
               <span className="inline-flex items-center gap-0.5 rounded-full bg-cira-btn-destructive-bg px-1.5 py-0.5 text-[10px] text-cira-btn-destructive-text">
                 <Icon name="bolt" filled size={12} />
-                URGENTE
+                {tr("URGENTE")}
               </span>
             )}
           </p>
@@ -69,10 +70,10 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
           <span className="truncate text-sm text-cira-text-secondary">{trabajo.publicador}</span>
           <Calificacion valor={trabajo.publicadorCalificacion} />
         </div>
-        <Row icon="calendar_month" text={trabajo.fecha} />
+        <Row icon="calendar_month" text={tr(trabajo.fecha)} />
         <div className="pt-1">
           <p className="text-[10px] font-semibold tracking-widest text-cira-text-helper">
-            PAGO ESTIMADO
+            {tr("PAGO ESTIMADO")}
           </p>
           <p className="text-xl font-semibold text-cira-accent">
             {formatoPago.format(trabajo.pago)}
@@ -83,7 +84,7 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
       <div className="mt-3 flex flex-col gap-2.5">
         <div className="grid grid-cols-2 gap-3">
           <Button variant="outlined" onClick={comunicarse} disabled={abriendoChat}>
-            COMUNÍCATE
+            {tr("COMUNÍCATE")}
           </Button>
           <a
             href={enlaceWhatsApp(trabajo)}
@@ -92,21 +93,21 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-cira-button border border-cira-btn-outlined-border px-5 py-2.5 text-cira-control font-semibold text-cira-text-primary shadow-[0_6px_14px_rgba(0,0,0,0.10)]"
           >
             <Icon name="share" size={18} />
-            COMPARTIR
+            {tr("COMPARTIR")}
           </a>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Button variant="outlined" onClick={() => navigate("/mapa")}>
-            VER EN MAPA
+            {tr("VER EN MAPA")}
           </Button>
           {trabajo.urgente ? (
-            <Button onClick={() => onAcceptUrgent?.(trabajo.id)}>ACEPTAR URGENCIA</Button>
+            <Button onClick={() => onAcceptUrgent?.(trabajo.id)}>{tr("ACEPTAR URGENCIA")}</Button>
           ) : (
             <Button
               variant={trabajo.yaPostulado ? "destructive" : "primary"}
               onClick={() => onApply?.(trabajo.id)}
             >
-              {trabajo.yaPostulado ? "RETIRAR" : "POSTULARME"}
+              {trabajo.yaPostulado ? tr("RETIRAR") : tr("POSTULARME")}
             </Button>
           )}
         </div>
@@ -114,9 +115,9 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
 
       {expanded && (
         <div className="mt-3.5 space-y-3 border-t border-cira-border pt-3.5">
-          <Detail icon="description" label="Descripción" text={trabajo.descripcion} />
-          <Detail icon="payments" label="Método de pago" text={trabajo.metodoPago} />
-          <Detail icon="groups" label="Postulantes" text={`${trabajo.postulantes} persona(s)`} />
+          <Detail icon="description" label={tr("Descripción")} text={trabajo.descripcion} />
+          <Detail icon="payments" label={tr("Método de pago")} text={tr(trabajo.metodoPago)} />
+          <Detail icon="groups" label={tr("Postulantes")} text={tr("{n} persona(s)", { n: trabajo.postulantes })} />
         </div>
       )}
     </Card>

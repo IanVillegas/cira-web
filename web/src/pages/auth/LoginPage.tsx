@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/Input";
 import { PinInput } from "@/components/ui/PinInput";
 import { AuthError, AuthHeading, AuthLayout, IdentifierChip } from "@/layouts/AuthLayout";
 import { useAuth } from "@/lib/auth";
+import { tr } from "@/lib/i18n";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export function LoginPage() {
 
   const continuar = () => {
     if (!identifier.trim()) {
-      setError("Ingresa tu teléfono o correo.");
+      setError(tr("Ingresa tu teléfono o correo."));
       return;
     }
     setError(null);
@@ -32,7 +33,7 @@ export function LoginPage() {
       navigate("/explorar", { replace: true });
     } catch (e) {
       setPin("");
-      setError(e instanceof Error ? e.message : "No se pudo iniciar sesión.");
+      setError(e instanceof Error ? e.message : tr("No se pudo iniciar sesión."));
     }
   };
 
@@ -40,12 +41,12 @@ export function LoginPage() {
     <AuthLayout>
       {step === "identifier" ? (
         <div className="flex flex-col gap-[18px]">
-          <AuthHeading title="Inicia sesión" subtitle="Ingresa tu teléfono o correo para continuar." />
+          <AuthHeading title={tr("Inicia sesión")} subtitle={tr("Ingresa tu teléfono o correo para continuar.")} />
 
           <Input
             type="text"
             inputMode="email"
-            placeholder="Teléfono o correo"
+            placeholder={tr("Teléfono o correo")}
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && continuar()}
@@ -53,19 +54,19 @@ export function LoginPage() {
 
           <AuthError message={error} />
 
-          <Button onClick={continuar}>Continuar</Button>
+          <Button onClick={continuar}>{tr("Continuar")}</Button>
 
           <p className="flex items-center justify-center gap-1 text-[13px]">
-            <span className="text-cira-text-secondary">¿No tienes una cuenta?</span>
+            <span className="text-cira-text-secondary">{tr("¿No tienes una cuenta?")}</span>
             <Link to="/registro" className="font-bold text-cira-accent underline">
-              Regístrate.
+              {tr("Regístrate.")}
             </Link>
           </p>
         </div>
       ) : (
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <AuthHeading title="Ingresa tu PIN" />
+            <AuthHeading title={tr("Ingresa tu PIN")} />
             <IdentifierChip>{identifier}</IdentifierChip>
           </div>
 
@@ -74,11 +75,11 @@ export function LoginPage() {
           <AuthError message={error} />
 
           <Link to="/recuperar" className="text-center text-[13px] font-bold text-cira-accent underline">
-            ¿Olvidaste tu PIN?
+            {tr("¿Olvidaste tu PIN?")}
           </Link>
 
           <Button disabled={pin.length < 4} onClick={ingresar}>
-            Ingresar
+            {tr("Ingresar")}
           </Button>
 
           <Button
@@ -88,7 +89,7 @@ export function LoginPage() {
               setStep("identifier");
             }}
           >
-            Cambiar teléfono o correo
+            {tr("Cambiar teléfono o correo")}
           </Button>
         </div>
       )}

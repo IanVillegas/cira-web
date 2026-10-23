@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { formatoColones } from "@/lib/format";
 import { useConfig } from "@/lib/useConfig";
 import type { Ingresos } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 /** Vista para la demo: de dónde gana dinero CIRA (todo simulado). */
 export function IngresosPage() {
@@ -16,28 +17,28 @@ export function IngresosPage() {
     api.ingresos().then(setIngresos).catch(() => {});
   }, []);
 
-  if (!ingresos) return <Loader label="Calculando ingresos..." />;
+  if (!ingresos) return <Loader label={tr("Calculando ingresos...")} />;
 
   const fuentes = [
-    { titulo: "Plan Plus", detalle: `${ingresos.planPlus.cantidad} suscripción(es)`, total: ingresos.planPlus.total },
+    { titulo: tr("Plan Plus"), detalle: tr("{n} suscripción(es)", { n: ingresos.planPlus.cantidad }), total: ingresos.planPlus.total },
     {
-      titulo: "Tarifa de urgencia",
-      detalle: `${ingresos.tarifaUrgencia.cantidad} urgencia(s) · ${config.urgenciaPct}%`,
+      titulo: tr("Tarifa de urgencia"),
+      detalle: tr("{n} urgencia(s) · {pct}%", { n: ingresos.tarifaUrgencia.cantidad, pct: config.urgenciaPct }),
       total: ingresos.tarifaUrgencia.total,
     },
     {
-      titulo: "Comisión por pagos en la app",
-      detalle: `${ingresos.comisiones.cantidad} pago(s) · ${config.comisionPct}%`,
+      titulo: tr("Comisión por pagos en la app"),
+      detalle: tr("{n} pago(s) · {pct}%", { n: ingresos.comisiones.cantidad, pct: config.comisionPct }),
       total: ingresos.comisiones.total,
     },
   ];
 
   return (
     <div className="pb-6">
-      <PageHeader title="Ingresos de CIRA" subtitle="Modelo freemium (simulado)" icon="payments" showBack />
+      <PageHeader title={tr("Ingresos de CIRA")} subtitle={tr("Modelo freemium (simulado)")} icon="payments" showBack />
       <div className="flex flex-col gap-3 px-5 pt-2">
         <Card className="text-center">
-          <p className="text-[11px] font-semibold tracking-wider text-cira-text-secondary">TOTAL</p>
+          <p className="text-[11px] font-semibold tracking-wider text-cira-text-secondary">{tr("TOTAL")}</p>
           <p className="text-[32px] font-semibold text-cira-accent">{formatoColones.format(ingresos.total)}</p>
         </Card>
         {fuentes.map((f) => (

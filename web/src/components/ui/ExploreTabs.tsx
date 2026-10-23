@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { tr } from "@/lib/i18n";
 
 const TABS = [
-  { to: "/explorar", label: "Trabajos" },
-  { to: "/trabajadores", label: "Trabajadores" },
-  { to: "/publicaciones", label: "Mis publicaciones" },
-  { to: "/mis-trabajos", label: "Mis trabajos" },
+  { to: "/explorar", label: tr("Trabajos") },
+  { to: "/trabajadores", label: tr("Trabajadores") },
+  { to: "/publicaciones", label: tr("Mis publicaciones") },
+  { to: "/mis-trabajos", label: tr("Mis trabajos") },
 ];
 
 /** Réplica de CiraExploreTabs: píldora blanca con borde; la pestaña activa va en acento. */

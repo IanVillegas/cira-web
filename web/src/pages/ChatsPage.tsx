@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Loader } from "@/components/ui/Loader";
 import { api } from "@/lib/api";
 import type { Conversacion } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 function iniciales(nombre: string) {
   return nombre
@@ -31,23 +32,23 @@ export function ChatsPage() {
   return (
     <div className="pb-4">
       <PageHeader
-        title="Mensajes"
-        subtitle="Tus conversaciones activas"
+        title={tr("Mensajes")}
+        subtitle={tr("Tus conversaciones activas")}
         icon="chat"
         className="px-5 pt-10 pb-[18px]"
       />
 
       {error ? (
         <div className="mx-5 mt-3 rounded-cira-card bg-cira-card p-6">
-          <EmptyState image="empty_no_signal" title="Sin conexión" />
+          <EmptyState image="empty_no_signal" title={tr("Sin conexión")} />
         </div>
       ) : conversaciones === null ? (
-        <Loader label="Cargando conversaciones..." />
+        <Loader label={tr("Cargando conversaciones...")} />
       ) : conversaciones.length === 0 ? (
         <EmptyState
           image="empty_no_messages"
-          title="Sin conversaciones aún"
-          message="Las conversaciones aparecerán aquí cuando contactes a alguien."
+          title={tr("Sin conversaciones aún")}
+          message={tr("Las conversaciones aparecerán aquí cuando contactes a alguien.")}
         />
       ) : (
         <div className="mt-1">

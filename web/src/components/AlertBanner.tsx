@@ -4,6 +4,7 @@ import { Icon } from "./ui/Icon";
 import { api } from "@/lib/api";
 import { formatoColones } from "@/lib/format";
 import { useAlertas } from "@/lib/useAlertas";
+import { tr } from "@/lib/i18n";
 
 /**
  * Banner de alertas sobre la app: urgencias y trabajos nuevos de mi oficio cerca de mí.
@@ -27,7 +28,7 @@ export function AlertBanner() {
       descartar(trabajo.id); // ya es mío: que el banner no siga mostrándola
       navigate("/mis-trabajos");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo aceptar la urgencia.");
+      setError(e instanceof Error ? e.message : tr("No se pudo aceptar la urgencia."));
       recargar();
     }
   };
@@ -43,15 +44,15 @@ export function AlertBanner() {
         <Icon name={urgente ? "bolt" : "notifications_active"} filled size={24} />
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold tracking-wider uppercase">
-            {urgente ? "Urgencia cerca de ti" : "Nuevo trabajo de tu oficio"}
-            {prioritaria && " · Prioridad Plus"}
+            {urgente ? tr("Urgencia cerca de ti") : tr("Nuevo trabajo de tu oficio")}
+            {prioritaria && tr(" · Prioridad Plus")}
           </p>
           <p className="truncate text-[15px] font-semibold">{trabajo.titulo}</p>
           <p className="truncate text-xs opacity-90">
             {trabajo.ubicacion} · {trabajo.distanciaKm} km · {formatoColones.format(trabajo.pago)}
           </p>
         </div>
-        <button onClick={() => descartar(trabajo.id)} aria-label="Descartar alerta">
+        <button onClick={() => descartar(trabajo.id)} aria-label={tr("Descartar alerta")}>
           <Icon name="close" size={22} />
         </button>
       </div>
@@ -61,14 +62,14 @@ export function AlertBanner() {
       <div className="mt-2.5 flex items-center gap-2">
         {urgente ? (
           <button onClick={aceptar} className="flex-1 rounded-xl bg-white py-2 text-[13px] font-bold text-cira-btn-destructive-text">
-            ACEPTAR
+            {tr("ACEPTAR")}
           </button>
         ) : (
           <button
             onClick={() => navigate(`/explorar?trabajo=${trabajo.id}`)}
             className="flex-1 rounded-xl bg-white py-2 text-[13px] font-bold text-cira-tertiary"
           >
-            VER TRABAJO
+            {tr("VER TRABAJO")}
           </button>
         )}
         {alertas.length > 1 && (

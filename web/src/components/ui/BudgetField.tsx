@@ -1,4 +1,5 @@
 import { Icon } from "./Icon";
+import { tr } from "@/lib/i18n";
 
 interface BudgetFieldProps {
   value: string;
@@ -29,7 +30,7 @@ export function BudgetField({ value, onChange, bordered = true }: BudgetFieldPro
           onChange={(e) => onChange(e.target.value)}
           className="w-full bg-transparent text-2xl font-semibold text-cira-text-primary placeholder:text-cira-text-helper focus:outline-none"
         />
-        <span className="text-[9px] tracking-[0.12em] text-cira-text-helper">MONTO EN COLONES</span>
+        <span className="text-[9px] tracking-[0.12em] text-cira-text-helper">{tr("MONTO EN COLONES")}</span>
       </div>
     </div>
   );
