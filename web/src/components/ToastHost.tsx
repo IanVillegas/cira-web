@@ -1,35 +1,44 @@
 import { useEffect, useState } from "react";
-import { Icon } from "./ui/Icon";
-import { cerrarToast, suscribirToasts, type Toast } from "@/lib/toast";
+import { Toast as AireToast } from "@/components/aire";
+import { cerrarToast, suscribirToasts, type Toast, type TipoToast } from "@/lib/toast";
 
-const ESTILO = {
-  exito: { icono: "check_circle", clase: "bg-emerald-600" },
-  error: { icono: "error", clase: "bg-cira-btn-destructive-text" },
-  info: { icono: "info", clase: "bg-cira-tertiary" },
-} as const;
+const ESTILO: Record<TipoToast, { icon: string; tone: "success" | "danger" | "neutral" }> = {
+  exito: { icon: "check_circle", tone: "success" },
+  error: { icon: "error", tone: "danger" },
+  info: { icon: "info", tone: "neutral" },
+};
 
-/** Avisos breves que flotan arriba del teléfono; se montan una sola vez en AppShell. */
+/**
+ * Muestra el aviso más reciente con el Toast de Aire; se monta una sola vez en AppShell.
+ * Conserva el último mensaje mientras el aviso sale, para que la animación no parpadee.
+ */
 export function ToastHost() {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [ultimo, setUltimo] = useState<Toast | null>(null);
+
   useEffect(() => suscribirToasts(setToasts), []);
 
-  if (toasts.length === 0) return null;
+  const actual = toasts[toasts.length - 1] ?? null;
+  // Ajusta el último mensaje conocido cuando llega uno nuevo (patrón de "estado derivado de una prop").
+  if (actual && actual !== ultimo) setUltimo(actual);
+
+  if (!ultimo) return null;
+  const estilo = ESTILO[ultimo.tipo];
   return (
-    <div className="pointer-events-none absolute inset-x-3 top-3 z-[4000] flex flex-col gap-2" aria-live="polite">
-      {toasts.map((t) => (
-        <button
-          key={t.id}
-          type="button"
-          onClick={() => {
-            t.accion?.();
-            cerrarToast(t.id);
-          }}
-          className={`pointer-events-auto flex items-center gap-2.5 rounded-2xl px-4 py-3 text-left text-[14px] font-semibold text-white shadow-[0_10px_28px_rgba(0,0,0,0.3)] ${ESTILO[t.tipo].clase}`}
-        >
-          <Icon name={ESTILO[t.tipo].icono} filled size={22} />
-          <span className="flex-1">{t.texto}</span>
-        </button>
-      ))}
-    </div>
+    <AireToast
+      open={!!actual}
+      message={ultimo.texto}
+      icon={estilo.icon}
+      tone={estilo.tone}
+      duration={0}
+      onPress={
+        ultimo.accion
+          ? () => {
+              ultimo.accion?.();
+              cerrarToast(ultimo.id);
+            }
+          : undefined
+      }
+    />
   );
 }

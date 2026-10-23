@@ -6,6 +6,8 @@ export interface TabItem {
   key: string;
   label: string;
   icon: string;
+  /** Contador rojo sobre el ícono (p. ej. mensajes sin leer); 0 u omitido no muestra nada. */
+  badge?: number;
 }
 
 export interface TabBarProps {
@@ -57,7 +59,14 @@ export function TabBar({ items, value, onChange, floating = true }: TabBarProps)
               aria-current={active ? "page" : undefined}
               onClick={() => onChange(it.key)}
             >
-              <Icon name={it.icon} filled={active} size={26} />
+              <span className="ca-tabbar__icon">
+                <Icon name={it.icon} filled={active} size={26} />
+                {!!it.badge && it.badge > 0 && (
+                  <i className="ca-tabbar__badge" aria-label={String(it.badge)}>
+                    {it.badge > 9 ? "9+" : it.badge}
+                  </i>
+                )}
+              </span>
               <span>{it.label}</span>
             </button>
           );

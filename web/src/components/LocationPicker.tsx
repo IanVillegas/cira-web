@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
-import { Icon } from "./ui/Icon";
-import { FieldCaption } from "./ui/FieldCaption";
+import { FieldCaption, Icon } from "@/components/aire";
 import { iconoSeleccionado } from "@/lib/leafletIcons";
 import { obtenerUbicacionActual, reverseGeocode } from "@/lib/geo";
 import { tr } from "@/lib/i18n";
@@ -52,28 +51,28 @@ export function LocationPicker({ value, address, onChange }: LocationPickerProps
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="grid gap-2">
       <div className="flex items-center justify-between">
         <FieldCaption>{tr("Ubicación del trabajo")}</FieldCaption>
         <button
           type="button"
           onClick={usarMiUbicacion}
           disabled={buscando}
-          className="flex items-center gap-1 text-[13px] font-semibold text-cira-accent disabled:opacity-60"
+          className="aire-text-footnote flex min-h-11 items-center gap-1 font-semibold text-aire-accent-text disabled:opacity-60"
         >
           <Icon name="my_location" size={16} />
           {buscando ? tr("Ubicando...") : tr("Usar mi ubicación")}
         </button>
       </div>
 
-      <div className="flex min-h-14 items-center gap-2.5 rounded-cira-input bg-cira-input-bg px-3.5">
-        <Icon name="location_on" size={20} className="shrink-0 text-cira-accent" />
-        <span className="text-cira-body text-cira-text-secondary">
+      <div className="flex min-h-14 items-center gap-2.5 rounded-aire-sm bg-aire-surface-2 px-4">
+        <Icon name="location_on" size={20} className="shrink-0 text-aire-accent-text" />
+        <span className="aire-text-subhead text-aire-ink-2">
           {address || tr("Toca el mapa para marcar la ubicación")}
         </span>
       </div>
 
-      <div className="h-52 w-full overflow-hidden rounded-cira-input bg-cira-input-bg">
+      <div className="h-52 w-full overflow-hidden rounded-aire-md bg-aire-surface-3">
         <MapContainer
           center={value ?? CENTRO_DEFECTO}
           zoom={value ? 16 : 13}
@@ -87,7 +86,7 @@ export function LocationPicker({ value, address, onChange }: LocationPickerProps
         </MapContainer>
       </div>
 
-      {error && <p className="text-xs text-cira-btn-destructive-text">{error}</p>}
+      {error && <p className="aire-text-footnote font-semibold text-aire-danger-text">{error}</p>}
     </div>
   );
 }

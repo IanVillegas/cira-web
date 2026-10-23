@@ -1,19 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "./ui/Card";
-import { Icon } from "./ui/Icon";
-import { Button } from "./ui/Button";
+import { Badge, Button, Card, Icon } from "@/components/aire";
 import { Calificacion } from "./Estrellas";
 import { InsigniaChips } from "./InsigniaChips";
 import { api } from "@/lib/api";
-import type { Trabajador } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import type { Trabajador } from "@/lib/types";
 
 interface WorkerCardProps {
   trabajador: Trabajador;
 }
 
-/** Réplica de CiraWorkerCard: misma estructura que la tarjeta de trabajo, con botón CONTACTAR. */
+/** Tarjeta de trabajador: reputación, insignias y acciones para ver el perfil o contactar. */
 export function WorkerCard({ trabajador }: WorkerCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [abriendoChat, setAbriendoChat] = useState(false);
@@ -30,70 +28,67 @@ export function WorkerCard({ trabajador }: WorkerCardProps) {
   };
 
   return (
-    <Card className="mb-3.5 p-[18px] shadow-[0_8px_18px_rgba(0,0,0,0.12)]">
-      <button className="flex w-full items-start gap-3 text-left" onClick={() => setExpanded((v) => !v)}>
-        <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px] bg-cira-header-icon-bg">
-          <Icon name="person" size={28} className="text-cira-accent" />
+    <Card className="grid gap-4">
+      <button type="button" aria-expanded={expanded} className="flex w-full items-start gap-3 text-left" onClick={() => setExpanded((v) => !v)}>
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+          <Icon name="person" size={26} className="text-aire-accent-text" />
         </span>
-        <span className="flex min-w-0 flex-1 flex-col gap-[3px] self-center">
-          <span className="truncate text-[11px] font-semibold tracking-[0.08em] text-cira-accent uppercase">
-            {tr(trabajador.servicios[0] ?? "Servicio")}
-          </span>
+        <span className="min-w-0 flex-1">
+          <span className="aire-text-eyebrow block truncate text-aire-accent-text">{tr(trabajador.servicios[0] ?? "Servicio")}</span>
           <span className="flex items-center gap-2">
-            <span className="truncate text-[17px] font-semibold text-cira-text-primary">{trabajador.nombre}</span>
+            <span className="aire-text-headline truncate text-aire-ink">{trabajador.nombre}</span>
             <Calificacion valor={trabajador.calificacion} total={trabajador.numCalificaciones} />
           </span>
         </span>
-        <Icon name={expanded ? "expand_less" : "expand_more"} size={20} className="shrink-0 text-cira-accent" />
+        <Icon
+          name="expand_more"
+          size={22}
+          className={`mt-1 shrink-0 text-aire-ink-2 transition-transform duration-[320ms] ease-aire-spring ${expanded ? "rotate-180" : ""}`}
+        />
       </button>
 
-      <div className="mt-3.5 flex items-center gap-2.5 rounded-2xl bg-cira-input-bg p-3.5">
-        <Icon name="location_on" size={18} className="text-cira-accent" />
-        <span className="truncate text-[13px] text-cira-text-secondary">
-          {trabajador.zona}
-          <span className="px-1.5 text-cira-text-helper">·</span>
-          {trabajador.distanciaKm} km
+      <div className="aire-text-subhead flex items-center gap-2.5 text-aire-ink-2">
+        <Icon name="location_on" size={20} className="shrink-0 text-aire-accent-text" />
+        <span className="truncate">
+          {trabajador.zona} · {trabajador.distanciaKm} km
+        </span>
+        <span className="ml-auto shrink-0">
+          <Badge tone={trabajador.disponible ? "success" : "neutral"} dot>
+            {trabajador.disponible ? tr("Disponible") : tr("Ocupado")}
+          </Badge>
         </span>
       </div>
 
-      {trabajador.insignias.length > 0 && (
-        <div className="mt-3">
-          <InsigniaChips insignias={trabajador.insignias} compact />
-        </div>
-      )}
+      {trabajador.insignias.length > 0 && <InsigniaChips insignias={trabajador.insignias} compact />}
 
-      <div className="mt-3.5 grid grid-cols-2 gap-3">
-        <Button variant="outlined" onClick={() => navigate(`/usuarios/${trabajador.id}`)}>
-          {tr("VER PERFIL")}
+      <div className="grid grid-cols-2 gap-2.5">
+        <Button variant="secondary" onClick={() => navigate(`/usuarios/${trabajador.id}`)}>
+          {tr("Ver perfil")}
         </Button>
-        <Button onClick={contactar} disabled={abriendoChat}>
-          {tr("CONTACTAR")}
+        <Button icon="chat_bubble" loading={abriendoChat} onClick={contactar}>
+          {tr("Contactar")}
         </Button>
       </div>
 
-      {expanded && (
-        <div className="mt-3.5 flex flex-col gap-3 border-t border-cira-border pt-3.5">
-          <Detail icon="person" label={tr("Trabajador")} text={trabajador.nombre} />
-          <Detail icon="location_on" label={tr("Ubicación")} text={trabajador.zona} />
-          <Detail icon="design_services" label={tr("Servicios")} text={trabajador.servicios.map((s) => tr(s)).join(", ")} />
-          <Detail
-            icon="event_available"
-            label={tr("Disponibilidad")}
-            text={trabajador.disponible ? tr("Disponible") : tr("Ocupado")}
-          />
+      <div className="grid transition-[grid-template-rows] duration-[320ms] ease-aire-spring" style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}>
+        <div className="overflow-hidden">
+          <div className="grid gap-3 border-t border-aire-hairline pt-4">
+            <Detalle icon="location_on" label={tr("Ubicación")} text={trabajador.zona} />
+            <Detalle icon="design_services" label={tr("Servicios")} text={trabajador.servicios.map((s) => tr(s)).join(", ")} />
+          </div>
         </div>
-      )}
+      </div>
     </Card>
   );
 }
 
-function Detail({ icon, label, text }: { icon: string; label: string; text: string }) {
+function Detalle({ icon, label, text }: { icon: string; label: string; text: string }) {
   return (
     <div className="flex items-start gap-2.5">
-      <Icon name={icon} size={19} className="mt-0.5 text-cira-accent" />
-      <div className="flex flex-col gap-0.5">
-        <span className="text-[13px] font-semibold text-cira-text-primary">{label}</span>
-        <span className="text-[13px] text-cira-text-secondary">{text}</span>
+      <Icon name={icon} size={20} className="mt-0.5 text-aire-accent-text" />
+      <div>
+        <p className="aire-text-subhead font-semibold text-aire-ink">{label}</p>
+        <p className="aire-text-subhead text-aire-ink-2">{text}</p>
       </div>
     </div>
   );

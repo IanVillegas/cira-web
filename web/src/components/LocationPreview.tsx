@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
-import { Icon } from "./ui/Icon";
+import { Icon } from "@/components/aire";
 import { iconoSeleccionado } from "@/lib/leafletIcons";
 
 function Recenter({ center }: { center: [number, number] }) {
@@ -22,13 +22,13 @@ interface LocationPreviewProps {
  */
 export function LocationPreview({ center, text }: LocationPreviewProps) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex min-h-14 items-center gap-2.5 rounded-cira-input bg-cira-input-bg px-3.5">
-        <Icon name="location_on" size={20} className="text-cira-accent" />
-        <span className="text-cira-body text-cira-text-secondary">{text}</span>
+    <div className="grid gap-2">
+      <div className="flex min-h-14 items-center gap-2.5 rounded-aire-sm bg-aire-surface-2 px-4">
+        <Icon name="location_on" size={20} className="shrink-0 text-aire-accent-text" />
+        <span className="aire-text-subhead text-aire-ink-2">{text}</span>
       </div>
 
-      <div className="relative h-48 overflow-hidden rounded-cira-input bg-cira-input-bg">
+      <div className="relative h-48 overflow-hidden rounded-aire-md bg-aire-surface-3">
         {center ? (
           <MapContainer
             center={center}
@@ -47,7 +47,7 @@ export function LocationPreview({ center, text }: LocationPreviewProps) {
           </MapContainer>
         ) : (
           <div className="flex h-full items-center justify-center">
-            <Icon name="explore_nearby" size={44} className="text-cira-text-helper" />
+            <Icon name="explore_nearby" size={44} className="text-aire-ink-3" />
           </div>
         )}
       </div>

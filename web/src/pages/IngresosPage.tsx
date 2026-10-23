@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Card } from "@/components/ui/Card";
-import { Loader } from "@/components/ui/Loader";
+import { useNavigate } from "react-router-dom";
+import { Card, Loader, PageHeader, Stagger } from "@/components/aire";
 import { api } from "@/lib/api";
 import { formatoColones } from "@/lib/format";
+import { tr } from "@/lib/i18n";
 import { useConfig } from "@/lib/useConfig";
 import type { Ingresos } from "@/lib/types";
-import { tr } from "@/lib/i18n";
 
 /** Vista para la demo: de dónde gana dinero CIRA (todo simulado). */
 export function IngresosPage() {
+  const navigate = useNavigate();
   const config = useConfig();
   const [ingresos, setIngresos] = useState<Ingresos | null>(null);
 
@@ -35,21 +35,29 @@ export function IngresosPage() {
 
   return (
     <div className="pb-6">
-      <PageHeader title={tr("Ingresos de CIRA")} subtitle={tr("Modelo freemium (simulado)")} icon="payments" showBack />
-      <div className="flex flex-col gap-3 px-5 pt-2">
+      <PageHeader
+        title={tr("Ingresos de CIRA")}
+        subtitle={tr("Modelo freemium (simulado)")}
+        onBack={() => navigate(-1)}
+        backLabel={tr("Atrás")}
+        large={false}
+      />
+      <div className="grid gap-3 px-5 pt-2">
         <Card className="text-center">
-          <p className="text-[11px] font-semibold tracking-wider text-cira-text-secondary">{tr("TOTAL")}</p>
-          <p className="text-[32px] font-semibold text-cira-accent">{formatoColones.format(ingresos.total)}</p>
+          <p className="aire-text-eyebrow text-aire-ink-2">{tr("TOTAL")}</p>
+          <p className="aire-text-figure text-aire-accent-text">{formatoColones.format(ingresos.total)}</p>
         </Card>
-        {fuentes.map((f) => (
-          <Card key={f.titulo} className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-semibold text-cira-text-primary">{f.titulo}</p>
-              <p className="text-xs text-cira-text-secondary">{f.detalle}</p>
-            </div>
-            <p className="text-lg font-semibold text-cira-text-primary">{formatoColones.format(f.total)}</p>
-          </Card>
-        ))}
+        <Stagger className="grid gap-3">
+          {fuentes.map((f) => (
+            <Card key={f.titulo} className="flex items-center justify-between gap-3">
+              <div>
+                <p className="aire-text-headline text-aire-ink">{f.titulo}</p>
+                <p className="aire-text-footnote text-aire-ink-2">{f.detalle}</p>
+              </div>
+              <p className="aire-text-headline text-aire-ink">{formatoColones.format(f.total)}</p>
+            </Card>
+          ))}
+        </Stagger>
       </div>
     </div>
   );

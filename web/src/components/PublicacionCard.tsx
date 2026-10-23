@@ -1,17 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "./ui/Card";
-import { Button } from "./ui/Button";
-import { Icon } from "./ui/Icon";
+import { Badge, Button, Card, Icon } from "@/components/aire";
+import type { BadgeTone } from "@/components/aire/Badge";
 import { Calificacion } from "./Estrellas";
 import { InsigniaChips } from "./InsigniaChips";
 import { PagoResumen } from "./PagoResumen";
 import { SeguimientoTrabajo } from "./SeguimientoTrabajo";
 import { api } from "@/lib/api";
 import { formatoColones } from "@/lib/format";
-import type { Trabajador, Trabajo } from "@/lib/types";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
+import type { Trabajador, Trabajo } from "@/lib/types";
 
 interface PublicacionCardProps {
   trabajo: Trabajo;
@@ -20,11 +19,11 @@ interface PublicacionCardProps {
   onPay: (trabajo: Trabajo) => void;
 }
 
-const ESTADO_TONO: Record<string, string> = {
-  Pendiente: "bg-cira-nav-selected-bg text-cira-accent",
-  Asignado: "bg-amber-100 text-amber-700",
-  "En progreso": "bg-emerald-100 text-emerald-700",
-  Finalizado: "bg-emerald-100 text-emerald-700",
+const ESTADO_TONO: Record<string, BadgeTone> = {
+  Pendiente: "accent",
+  Asignado: "warning",
+  "En progreso": "success",
+  Finalizado: "success",
 };
 
 /** Tarjeta de "Mis publicaciones": edita, elige postulante, sigue el trabajo, paga y califica. */
@@ -67,31 +66,28 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
   const enCurso = trabajo.estado === "Asignado" || trabajo.estado === "En progreso";
 
   return (
-    <Card className="mb-3.5 flex flex-col gap-3 shadow-[0_10px_28px_-14px_rgba(25,28,30,0.22)]">
+    <Card className="grid gap-4">
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-cira-accent uppercase">
-            {tr(trabajo.categoria)}
+          <p className="flex flex-wrap items-center gap-1.5">
+            <span className="aire-text-eyebrow text-aire-accent-text">{tr(trabajo.categoria)}</span>
             {trabajo.urgente && (
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-cira-btn-destructive-bg px-1.5 py-0.5 text-[10px] text-cira-btn-destructive-text">
-                <Icon name="bolt" filled size={12} />
-                {tr("URGENTE")}
-              </span>
+              <Badge tone="danger" dot pulse>
+                {tr("Urgente")}
+              </Badge>
             )}
           </p>
-          <p className="font-semibold text-cira-text-primary">{trabajo.titulo}</p>
-          <p className="text-xs text-cira-text-helper">
+          <p className="aire-text-headline text-aire-ink">{trabajo.titulo}</p>
+          <p className="aire-text-footnote text-aire-ink-2">
             {tr(trabajo.fecha)} · {formatoColones.format(trabajo.pago)}
           </p>
         </div>
-        <span className={`shrink-0 rounded-lg px-2 py-[3px] text-[11px] font-semibold ${ESTADO_TONO[trabajo.estado]}`}>
-          {tr(trabajo.estado)}
-        </span>
+        <Badge tone={ESTADO_TONO[trabajo.estado] ?? "neutral"}>{tr(trabajo.estado)}</Badge>
       </div>
 
       {pendiente && trabajo.urgente && (
-        <p className="flex items-center gap-2 rounded-2xl bg-cira-btn-destructive-bg p-3 text-[13px] text-cira-btn-destructive-text">
-          <Icon name="notifications_active" size={18} />
+        <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-danger-soft p-3 text-aire-danger-text">
+          <Icon name="notifications_active" size={20} />
           {tr("Buscando al trabajador más cercano disponible…")}
         </p>
       )}
@@ -99,45 +95,51 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
       {pendiente && (
         <>
           <button
+            type="button"
+            aria-expanded={verPostulantes}
             onClick={togglePostulantes}
-            className="flex items-center justify-between rounded-2xl bg-cira-input-bg p-3 text-left text-sm font-semibold text-cira-text-primary"
+            className="aire-text-headline flex min-h-12 items-center justify-between rounded-aire-md bg-aire-surface-2 px-4 text-left text-aire-ink transition-transform duration-[100ms] ease-aire-pop active:scale-[0.98]"
           >
             <span className="flex items-center gap-2">
-              <Icon name="groups" size={18} className="text-cira-accent" />
+              <Icon name="groups" size={20} className="text-aire-accent-text" />
               {tr("{n} postulante(s)", { n: trabajo.postulantes })}
             </span>
-            <Icon name={verPostulantes ? "expand_less" : "expand_more"} size={20} className="text-cira-accent" />
+            <Icon
+              name="expand_more"
+              size={22}
+              className={`text-aire-ink-2 transition-transform duration-[320ms] ease-aire-spring ${verPostulantes ? "rotate-180" : ""}`}
+            />
           </button>
 
           {verPostulantes &&
             (postulantes === null ? null : postulantes.length === 0 ? (
-              <p className="text-center text-[13px] text-cira-text-secondary">{tr("Aún no hay postulantes.")}</p>
+              <p className="aire-text-subhead text-center text-aire-ink-2">{tr("Aún no hay postulantes.")}</p>
             ) : (
               postulantes.map((p) => (
-                <div key={p.id} className="flex flex-col gap-2 rounded-2xl border border-cira-border p-3">
+                <Card key={p.id} inset padding="sm" className="grid gap-2.5">
                   <div className="flex items-center gap-2">
-                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-cira-text-primary">{p.nombre}</span>
+                    <span className="aire-text-headline min-w-0 flex-1 truncate text-aire-ink">{p.nombre}</span>
                     <Calificacion valor={p.calificacion} total={p.numCalificaciones} />
                   </div>
                   <InsigniaChips insignias={p.insignias} compact />
                   <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outlined" onClick={() => navigate(`/usuarios/${p.id}`)}>
-                      {tr("VER PERFIL")}
+                    <Button variant="secondary" size="sm" onClick={() => navigate(`/usuarios/${p.id}`)}>
+                      {tr("Ver perfil")}
                     </Button>
-                    <Button disabled={ocupado} onClick={() => ejecutar(() => api.trabajos.asignar(trabajo.id, p.id), tr("Trabajador elegido"))}>
-                      {tr("ELEGIR")}
+                    <Button size="sm" disabled={ocupado} onClick={() => ejecutar(() => api.trabajos.asignar(trabajo.id, p.id), tr("Trabajador elegido"))}>
+                      {tr("Elegir")}
                     </Button>
                   </div>
-                </div>
+                </Card>
               ))
             ))}
 
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="outlined" onClick={() => navigate(`/publicaciones/${trabajo.id}/editar`)}>
-              {tr("EDITAR")}
+          <div className="grid grid-cols-2 gap-2.5">
+            <Button variant="secondary" icon="edit" onClick={() => navigate(`/publicaciones/${trabajo.id}/editar`)}>
+              {tr("Editar")}
             </Button>
             <Button variant="destructive" disabled={ocupado} onClick={cancelar}>
-              {tr("CANCELAR")}
+              {tr("Cancelar")}
             </Button>
           </div>
         </>
@@ -146,12 +148,13 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
       {(enCurso || trabajo.estado === "Finalizado") && (
         <>
           <button
+            type="button"
             onClick={() => trabajo.trabajadorId && abrirChat(trabajo.trabajadorId)}
-            className="flex items-center gap-2 rounded-2xl bg-cira-input-bg p-3 text-left text-sm text-cira-text-primary"
+            className="aire-text-headline flex min-h-12 items-center gap-2 rounded-aire-md bg-aire-surface-2 px-4 text-left text-aire-ink transition-transform duration-[100ms] ease-aire-pop active:scale-[0.98]"
           >
-            <Icon name="person" size={18} className="text-cira-accent" />
-            <span className="flex-1 truncate font-semibold">{trabajo.trabajadorNombre}</span>
-            <Icon name="chat" size={18} className="text-cira-accent" />
+            <Icon name="person" size={20} className="text-aire-accent-text" />
+            <span className="flex-1 truncate">{trabajo.trabajadorNombre}</span>
+            <Icon name="chat_bubble" size={20} className="text-aire-accent-text" />
           </button>
           <SeguimientoTrabajo etapa={trabajo.etapa} />
         </>
@@ -159,25 +162,26 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
 
       {enCurso && (
         <Button variant="destructive" disabled={ocupado} onClick={cancelar}>
-          {tr("CANCELAR TRABAJO")}
+          {tr("Cancelar trabajo")}
         </Button>
       )}
 
       {trabajo.estado === "Finalizado" && !trabajo.pagado && (
         <>
           <PagoResumen resumen={trabajo.resumenPago} />
-          <Button onClick={() => onPay(trabajo)}>
-            {trabajo.metodoPago === "Tarjeta" ? tr("PAGAR CON TARJETA") : tr("PAGAR EL TRABAJO")}
+          <Button icon="credit_card" onClick={() => onPay(trabajo)}>
+            {trabajo.metodoPago === "Tarjeta" ? tr("Pagar con tarjeta") : tr("Pagar el trabajo")}
           </Button>
         </>
       )}
 
       {trabajo.estado === "Finalizado" && trabajo.pagado && !trabajo.calificadoPorMi && (
-        <Button onClick={() => onRate(trabajo)}>
-          {tr("CALIFICAR A {nombre}", { nombre: (trabajo.trabajadorNombre ?? "").toUpperCase() })}</Button>
+        <Button icon="star" onClick={() => onRate(trabajo)}>
+          {tr("Calificar a {nombre}", { nombre: trabajo.trabajadorNombre ?? "" })}
+        </Button>
       )}
 
-      {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}
+      {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
     </Card>
   );
 }

@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Icon } from "./ui/Icon";
+import { Badge, Button, Icon } from "@/components/aire";
 import { api } from "@/lib/api";
 import { formatoColones } from "@/lib/format";
-import { useAlertas } from "@/lib/useAlertas";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
+import { useAlertas } from "@/lib/useAlertas";
 
 /**
- * Banner de alertas sobre la app: urgencias y trabajos nuevos de mi oficio cerca de mí.
+ * Aviso de vidrio sobre la app: urgencias y trabajos nuevos de mi oficio cerca de mí.
  * Los trabajadores Plus lo reciben primero; el plan gratis, unos minutos después.
  */
 export function AlertBanner() {
@@ -26,7 +26,7 @@ export function AlertBanner() {
     setError(null);
     try {
       await api.trabajos.aceptarUrgencia(trabajo.id);
-      descartar(trabajo.id); // ya es mío: que el banner no siga mostrándola
+      descartar(trabajo.id); // ya es mío: que el aviso no siga mostrándola
       mostrarToast(tr("¡Urgencia aceptada! Avisa cuando vayas en camino."));
       navigate("/mis-trabajos");
     } catch (e) {
@@ -38,46 +38,49 @@ export function AlertBanner() {
   return (
     <div
       role="alert"
-      className={`absolute inset-x-3 top-3 z-[2500] rounded-2xl p-3 text-white shadow-[0_10px_28px_rgba(0,0,0,0.35)] ${
-        urgente ? "bg-cira-btn-destructive-text" : "bg-cira-tertiary"
-      }`}
+      className="absolute inset-x-3 top-3 z-[2050] grid gap-3 rounded-aire-lg border border-aire-glass-border bg-aire-glass p-4 shadow-aire-float backdrop-blur-xl animate-[ca-fade-up_480ms_var(--aire-ease-out)_both]"
     >
-      <div className="flex items-start gap-2.5">
-        <Icon name={urgente ? "bolt" : "notifications_active"} filled size={24} />
+      <div className="flex items-start gap-3">
+        <span
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-aire-md ${
+            urgente ? "bg-aire-danger-soft text-aire-danger-text" : "bg-aire-accent-soft text-aire-accent-text"
+          }`}
+        >
+          <Icon name={urgente ? "bolt" : "notifications_active"} filled size={22} />
+        </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold tracking-wider uppercase">
-            {urgente ? tr("Urgencia cerca de ti") : tr("Nuevo trabajo de tu oficio")}
-            {prioritaria && tr(" · Prioridad Plus")}
-          </p>
-          <p className="truncate text-[15px] font-semibold">{trabajo.titulo}</p>
-          <p className="truncate text-xs opacity-90">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className={`aire-text-eyebrow ${urgente ? "text-aire-danger-text" : "text-aire-accent-text"}`}>
+              {urgente ? tr("Urgencia cerca de ti") : tr("Nuevo trabajo de tu oficio")}
+            </p>
+            {prioritaria && <Badge tone="warning">{tr("Prioridad Plus")}</Badge>}
+          </div>
+          <p className="aire-text-headline truncate text-aire-ink">{trabajo.titulo}</p>
+          <p className="aire-text-footnote truncate text-aire-ink-2">
             {trabajo.ubicacion} · {trabajo.distanciaKm} km · {formatoColones.format(trabajo.pago)}
           </p>
         </div>
-        <button onClick={() => descartar(trabajo.id)} aria-label={tr("Descartar alerta")}>
-          <Icon name="close" size={22} />
+        <button type="button" className="ca-iconbtn ca-iconbtn--sm" aria-label={tr("Descartar alerta")} onClick={() => descartar(trabajo.id)}>
+          <Icon name="close" size={20} />
         </button>
       </div>
 
-      {error && <p className="mt-2 text-xs font-semibold">{error}</p>}
+      {error && <p className="aire-text-footnote font-semibold text-aire-danger-text">{error}</p>}
 
-      <div className="mt-2.5 flex items-center gap-2">
+      <div className="flex items-center gap-2">
         {urgente ? (
-          <button onClick={aceptar} className="flex-1 rounded-xl bg-white py-2 text-[13px] font-bold text-cira-btn-destructive-text">
-            {tr("ACEPTAR")}
-          </button>
+          <Button size="sm" icon="bolt" onClick={aceptar}>
+            {tr("Aceptar")}
+          </Button>
         ) : (
-          <button
-            onClick={() => navigate(`/explorar?trabajo=${trabajo.id}`)}
-            className="flex-1 rounded-xl bg-white py-2 text-[13px] font-bold text-cira-tertiary"
-          >
-            {tr("VER TRABAJO")}
-          </button>
+          <Button size="sm" onClick={() => navigate(`/explorar?trabajo=${trabajo.id}`)}>
+            {tr("Ver trabajo")}
+          </Button>
         )}
         {alertas.length > 1 && (
-          <button onClick={() => navigate("/alertas")} className="rounded-xl border border-white/60 px-3 py-2 text-[13px] font-semibold">
-            +{alertas.length - 1} más
-          </button>
+          <Button size="sm" variant="tinted" fullWidth={false} onClick={() => navigate("/alertas")}>
+            {tr("+{n} más", { n: alertas.length - 1 })}
+          </Button>
         )}
       </div>
     </div>

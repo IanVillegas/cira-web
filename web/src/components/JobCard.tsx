@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "./ui/Card";
-import { Icon } from "./ui/Icon";
-import { Button } from "./ui/Button";
+import { Badge, Button, Card, Icon } from "@/components/aire";
 import { Calificacion } from "./Estrellas";
 import { api } from "@/lib/api";
 import { formatoColones as formatoPago } from "@/lib/format";
-import type { Trabajo } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import type { Trabajo } from "@/lib/types";
 
 interface JobCardProps {
   trabajo: Trabajo;
@@ -20,7 +18,11 @@ interface JobCardProps {
 /** Link de WhatsApp con el mensaje listo para enviar (canal de captación de usuarios). */
 function enlaceWhatsApp(trabajo: Trabajo) {
   const link = `${window.location.origin}/explorar?trabajo=${trabajo.id}`;
-  const mensaje = tr("Mira este trabajo en CIRA: {titulo} ({pago}). {link}", { titulo: trabajo.titulo, pago: formatoPago.format(trabajo.pago), link });
+  const mensaje = tr("Mira este trabajo en CIRA: {titulo} ({pago}). {link}", {
+    titulo: trabajo.titulo,
+    pago: formatoPago.format(trabajo.pago),
+    link,
+  });
   return `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
 }
 
@@ -40,106 +42,108 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
   };
 
   return (
-    <Card className="mb-3.5 shadow-[0_10px_28px_-14px_rgba(25,28,30,0.22)]">
+    <Card className="grid gap-4">
       <button
+        type="button"
+        aria-expanded={expanded}
         className="flex w-full items-start gap-3 text-left"
         onClick={() => setExpanded((v) => !v)}
       >
-        <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl bg-cira-header-icon-bg">
-          <Icon name="work" size={28} className="text-cira-accent" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-cira-accent uppercase">
-            {tr(trabajo.categoria)}
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+          <Icon name="work" size={26} className="text-aire-accent-text" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-1.5">
+            <span className="aire-text-eyebrow text-aire-accent-text">{tr(trabajo.categoria)}</span>
             {trabajo.urgente && (
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-cira-btn-destructive-bg px-1.5 py-0.5 text-[10px] text-cira-btn-destructive-text">
-                <Icon name="bolt" filled size={12} />
-                {tr("URGENTE")}
-              </span>
+              <Badge tone="danger" dot pulse>
+                {tr("Urgente")}
+              </Badge>
             )}
-          </p>
-          <p className="truncate font-semibold text-cira-text-primary">{trabajo.titulo}</p>
-        </div>
-        <Icon name={expanded ? "expand_less" : "expand_more"} size={20} className="mt-1 shrink-0 text-cira-accent" />
+          </span>
+          <span className="aire-text-headline block text-aire-ink">{trabajo.titulo}</span>
+        </span>
+        <Icon
+          name="expand_more"
+          size={22}
+          className={`mt-1 shrink-0 text-aire-ink-2 transition-transform duration-[320ms] ease-aire-spring ${expanded ? "rotate-180" : ""}`}
+        />
       </button>
 
-      <div className="mt-3.5 space-y-2.5 rounded-2xl bg-cira-input-bg p-3.5">
-        <Row icon="location_on" text={`${trabajo.ubicacion} · ${trabajo.distanciaKm} km`} />
-        <div className="flex items-center gap-2.5">
-          <Icon name="person" size={18} className="text-cira-accent" />
-          <span className="truncate text-sm text-cira-text-secondary">{trabajo.publicador}</span>
+      <div className="grid gap-2">
+        <Fila icon="location_on">
+          {trabajo.ubicacion} · {trabajo.distanciaKm} km
+        </Fila>
+        <Fila icon="person">
+          <span className="truncate">{trabajo.publicador}</span>
           <Calificacion valor={trabajo.publicadorCalificacion} />
-        </div>
-        <Row icon="calendar_month" text={tr(trabajo.fecha)} />
-        <div className="pt-1">
-          <p className="text-[10px] font-semibold tracking-widest text-cira-text-helper">
-            {tr("PAGO ESTIMADO")}
-          </p>
-          <p className="text-xl font-semibold text-cira-accent">
-            {formatoPago.format(trabajo.pago)}
-          </p>
-        </div>
+        </Fila>
+        <Fila icon="calendar_month">{tr(trabajo.fecha)}</Fila>
       </div>
 
-      <div className="mt-3 flex flex-col gap-2.5">
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outlined" onClick={comunicarse} disabled={abriendoChat}>
-            {tr("COMUNÍCATE")}
+      <div>
+        <p className="aire-text-eyebrow text-aire-ink-2">{tr("Pago estimado")}</p>
+        <p className="aire-text-figure text-aire-ink">{formatoPago.format(trabajo.pago)}</p>
+      </div>
+
+      <div className="grid gap-2.5">
+        {trabajo.urgente ? (
+          <Button icon="bolt" onClick={() => onAcceptUrgent?.(trabajo.id)}>
+            {tr("Aceptar urgencia")}
           </Button>
-          <a
-            href={enlaceWhatsApp(trabajo)}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-cira-button border border-cira-btn-outlined-border px-5 py-2.5 text-cira-control font-semibold text-cira-text-primary shadow-[0_6px_14px_rgba(0,0,0,0.10)]"
-          >
-            <Icon name="share" size={18} />
-            {tr("COMPARTIR")}
+        ) : (
+          <Button variant={trabajo.yaPostulado ? "destructive" : "primary"} onClick={() => onApply?.(trabajo.id)}>
+            {trabajo.yaPostulado ? tr("Retirar") : tr("Postularme")}
+          </Button>
+        )}
+        <div className="grid grid-cols-2 gap-2.5">
+          <Button variant="secondary" icon="chat_bubble" loading={abriendoChat} onClick={comunicarse}>
+            {tr("Comunícate")}
+          </Button>
+          <a href={enlaceWhatsApp(trabajo)} target="_blank" rel="noreferrer" className="ca-btn ca-btn--secondary ca-btn--md ca-btn--full">
+            <span className="ca-btn__label">
+              <Icon name="share" size={20} />
+              {tr("Compartir")}
+            </span>
           </a>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outlined" onClick={() => navigate("/mapa")}>
-            {tr("VER EN MAPA")}
-          </Button>
-          {trabajo.urgente ? (
-            <Button onClick={() => onAcceptUrgent?.(trabajo.id)}>{tr("ACEPTAR URGENCIA")}</Button>
-          ) : (
-            <Button
-              variant={trabajo.yaPostulado ? "destructive" : "primary"}
-              onClick={() => onApply?.(trabajo.id)}
-            >
-              {trabajo.yaPostulado ? tr("RETIRAR") : tr("POSTULARME")}
-            </Button>
-          )}
-        </div>
+        <Button variant="plain" icon="map" onClick={() => navigate("/mapa")}>
+          {tr("Ver en mapa")}
+        </Button>
       </div>
 
-      {expanded && (
-        <div className="mt-3.5 space-y-3 border-t border-cira-border pt-3.5">
-          <Detail icon="description" label={tr("Descripción")} text={trabajo.descripcion} />
-          <Detail icon="payments" label={tr("Método de pago")} text={tr(trabajo.metodoPago)} />
-          <Detail icon="groups" label={tr("Postulantes")} text={tr("{n} persona(s)", { n: trabajo.postulantes })} />
+      <div
+        className="grid transition-[grid-template-rows] duration-[320ms] ease-aire-spring"
+        style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          <div className="grid gap-3 border-t border-aire-hairline pt-4">
+            <Detalle icon="description" label={tr("Descripción")} text={trabajo.descripcion || "—"} />
+            <Detalle icon="payments" label={tr("Método de pago")} text={tr(trabajo.metodoPago)} />
+            <Detalle icon="groups" label={tr("Postulantes")} text={tr("{n} persona(s)", { n: trabajo.postulantes })} />
+          </div>
         </div>
-      )}
+      </div>
     </Card>
   );
 }
 
-function Row({ icon, text }: { icon: string; text: string }) {
+function Fila({ icon, children }: { icon: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2.5">
-      <Icon name={icon} size={18} className="text-cira-accent" />
-      <span className="truncate text-sm text-cira-text-secondary">{text}</span>
+    <div className="aire-text-subhead flex min-w-0 items-center gap-2.5 text-aire-ink-2">
+      <Icon name={icon} size={20} className="shrink-0 text-aire-accent-text" />
+      {children}
     </div>
   );
 }
 
-function Detail({ icon, label, text }: { icon: string; label: string; text: string }) {
+function Detalle({ icon, label, text }: { icon: string; label: string; text: string }) {
   return (
     <div className="flex items-start gap-2.5">
-      <Icon name={icon} size={19} className="mt-0.5 text-cira-accent" />
+      <Icon name={icon} size={20} className="mt-0.5 text-aire-accent-text" />
       <div>
-        <p className="text-sm font-semibold text-cira-text-primary">{label}</p>
-        <p className="text-sm text-cira-text-secondary">{text}</p>
+        <p className="aire-text-subhead font-semibold text-aire-ink">{label}</p>
+        <p className="aire-text-subhead text-aire-ink-2">{text}</p>
       </div>
     </div>
   );

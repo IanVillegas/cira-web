@@ -1,18 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Loader } from "@/components/ui/Loader";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Icon } from "@/components/ui/Icon";
+import { Badge, Button, Card, Icon, Loader, PageHeader, Stagger } from "@/components/aire";
+import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
-import { formatoColones } from "@/lib/format";
-import { useAlertas } from "@/lib/useAlertas";
-import { useConfig } from "@/lib/useConfig";
 import { useAuth } from "@/lib/auth";
+import { formatoColones } from "@/lib/format";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
+import { useAlertas } from "@/lib/useAlertas";
+import { useConfig } from "@/lib/useConfig";
 
 /** Todas las alertas activas. Las urgencias van primero. */
 export function AlertasPage() {
@@ -36,56 +32,71 @@ export function AlertasPage() {
   };
 
   return (
-    <div className="pb-4">
-      <PageHeader title={tr("Alertas")} subtitle={tr("Trabajos de tu oficio cerca de ti")} icon="notifications" showBack />
+    <div className="pb-6">
+      <PageHeader
+        title={tr("Alertas")}
+        subtitle={tr("Trabajos de tu oficio cerca de ti")}
+        onBack={() => navigate(-1)}
+        backLabel={tr("Atrás")}
+        large={false}
+      />
 
-      <div className="flex flex-col gap-3 px-5 pt-2">
+      <div className="grid gap-3 px-5 pt-2">
         {usuario?.plan !== "plus" && (
-          <button
-            onClick={() => navigate("/cuenta/plan")}
-            className="flex items-center gap-3 rounded-2xl bg-amber-100 p-3.5 text-left text-[13px] text-amber-800"
-          >
-            <Icon name="star" filled size={22} />
-            <span className="flex-1">
-              {tr("Con el plan gratis recibes las alertas {min} min después. Con Plus las recibes primero.", { min: Math.round(config.retrasoGratisSeg / 60) })}
+          <Card interactive onClick={() => navigate("/cuenta/plan")} className="flex items-center gap-3 bg-aire-warning-soft">
+            <Icon name="star" filled size={24} className="text-aire-warning-text" />
+            <span className="aire-text-subhead flex-1 text-aire-warning-text">
+              {tr("Con el plan gratis recibes las alertas {min} min después. Con Plus las recibes primero.", {
+                min: Math.round(config.retrasoGratisSeg / 60),
+              })}
             </span>
-          </button>
+          </Card>
         )}
 
-        {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}
+        {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
 
         {!cargado ? (
           <Loader label={tr("Buscando alertas...")} />
         ) : alertas.length === 0 ? (
-          <EmptyState
+          <Vacio
             title={tr("Sin alertas por ahora")}
             message={tr("Te avisaremos cuando alguien cerca publique un trabajo de tu oficio. Revisa que estés disponible y tengas servicios configurados.")}
           />
         ) : (
-          alertas.map(({ trabajo, urgente, prioritaria }) => (
-            <Card key={trabajo.id} className="flex flex-col gap-2.5">
-              <div className="flex items-center gap-2 text-[11px] font-semibold tracking-wider uppercase">
-                <span className={urgente ? "text-cira-btn-destructive-text" : "text-cira-accent"}>
-                  {urgente ? tr("⚡ Urgencia") : tr(trabajo.categoria)}
-                </span>
-                {prioritaria && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">{tr("Prioridad Plus")}</span>}
-              </div>
-              <p className="font-semibold text-cira-text-primary">{trabajo.titulo}</p>
-              <p className="text-[13px] text-cira-text-secondary">
-                {trabajo.ubicacion} · {trabajo.distanciaKm} km · {formatoColones.format(trabajo.pago)}
-              </p>
-              <div className="grid grid-cols-2 gap-2.5">
-                <Button variant="outlined" onClick={() => descartar(trabajo.id)}>
-                  {tr("DESCARTAR")}
-                </Button>
-                {urgente ? (
-                  <Button onClick={() => aceptar(trabajo.id)}>{tr("ACEPTAR")}</Button>
-                ) : (
-                  <Button onClick={() => navigate(`/explorar?trabajo=${trabajo.id}`)}>{tr("VER TRABAJO")}</Button>
-                )}
-              </div>
-            </Card>
-          ))
+          <Stagger className="grid gap-3">
+            {alertas.map(({ trabajo, urgente, prioritaria }) => (
+              <Card key={trabajo.id} className="grid gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  {urgente ? (
+                    <Badge tone="danger" dot pulse>
+                      {tr("Urgencia")}
+                    </Badge>
+                  ) : (
+                    <span className="aire-text-eyebrow text-aire-accent-text">{tr(trabajo.categoria)}</span>
+                  )}
+                  {prioritaria && <Badge tone="warning">{tr("Prioridad Plus")}</Badge>}
+                </div>
+                <div>
+                  <p className="aire-text-headline text-aire-ink">{trabajo.titulo}</p>
+                  <p className="aire-text-subhead text-aire-ink-2">
+                    {trabajo.ubicacion} · {trabajo.distanciaKm} km · {formatoColones.format(trabajo.pago)}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <Button variant="secondary" onClick={() => descartar(trabajo.id)}>
+                    {tr("Descartar")}
+                  </Button>
+                  {urgente ? (
+                    <Button icon="bolt" onClick={() => aceptar(trabajo.id)}>
+                      {tr("Aceptar")}
+                    </Button>
+                  ) : (
+                    <Button onClick={() => navigate(`/explorar?trabajo=${trabajo.id}`)}>{tr("Ver trabajo")}</Button>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </Stagger>
         )}
       </div>
     </div>

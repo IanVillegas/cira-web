@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Loader } from "@/components/ui/Loader";
+import { Loader, PageHeader, Stagger } from "@/components/aire";
+import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
-import type { Conversacion } from "@/lib/types";
 import { tr } from "@/lib/i18n";
 import { usePolling } from "@/lib/usePolling";
+import type { Conversacion } from "@/lib/types";
 
 function iniciales(nombre: string) {
   return nombre
@@ -38,56 +37,48 @@ export function ChatsPage() {
   usePolling(cargar, 4000);
 
   return (
-    <div className="pb-4">
-      <PageHeader
-        title={tr("Mensajes")}
-        subtitle={tr("Tus conversaciones activas")}
-        icon="chat"
-        className="px-5 pt-10 pb-[18px]"
-      />
+    <div className="pb-6">
+      <PageHeader title={tr("Mensajes")} subtitle={tr("Tus conversaciones activas")} />
 
       {error ? (
-        <div className="mx-5 mt-3 rounded-cira-card bg-cira-card p-6">
-          <EmptyState image="empty_no_signal" title={tr("Sin conexión")} />
-        </div>
+        <Vacio image="empty_no_signal" title={tr("Sin conexión")} />
       ) : conversaciones === null ? (
         <Loader label={tr("Cargando conversaciones...")} />
       ) : conversaciones.length === 0 ? (
-        <EmptyState
+        <Vacio
           image="empty_no_messages"
           title={tr("Sin conversaciones aún")}
           message={tr("Las conversaciones aparecerán aquí cuando contactes a alguien.")}
         />
       ) : (
-        <div className="mt-1">
+        <Stagger className="mx-5 grid overflow-hidden rounded-aire-lg bg-aire-surface">
           {conversaciones.map((c) => (
-            <div key={c.id}>
-              <button
-                onClick={() => navigate(`/chats/${c.id}`)}
-                className="flex w-full items-center gap-3.5 px-5 py-[13px] text-left"
-              >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-cira-header-icon-bg text-base font-semibold text-cira-accent">
-                  {iniciales(c.nombre)}
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => navigate(`/chats/${c.id}`)}
+              className="flex min-h-[72px] w-full items-center gap-3.5 border-b border-aire-hairline px-4 py-3 text-left transition-colors duration-[100ms] last:border-b-0 active:bg-aire-surface-2"
+            >
+              <span className="aire-text-headline flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-full bg-aire-accent-soft text-aire-accent-text">
+                {iniciales(c.nombre)}
+              </span>
+              <span className="grid min-w-0 flex-1 gap-0.5">
+                <span className={`aire-text-headline truncate text-aire-ink ${c.noLeidos > 0 ? "" : "font-medium"}`}>{c.nombre}</span>
+                <span className={`aire-text-subhead truncate ${c.noLeidos > 0 ? "font-semibold text-aire-ink" : "text-aire-ink-2"}`}>
+                  {c.ultimoMensaje}
                 </span>
-                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="truncate text-[15px] font-semibold text-cira-text-primary">
-                    {c.nombre}
+              </span>
+              <span className="grid shrink-0 justify-items-end gap-1.5">
+                <span className="aire-text-caption text-aire-ink-2">{c.hora}</span>
+                {c.noLeidos > 0 && (
+                  <span className="aire-text-caption flex h-5 min-w-5 items-center justify-center rounded-aire-full bg-aire-accent px-1.5 font-bold text-aire-on-accent">
+                    {c.noLeidos}
                   </span>
-                  <span className="truncate text-xs text-cira-text-secondary">{c.ultimoMensaje}</span>
-                </span>
-                <span className="flex shrink-0 flex-col items-end gap-[5px]">
-                  <span className="text-[11px] text-cira-text-helper">{c.hora}</span>
-                  {c.noLeidos > 0 && (
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-cira-accent px-[5px] text-[11px] font-semibold text-white">
-                      {c.noLeidos}
-                    </span>
-                  )}
-                </span>
-              </button>
-              <div className="mx-5 h-[0.6px] bg-cira-border" />
-            </div>
+                )}
+              </span>
+            </button>
           ))}
-        </div>
+        </Stagger>
       )}
     </div>
   );

@@ -1,17 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Icon } from "@/components/ui/Icon";
-import { Loader } from "@/components/ui/Loader";
+import { Button, Card, Icon, Loader, PageHeader, Reveal, Stagger } from "@/components/aire";
 import { Calificacion } from "@/components/Estrellas";
 import { InsigniaChips } from "@/components/InsigniaChips";
 import { ReportSheet } from "@/components/ReportSheet";
+import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
-import type { PerfilPublico } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import type { PerfilPublico } from "@/lib/types";
 
 /** Perfil visible para otros usuarios: reputación, insignias, comentarios y botón de reporte. */
 export function PerfilPublicoPage() {
@@ -29,7 +25,7 @@ export function PerfilPublicoPage() {
       .catch(() => setNoEncontrado(true));
   }, [id]);
 
-  if (noEncontrado) return <EmptyState title={tr("Perfil no encontrado")} message={tr("Es posible que la cuenta ya no exista.")} />;
+  if (noEncontrado) return <Vacio image="empty_not_found_variant" title={tr("Perfil no encontrado")} message={tr("Es posible que la cuenta ya no exista.")} />;
   if (!perfil) return <Loader label={tr("Cargando perfil...")} />;
 
   const contactar = async () => {
@@ -39,70 +35,79 @@ export function PerfilPublicoPage() {
 
   return (
     <div className="pb-6">
-      <PageHeader title={tr("Perfil")} icon="flag" onIconClick={() => setReportando(true)} showBack />
+      <PageHeader
+        title={tr("Perfil")}
+        onBack={() => navigate(-1)}
+        backLabel={tr("Atrás")}
+        large={false}
+        action={{ icon: "flag", label: tr("Reportar usuario"), onClick: () => setReportando(true) }}
+      />
 
-      <div className="flex flex-col gap-4 px-5">
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex h-[96px] w-[96px] items-center justify-center rounded-full border-[3px] border-cira-card bg-cira-header-icon-bg">
-            <Icon name="account_circle" size={58} className="text-cira-accent" />
+      <div className="grid gap-5 px-5">
+        <Reveal effect="scale">
+          <div className="grid justify-items-center gap-2 text-center">
+            <span className="flex h-24 w-24 items-center justify-center rounded-aire-full bg-aire-accent-soft">
+              <Icon name="account_circle" filled size={58} className="text-aire-accent-text" />
+            </span>
+            <p className="aire-text-title-1 text-aire-ink">{perfil.nombre}</p>
+            <p className="aire-text-subhead text-aire-ink-2">{perfil.zona || tr("Sin ubicación")}</p>
+            <Calificacion valor={perfil.calificacion} total={perfil.numCalificaciones} />
+            <InsigniaChips insignias={perfil.insignias} />
           </div>
-          <p className="text-center text-[24px] font-semibold text-cira-text-primary">{perfil.nombre}</p>
-          <p className="text-cira-body text-cira-text-secondary">{perfil.zona || tr("Sin ubicación")}</p>
-          <Calificacion valor={perfil.calificacion} total={perfil.numCalificaciones} />
-          <InsigniaChips insignias={perfil.insignias} />
-        </div>
+        </Reveal>
 
-        {perfil.descripcion && <p className="text-center text-sm text-cira-text-secondary">{perfil.descripcion}</p>}
+        {perfil.descripcion && <p className="aire-text-subhead text-center text-aire-ink-2">{perfil.descripcion}</p>}
 
         <div className="grid grid-cols-2 gap-3 text-center">
           <Card>
-            <p className="text-xl font-semibold text-cira-text-primary">{perfil.trabajosCompletados}</p>
-            <p className="text-[11px] text-cira-text-secondary">{tr("Trabajos completados")}</p>
+            <p className="aire-text-title-2 text-aire-ink">{perfil.trabajosCompletados}</p>
+            <p className="aire-text-footnote text-aire-ink-2">{tr("Trabajos completados")}</p>
           </Card>
           <Card>
-            <p className="text-xl font-semibold text-cira-text-primary">{perfil.disponible ? tr("Sí") : tr("No")}</p>
-            <p className="text-[11px] text-cira-text-secondary">{tr("Disponible")}</p>
+            <p className="aire-text-title-2 text-aire-ink">{perfil.disponible ? tr("Sí") : tr("No")}</p>
+            <p className="aire-text-footnote text-aire-ink-2">{tr("Disponible")}</p>
           </Card>
         </div>
 
-        <section className="flex flex-col gap-2.5">
-          <h2 className="text-lg font-semibold text-cira-text-primary">{tr("Servicios")}</h2>
+        <section className="grid gap-3">
+          <h2 className="aire-text-title-2 text-aire-ink">{tr("Servicios")}</h2>
           <div className="flex flex-wrap gap-2">
             {perfil.servicios.map((s) => (
-              <span key={s} className="rounded-[18px] bg-cira-card px-3.5 py-[9px] text-[13px] text-cira-text-primary">
+              <span key={s} className="aire-text-subhead rounded-aire-full bg-aire-surface px-3.5 py-2.5 text-aire-ink shadow-aire-card">
                 {tr(s)}
               </span>
             ))}
           </div>
         </section>
 
-        <section className="flex flex-col gap-2.5">
-          <h2 className="text-lg font-semibold text-cira-text-primary">{tr("Comentarios")}</h2>
+        <section className="grid gap-3">
+          <h2 className="aire-text-title-2 text-aire-ink">{tr("Comentarios")}</h2>
           {perfil.comentarios.length === 0 ? (
-            <p className="text-[13px] text-cira-text-secondary">{tr("Todavía no tiene comentarios.")}</p>
+            <p className="aire-text-subhead text-aire-ink-2">{tr("Todavía no tiene comentarios.")}</p>
           ) : (
-            perfil.comentarios.map((c, i) => (
-              <Card key={i} className="flex flex-col gap-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-cira-text-primary">{c.autor}</span>
-                  <Calificacion valor={c.estrellas} />
-                </div>
-                <p className="text-[13px] text-cira-text-secondary">{c.comentario}</p>
-              </Card>
-            ))
+            <Stagger className="grid gap-3">
+              {perfil.comentarios.map((c, i) => (
+                <Card key={i} className="grid gap-1">
+                  <div className="flex items-center justify-between">
+                    <span className="aire-text-headline text-aire-ink">{c.autor}</span>
+                    <Calificacion valor={c.estrellas} />
+                  </div>
+                  <p className="aire-text-subhead text-aire-ink-2">{c.comentario}</p>
+                </Card>
+              ))}
+            </Stagger>
           )}
         </section>
 
-        <Button onClick={contactar}>{tr("CONTACTAR")}</Button>
-        <Button variant="destructive" onClick={() => setReportando(true)}>
-          {tr("REPORTAR USUARIO")}
+        <Button icon="chat_bubble" onClick={contactar}>
+          {tr("Contactar")}
+        </Button>
+        <Button variant="destructive" icon="flag" onClick={() => setReportando(true)}>
+          {tr("Reportar usuario")}
         </Button>
       </div>
 
-      <ReportSheet
-        usuario={reportando ? { id: perfil.id, nombre: perfil.nombre } : null}
-        onClose={() => setReportando(false)}
-      />
+      <ReportSheet usuario={reportando ? { id: perfil.id, nombre: perfil.nombre } : null} onClose={() => setReportando(false)} />
     </div>
   );
 }

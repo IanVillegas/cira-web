@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Loader } from "@/components/ui/Loader";
-import { JobStatusCard, type StatusBadge } from "@/components/JobStatusCard";
+import { useNavigate } from "react-router-dom";
+import { Loader, PageHeader, Stagger } from "@/components/aire";
+import { JobStatusCard, type EstadoTono } from "@/components/JobStatusCard";
+import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
-import type { HistorialItem } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import type { HistorialItem } from "@/lib/types";
 
-// Colores de HistorialTrabajosPage.xaml.cs
-function badgeDe(estado: HistorialItem["estado"]): StatusBadge {
-  if (estado === "Finalizado") return { text: tr("Completado"), bg: "#E8F5E9", color: "#2E7D32" };
-  if (estado === "Cancelado") return { text: tr("Cancelado"), bg: "#FFE8EC", color: "#D94B5F" };
-  return { text: tr(estado), bg: "#F6F8FB", color: "#464555" };
+function estadoDe(estado: HistorialItem["estado"]): { text: string; tone: EstadoTono } {
+  if (estado === "Finalizado") return { text: tr("Completado"), tone: "success" };
+  if (estado === "Cancelado") return { text: tr("Cancelado"), tone: "danger" };
+  return { text: tr(estado), tone: "neutral" };
 }
 
 export function HistorialTrabajosPage() {
+  const navigate = useNavigate();
   const [historial, setHistorial] = useState<HistorialItem[] | null>(null);
 
   useEffect(() => {
@@ -22,33 +22,26 @@ export function HistorialTrabajosPage() {
   }, []);
 
   return (
-    <div className="pb-4">
+    <div className="pb-6">
       <PageHeader
         title={tr("Historial de trabajos")}
         subtitle={tr("Consulta tus trabajos finalizados y cancelados.")}
-        icon="history"
-        showBack
+        onBack={() => navigate(-1)}
+        backLabel={tr("Atrás")}
+        large={false}
       />
 
-      <div className="px-5 pt-2">
+      <div className="grid gap-3 px-5 pt-2">
         {historial === null ? (
           <Loader label={tr("Cargando historial...")} />
         ) : historial.length === 0 ? (
-          <EmptyState
-            title={tr("Sin historial de trabajos")}
-            message={tr("Aquí aparecerán los trabajos que hayas completado o cancelado.")}
-          />
+          <Vacio title={tr("Sin historial de trabajos")} message={tr("Aquí aparecerán los trabajos que hayas completado o cancelado.")} />
         ) : (
-          historial.map((h) => (
-            <JobStatusCard
-              key={h.id}
-              titulo={h.titulo}
-              publicador={tr(h.contraparte)}
-              fecha={h.fecha}
-              badge={badgeDe(h.estado)}
-              iconClassName="text-cira-text-helper"
-            />
-          ))
+          <Stagger className="grid gap-3">
+            {historial.map((h) => (
+              <JobStatusCard key={h.id} titulo={h.titulo} publicador={tr(h.contraparte)} fecha={h.fecha} estado={estadoDe(h.estado)} apagado />
+            ))}
+          </Stagger>
         )}
       </div>
     </div>

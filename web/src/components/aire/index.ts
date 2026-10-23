@@ -14,6 +14,8 @@ export { Spinner, Loader, Skeleton } from "./Spinner";
 export { TabBar } from "./TabBar";
 export { Sheet } from "./Sheet";
 export { Toast } from "./Toast";
+export { Dialog } from "./Dialog";
+export { Fab } from "./Fab";
 export { Reveal, Stagger } from "./Reveal";
 export { Icon } from "./Icon";
 export { cx } from "./cx";

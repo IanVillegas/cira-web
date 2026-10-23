@@ -14,12 +14,12 @@ function pinIcon(colorVar: string, size = 38) {
   });
 }
 
-export const iconoTrabajo = pinIcon("var(--color-cira-accent)");
-export const iconoTrabajador = pinIcon("var(--color-cira-tertiary)");
-export const iconoSeleccionado = pinIcon("#d94b5f", 42);
+export const iconoTrabajo = pinIcon("var(--aire-accent)");
+export const iconoTrabajador = pinIcon("var(--aire-ink)");
+export const iconoSeleccionado = pinIcon("var(--aire-danger)", 42);
 export const iconoUsuario = L.divIcon({
   className: "",
-  html: `<span style="display:block;width:16px;height:16px;border-radius:9999px;background:var(--color-cira-accent);border:3px solid white;box-shadow:0 0 0 2px var(--color-cira-accent), 0 2px 6px rgba(0,0,0,.35)"></span>`,
+  html: `<span style="display:block;width:16px;height:16px;border-radius:9999px;background:var(--aire-accent);border:3px solid white;box-shadow:0 0 0 2px var(--aire-accent), 0 2px 6px rgba(0,0,0,.35)"></span>`,
   iconSize: [16, 16],
   iconAnchor: [8, 8],
 });

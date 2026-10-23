@@ -1,16 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { ExploreTabs } from "@/components/ui/ExploreTabs";
-import { FilterChip } from "@/components/ui/FilterChip";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Loader } from "@/components/ui/Loader";
+import { Fab, FilterChip, Loader, PageHeader, Stagger } from "@/components/aire";
+import { ExploreTabs } from "@/components/ExploreTabs";
 import { JobCard } from "@/components/JobCard";
-import { Icon } from "@/components/ui/Icon";
+import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
-import type { Trabajo } from "@/lib/types";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
+import type { Trabajo } from "@/lib/types";
 
 export function ExplorarTrabajosPage() {
   const navigate = useNavigate();
@@ -34,8 +31,7 @@ export function ExplorarTrabajosPage() {
     const base = ordenPorCercania ? [...trabajos].sort((a, b) => a.distanciaKm - b.distanciaKm) : trabajos;
     // Las urgencias siempre arriba; el trabajo compartido por link, antes que todo.
     return [...base].sort(
-      (a, b) =>
-        Number(b.id === destacado) - Number(a.id === destacado) || Number(b.urgente) - Number(a.urgente),
+      (a, b) => Number(b.id === destacado) - Number(a.id === destacado) || Number(b.urgente) - Number(a.urgente),
     );
   }, [trabajos, ordenPorCercania, destacado]);
 
@@ -61,65 +57,49 @@ export function ExplorarTrabajosPage() {
   };
 
   return (
-    <div className="pb-4">
-      <PageHeader title={tr("Explorar")} subtitle={tr("Encuentra tu próximo servicio hoy.")} icon="work" />
-
+    <div className="pb-6">
+      <PageHeader
+        title={tr("Explorar")}
+        subtitle={tr("Encuentra tu próximo servicio hoy.")}
+        action={{ icon: "notifications", label: tr("Alertas"), onClick: () => navigate("/alertas") }}
+      />
       <ExploreTabs />
 
-      <div className="mt-4 flex items-center gap-2 overflow-x-auto px-5 pb-1">
-        <FilterChip label={tr("Precio")} />
-        <FilterChip
-          label={tr("Cercanía")}
-          active={ordenPorCercania}
-          onClick={() => setOrdenPorCercania((v) => !v)}
-        />
-        <FilterChip label={tr("Fecha")} />
-        <FilterChip label={tr("Categoría")} />
-        <button
-          className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cira-card text-cira-accent shadow"
-          aria-label={tr("Limpiar filtros")}
-          onClick={() => setOrdenPorCercania(false)}
-        >
-          <Icon name="cleaning_services" size={20} />
-        </button>
+      <div className="no-scrollbar mt-4 flex items-center gap-2 overflow-x-auto px-5 pb-1">
+        <FilterChip label={tr("Cercanía")} active={ordenPorCercania} onClick={() => setOrdenPorCercania((v) => !v)} />
       </div>
 
-      <div className="px-5 pt-4">
+      <div className="grid gap-3 px-5 pt-4">
         {aviso && (
-          <p role="alert" className="mb-3 rounded-2xl bg-cira-btn-destructive-bg p-3 text-[13px] font-semibold text-cira-btn-destructive-text">
+          <p role="alert" className="aire-text-subhead rounded-aire-md bg-aire-danger-soft p-3 font-semibold text-aire-danger-text">
             {aviso}
           </p>
         )}
         {error ? (
-          <EmptyState image="empty_no_signal" title={tr("Sin conexión")} message={error} />
+          <Vacio image="empty_no_signal" title={tr("Sin conexión")} message={error} />
         ) : trabajos === null ? (
           <Loader label={tr("Cargando trabajos...")} />
         ) : lista.length === 0 ? (
-          <EmptyState
-            title={tr("Sin trabajos disponibles")}
-            message={tr("Cuando existan publicaciones activas aparecerán aquí.")}
-          />
+          <Vacio title={tr("Sin trabajos disponibles")} message={tr("Cuando existan publicaciones activas aparecerán aquí.")} />
         ) : (
-          lista.map((trabajo) => (
-            <JobCard
-              key={trabajo.id}
-              trabajo={trabajo}
-              onApply={toggleApply}
-              onAcceptUrgent={aceptarUrgencia}
-              defaultExpanded={trabajo.id === destacado}
-            />
-          ))
+          <Stagger className="grid gap-3">
+            {lista.map((trabajo) => (
+              <JobCard
+                key={trabajo.id}
+                trabajo={trabajo}
+                onApply={toggleApply}
+                onAcceptUrgent={aceptarUrgencia}
+                defaultExpanded={trabajo.id === destacado}
+              />
+            ))}
+          </Stagger>
         )}
       </div>
 
-      <div className="pointer-events-none sticky bottom-[18px] flex justify-end px-5">
-        <button
-          onClick={() => navigate("/crear-trabajo")}
-          aria-label={tr("Crear publicación")}
-          className="pointer-events-auto flex h-[58px] w-[58px] items-center justify-center rounded-[20px] bg-cira-accent text-white shadow-[0_8px_18px_rgba(0,0,0,0.3)]"
-        >
-          <Icon name="add" size={32} />
-        </button>
+      <div className="pointer-events-none sticky bottom-4 mt-4 flex justify-end px-5">
+        <span className="pointer-events-auto">
+          <Fab icon="add" label={tr("Crear publicación")} onClick={() => navigate("/crear-trabajo")} />
+        </span>
       </div>
     </div>
   );

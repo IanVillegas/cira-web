@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
-import { Loader } from "@/components/ui/Loader";
-import { Card } from "@/components/ui/Card";
+import { Button, Card, Icon, Input, Loader, PageHeader, SelectableCard } from "@/components/aire";
 import { DistrictPickerSheet } from "@/components/DistrictPickerSheet";
 import { LocationPreview } from "@/components/LocationPreview";
 import { DISTRITOS, type Distrito } from "@/lib/districts";
@@ -97,123 +92,86 @@ export function EditProfilePage() {
   };
 
   return (
-    <div>
+    <div className="pb-6">
       <PageHeader
         title={tr("Editar perfil")}
         subtitle={tr("Mantén tu información visible para clientes.")}
-        icon="person"
-        showBack
+        onBack={() => navigate(-1)}
+        backLabel={tr("Atrás")}
+        large={false}
       />
 
-      <div className="flex flex-col gap-4 px-5 pt-2 pb-9">
+      <div className="grid gap-4 px-5 pt-2">
         <Card className="flex items-center gap-3.5">
-          <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-3xl border-2 border-cira-card bg-cira-header-icon-bg">
-            <Icon name="person" size={38} className="text-cira-accent" />
-          </div>
-          <div className="flex min-w-0 flex-col gap-1">
-            <span className="text-[11px] text-cira-text-secondary">{tr("PERFIL PUBLICO")}</span>
-            <span className="truncate text-[21px] font-semibold text-cira-text-primary">
-              {nombreCompleto || tr("Tus datos")}
-            </span>
-            <span className="truncate text-[13px] text-cira-text-secondary">{zonaTexto}</span>
+          <span className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-aire-lg bg-aire-accent-soft">
+            <Icon name="person" filled size={38} className="text-aire-accent-text" />
+          </span>
+          <div className="grid min-w-0 gap-0.5">
+            <span className="aire-text-eyebrow text-aire-ink-2">{tr("PERFIL PUBLICO")}</span>
+            <span className="aire-text-title-3 truncate text-aire-ink">{nombreCompleto || tr("Tus datos")}</span>
+            <span className="aire-text-footnote truncate text-aire-ink-2">{zonaTexto}</span>
           </div>
         </Card>
 
-        <Card className="flex flex-col gap-3.5">
-          <h2 className="text-base font-semibold text-cira-text-primary">{tr("Nombre")}</h2>
+        <Card className="grid gap-3">
+          <h2 className="aire-text-title-3 text-aire-ink">{tr("Nombre")}</h2>
           <Input placeholder={tr("Primer nombre")} value={nombres.nombre} onChange={(e) => setNombres({ ...nombres, nombre: e.target.value })} />
           <Input placeholder={tr("Segundo nombre")} value={nombres.nombre2} onChange={(e) => setNombres({ ...nombres, nombre2: e.target.value })} />
           <Input placeholder={tr("Primer apellido")} value={nombres.apellido} onChange={(e) => setNombres({ ...nombres, apellido: e.target.value })} />
           <Input placeholder={tr("Segundo apellido")} value={nombres.apellido2} onChange={(e) => setNombres({ ...nombres, apellido2: e.target.value })} />
         </Card>
 
-        <Card className="flex flex-col gap-3.5">
-          <h2 className="text-base font-semibold text-cira-text-primary">{tr("Contacto")}</h2>
+        <Card className="grid gap-3">
+          <h2 className="aire-text-title-3 text-aire-ink">{tr("Contacto")}</h2>
           <Input
             type="tel"
             inputMode="numeric"
+            icon="call"
             maxLength={8}
-            placeholder={tr("Telefono")}
+            placeholder={tr("Teléfono")}
             value={contacto.telefono}
             onChange={(e) => setContacto({ ...contacto, telefono: e.target.value.replace(/\D/g, "") })}
           />
-          <Input
-            type="email"
-            placeholder={tr("Correo")}
-            value={contacto.correo}
-            onChange={(e) => setContacto({ ...contacto, correo: e.target.value })}
-          />
-          <Input
-            placeholder={tr("Cedula opcional")}
-            value={contacto.cedula}
-            onChange={(e) => setContacto({ ...contacto, cedula: e.target.value })}
-          />
+          <Input type="email" icon="mail" placeholder={tr("Correo")} value={contacto.correo} onChange={(e) => setContacto({ ...contacto, correo: e.target.value })} />
+          <Input icon="badge" placeholder={tr("Cédula (opcional)")} value={contacto.cedula} onChange={(e) => setContacto({ ...contacto, cedula: e.target.value })} />
         </Card>
 
-        <Card className="flex flex-col gap-3.5">
-          <div className="flex flex-col gap-[3px]">
-            <h2 className="text-base font-semibold text-cira-text-primary">{tr("Ubicacion")}</h2>
-            <p className="text-xs text-cira-text-secondary">
-              {tr("Selecciona el distrito y ajusta el pin si necesitas una ubicación más exacta.")}
-            </p>
+        <Card className="grid gap-3">
+          <div>
+            <h2 className="aire-text-title-3 text-aire-ink">{tr("Ubicación")}</h2>
+            <p className="aire-text-footnote text-aire-ink-2">{tr("Selecciona el distrito y ajusta el pin si necesitas una ubicación más exacta.")}</p>
           </div>
-          <button
-            type="button"
+          <Input
+            readOnly
+            icon="location_on"
+            placeholder={tr("Selecciona tu distrito")}
+            value={distrito ? `${distrito.nombre}, ${distrito.canton}` : zonaTexto}
             onClick={() => setPickerOpen(true)}
-            className="flex min-h-14 items-center justify-between rounded-cira-input bg-cira-input-bg px-3.5 text-left text-cira-control"
-          >
-            <span className={zonaTexto ? "text-cira-text-primary" : "text-cira-text-helper"}>
-              {distrito ? `${distrito.nombre}, ${distrito.canton}` : zonaTexto || tr("Selecciona tu distrito")}
-            </span>
-            <Icon name="keyboard_arrow_down" size={24} className="text-cira-text-secondary" />
-          </button>
-          <LocationPreview
-            center={distrito ? [distrito.lat, distrito.lng] : null}
-            text={zonaTexto || tr("Ajusta tu ubicación en el mapa")}
+            trailing={<Icon name="expand_more" size={22} />}
+            style={{ cursor: "pointer" }}
           />
+          <LocationPreview center={distrito ? [distrito.lat, distrito.lng] : null} text={zonaTexto || tr("Ajusta tu ubicación en el mapa")} />
         </Card>
 
-        <Card className="flex flex-col gap-3">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col gap-0.5">
-              <h2 className="text-base font-semibold text-cira-text-primary">{tr("Métodos de pago")}</h2>
-              <p className="text-xs text-cira-text-secondary">{tr("Elige como prefieres recibir pagos.")}</p>
+        <Card className="grid gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="aire-text-title-3 text-aire-ink">{tr("Métodos de pago")}</h2>
+              <p className="aire-text-footnote text-aire-ink-2">{tr("Elige como prefieres recibir pagos.")}</p>
             </div>
-            <span className="self-center text-xs font-semibold text-cira-accent">
-              {tr("{n} seleccionados", { n: metodos.length })}
-            </span>
+            <span className="aire-text-footnote shrink-0 font-semibold text-aire-accent-text">{tr("{n} seleccionados", { n: metodos.length })}</span>
           </div>
-          <div className="flex flex-wrap gap-3">
-            {METODOS.map((m) => {
-              const active = metodos.includes(m.value);
-              return (
-                <button
-                  key={m.value}
-                  type="button"
-                  onClick={() => toggleMetodo(m.value)}
-                  aria-pressed={active}
-                  className={`flex w-[92px] flex-col items-center gap-2 rounded-2xl bg-cira-card p-2.5 ${
-                    active ? "border-2 border-cira-accent" : "border-2 border-cira-border"
-                  }`}
-                >
-                  <span
-                    className={`flex h-[38px] w-[38px] items-center justify-center rounded-xl ${
-                      active ? "bg-cira-accent" : "bg-cira-surface-muted"
-                    }`}
-                  >
-                    <Icon name={m.icon} size={22} className={active ? "text-cira-card" : "text-cira-accent"} />
-                  </span>
-                  <span className="text-[9px] font-semibold text-cira-text-primary uppercase">{tr(m.value)}</span>
-                </button>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-3">
+            {METODOS.map((m) => (
+              <SelectableCard key={m.value} icon={m.icon} text={tr(m.value)} selected={metodos.includes(m.value)} onClick={() => toggleMetodo(m.value)} />
+            ))}
           </div>
         </Card>
 
-        {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}
+        {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
 
-        <Button onClick={guardar} disabled={guardando}>
-          {guardando ? tr("Guardando...") : tr("Guardar cambios")}
+        <Button loading={guardando} onClick={guardar}>
+          {tr("Guardar cambios")}
         </Button>
       </div>
 

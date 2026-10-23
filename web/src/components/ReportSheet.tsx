@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { BottomSheet } from "./ui/BottomSheet";
-import { Button } from "./ui/Button";
+import { Button, Dialog, Sheet, TextArea, cx } from "@/components/aire";
 import { api } from "@/lib/api";
 import { tr } from "@/lib/i18n";
 
+// Se guardan en español (clave de traducción); se muestran traducidos.
 const MOTIVOS = ["No se presentó", "Mal trato", "Cobro indebido", "Perfil falso", "Otro"];
 
 interface ReportSheetProps {
@@ -43,50 +43,50 @@ export function ReportSheet({ usuario, trabajoId, onClose }: ReportSheetProps) {
   };
 
   return (
-    <BottomSheet
-      open={usuario !== null}
-      onClose={cerrar}
-      title={enviado ? tr("Reporte enviado") : tr("Reportar a {nombre}", { nombre: usuario?.nombre ?? "" })}
-      subtitle={enviado ? tr("Gracias, el equipo de CIRA lo revisará.") : tr("Elige el motivo del reporte.")}
-    >
-      {enviado ? (
-        <Button onClick={cerrar}>{tr("Cerrar")}</Button>
-      ) : (
-        <>
-          <div className="flex flex-col gap-2">
+    <>
+      <Sheet
+        open={usuario !== null && !enviado}
+        onClose={cerrar}
+        title={tr("Reportar a {nombre}", { nombre: usuario?.nombre ?? "" })}
+        subtitle={tr("Elige el motivo del reporte.")}
+        contained
+      >
+        <div className="grid gap-4">
+          <div className="grid gap-1.5">
             {MOTIVOS.map((m) => (
               <button
                 key={m}
                 type="button"
                 aria-pressed={motivo === m}
                 onClick={() => setMotivo(m)}
-                className={`rounded-2xl border px-4 py-3 text-left text-[15px] ${
-                  motivo === m
-                    ? "border-cira-accent bg-cira-nav-selected-bg font-semibold text-cira-accent"
-                    : "border-cira-border text-cira-text-primary"
-                }`}
+                className={cx(
+                  "aire-text-body min-h-12 rounded-aire-md px-4 text-left transition-transform duration-[100ms] ease-aire-pop active:scale-[0.98]",
+                  motivo === m ? "bg-aire-accent-soft font-semibold text-aire-accent-text" : "bg-aire-surface-2 text-aire-ink",
+                )}
               >
                 {tr(m)}
               </button>
             ))}
           </div>
-          <textarea
-            rows={3}
-            maxLength={500}
-            placeholder={tr("Detalles (opcional)")}
-            value={detalle}
-            onChange={(e) => setDetalle(e.target.value)}
-            className="w-full resize-none rounded-cira-input bg-cira-input-bg px-3.5 py-2.5 text-cira-body text-cira-text-primary ring-1 ring-cira-border placeholder:text-cira-text-helper focus:outline-none"
-          />
-          {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}
-          <Button variant="destructive" disabled={!motivo || enviando} onClick={enviar}>
-            {enviando ? tr("ENVIANDO...") : tr("ENVIAR REPORTE")}
+          <TextArea rows={3} maxLength={500} placeholder={tr("Detalles (opcional)")} value={detalle} onChange={(e) => setDetalle(e.target.value)} />
+          {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
+          <Button variant="destructive" disabled={!motivo} loading={enviando} onClick={enviar}>
+            {tr("Enviar reporte")}
           </Button>
-          <Button variant="outlined" onClick={cerrar}>
+          <Button variant="plain" onClick={cerrar}>
             {tr("Cancelar")}
           </Button>
-        </>
-      )}
-    </BottomSheet>
+        </div>
+      </Sheet>
+
+      <Dialog
+        open={usuario !== null && enviado}
+        onClose={cerrar}
+        contained
+        title={tr("Reporte enviado")}
+        message={tr("Gracias, el equipo de CIRA lo revisará.")}
+        actions={<Button onClick={cerrar}>{tr("Cerrar")}</Button>}
+      />
+    </>
   );
 }

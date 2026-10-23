@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
-import { Icon } from "@/components/ui/Icon";
-import { Loader } from "@/components/ui/Loader";
+import { Icon, Loader, cx } from "@/components/aire";
 import { api } from "@/lib/api";
 import { buscarDireccion, obtenerUbicacionActual, type ResultadoBusquedaDireccion } from "@/lib/geo";
 import { iconoTrabajador, iconoTrabajo, iconoUsuario } from "@/lib/leafletIcons";
@@ -103,7 +102,7 @@ export function MapaPage() {
   };
 
   return (
-    <div className="relative h-full min-h-[480px] bg-cira-card">
+    <div className="relative h-full min-h-[480px] bg-aire-surface-3">
       {cargando ? (
         <div className="flex h-full items-center justify-center">
           <Loader label={tr("Cargando mapa...")} />
@@ -132,10 +131,10 @@ export function MapaPage() {
           {trabajosVisibles.map((t) => (
             <Marker key={t.id} position={[t.lat!, t.lng!]} icon={iconoTrabajo}>
               <Popup>
-                <p className="text-[11px] font-semibold uppercase text-cira-accent">{tr(t.categoria)}</p>
-                <p className="font-semibold">{t.titulo}</p>
-                <p className="text-sm text-gray-600">{t.ubicacion}</p>
-                <p className="mt-1 text-sm font-semibold text-cira-accent">₡{t.pago.toLocaleString(localeActual())}</p>
+                <p className="aire-text-eyebrow text-aire-accent-text">{tr(t.categoria)}</p>
+                <p className="aire-text-headline">{t.titulo}</p>
+                <p className="aire-text-subhead text-aire-ink-2">{t.ubicacion}</p>
+                <p className="aire-text-headline mt-1 text-aire-accent-text">₡{t.pago.toLocaleString(localeActual())}</p>
               </Popup>
             </Marker>
           ))}
@@ -143,41 +142,42 @@ export function MapaPage() {
           {trabajadoresVisibles.map((w) => (
             <Marker key={w.id} position={[w.lat!, w.lng!]} icon={iconoTrabajador}>
               <Popup>
-                <p className="font-semibold">{w.nombre}</p>
-                <p className="text-sm text-gray-600">{w.servicios.map((s) => tr(s)).join(" · ")}</p>
-                <p className="text-sm text-gray-600">{w.disponible ? tr("Disponible") : tr("Ocupado")}</p>
+                <p className="aire-text-headline">{w.nombre}</p>
+                <p className="aire-text-subhead text-aire-ink-2">{w.servicios.map((s) => tr(s)).join(" · ")}</p>
+                <p className="aire-text-subhead text-aire-ink-2">{w.disponible ? tr("Disponible") : tr("Ocupado")}</p>
               </Popup>
             </Marker>
           ))}
         </MapContainer>
       )}
 
-      {/* Controles flotantes (Margin 16,48,16,0 y Spacing 10 en MAUI) */}
-      <div className="pointer-events-none absolute inset-x-4 top-12 z-[1000] flex flex-col gap-2.5">
-        <div className="pointer-events-auto flex items-center gap-2.5 rounded-[18px] border border-cira-border bg-cira-card px-3.5 py-2.5">
-          <Icon name="search" size={22} className="text-cira-accent" />
+      {/* Controles flotantes de vidrio sobre el mapa */}
+      <div className="pointer-events-none absolute inset-x-4 top-4 z-[1000] grid gap-2.5">
+        <div className="pointer-events-auto flex items-center gap-2.5 rounded-aire-full border border-aire-glass-border bg-aire-glass px-4 shadow-aire-float backdrop-blur-xl">
+          <Icon name="search" size={22} className="text-aire-ink-2" />
           <input
             value={busqueda}
             onChange={(e) => onBusqueda(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && buscarAhora()}
             placeholder={tr("Buscar ubicación")}
-            className="min-w-0 flex-1 bg-transparent text-cira-control text-cira-text-primary placeholder:text-cira-text-helper focus:outline-none"
+            className="aire-text-body min-h-12 min-w-0 flex-1 bg-transparent text-aire-ink placeholder:text-aire-ink-3 focus:outline-none"
           />
-          <button onClick={buscarAhora} aria-label={tr("Buscar")} className="flex h-[34px] w-[34px] items-center justify-center text-cira-accent">
+          <button type="button" onClick={buscarAhora} aria-label={tr("Buscar")} className="flex h-11 w-11 items-center justify-center text-aire-accent-text">
             <Icon name="arrow_forward" size={22} />
           </button>
         </div>
 
         {sugerencias.length > 0 && (
-          <div className="pointer-events-auto max-h-[230px] overflow-y-auto rounded-[18px] border border-cira-border bg-cira-card p-2">
+          <div className="pointer-events-auto max-h-[230px] overflow-y-auto rounded-aire-lg border border-aire-glass-border bg-aire-glass p-2 shadow-aire-float backdrop-blur-xl">
             {sugerencias.map((s) => (
               <button
                 key={`${s.lat},${s.lng}`}
+                type="button"
                 onClick={() => irA(s)}
-                className="flex w-full items-center gap-2.5 px-2.5 py-[9px] text-left"
+                className="flex min-h-11 w-full items-center gap-2.5 rounded-aire-sm px-3 py-2 text-left active:bg-aire-surface-3"
               >
-                <Icon name="place" size={20} className="shrink-0 text-cira-accent" />
-                <span className="truncate text-[13px] text-cira-text-primary">{s.nombre}</span>
+                <Icon name="place" size={20} className="shrink-0 text-aire-accent-text" />
+                <span className="aire-text-subhead truncate text-aire-ink">{s.nombre}</span>
               </button>
             ))}
           </div>
@@ -185,28 +185,29 @@ export function MapaPage() {
 
         <div className="pointer-events-auto relative self-start">
           <button
+            type="button"
             onClick={() => setFiltroAbierto((v) => !v)}
-            className="flex items-center gap-2 rounded-2xl border border-cira-border bg-cira-card px-3 py-2"
+            className="flex min-h-11 items-center gap-2 rounded-aire-full border border-aire-glass-border bg-aire-glass px-4 shadow-aire-float backdrop-blur-xl transition-transform duration-[100ms] ease-aire-pop active:scale-95"
           >
-            <Icon name="tune" size={20} className="text-cira-accent" />
-            <span className="text-[13px] font-semibold text-cira-text-primary">{filtro}</span>
+            <Icon name="tune" size={20} className="text-aire-accent-text" />
+            <span className="aire-text-subhead font-semibold text-aire-ink">{filtro === TODOS ? filtro : tr(filtro)}</span>
           </button>
           {filtroAbierto && (
-            <div className="absolute top-full left-0 mt-2 max-h-60 w-56 overflow-y-auto rounded-[18px] border border-cira-border bg-cira-card p-2">
+            <div className="absolute top-full left-0 mt-2 max-h-60 w-56 overflow-y-auto rounded-aire-lg border border-aire-glass-border bg-aire-glass p-2 shadow-aire-float backdrop-blur-xl">
               {[TODOS, ...CATEGORIAS].map((c) => (
                 <button
                   key={c}
+                  type="button"
                   onClick={() => {
                     setFiltro(c);
                     setFiltroAbierto(false);
                   }}
-                  className={`block w-full rounded-xl px-3 py-2 text-left text-[13px] ${
-                    c === filtro
-                      ? "bg-cira-nav-selected-bg font-semibold text-cira-accent"
-                      : "text-cira-text-primary"
-                  }`}
+                  className={cx(
+                    "aire-text-subhead block min-h-11 w-full rounded-aire-sm px-3 py-2 text-left",
+                    c === filtro ? "bg-aire-accent-soft font-semibold text-aire-accent-text" : "text-aire-ink",
+                  )}
                 >
-                  {c}
+                  {c === TODOS ? c : tr(c)}
                 </button>
               ))}
             </div>
@@ -214,19 +215,20 @@ export function MapaPage() {
         </div>
 
         {aviso && (
-          <div className="pointer-events-auto flex items-center gap-2.5 rounded-[18px] border border-cira-border bg-cira-card px-3.5 py-3">
-            <Icon name="location_off" size={22} className="shrink-0 text-cira-accent" />
-            <span className="flex-1 text-xs text-cira-text-primary">{aviso}</span>
+          <div className="pointer-events-auto flex items-center gap-2.5 rounded-aire-lg border border-aire-glass-border bg-aire-glass px-4 py-3 shadow-aire-float backdrop-blur-xl">
+            <Icon name="location_off" size={22} className="shrink-0 text-aire-accent-text" />
+            <span className="aire-text-footnote flex-1 text-aire-ink">{aviso}</span>
           </div>
         )}
       </div>
 
       <button
+        type="button"
         onClick={centrar}
         aria-label={tr("Centrar en mi ubicación")}
-        className="absolute right-4 bottom-[22px] z-[1000] flex h-[52px] w-[52px] items-center justify-center rounded-[18px] border border-cira-border bg-cira-card shadow-[0_8px_18px_rgba(0,0,0,0.22)]"
+        className="absolute right-4 bottom-5 z-[1000] flex h-14 w-14 items-center justify-center rounded-aire-full border border-aire-glass-border bg-aire-glass shadow-aire-float backdrop-blur-xl transition-transform duration-[100ms] ease-aire-pop active:scale-90"
       >
-        <Icon name="my_location" size={28} className="text-cira-accent" />
+        <Icon name="my_location" size={28} className="text-aire-accent-text" />
       </button>
     </div>
   );

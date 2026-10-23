@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
-import { Input } from "@/components/ui/Input";
-import { PinInput } from "@/components/ui/PinInput";
+import { Button, Icon, Input, PinInput } from "@/components/aire";
 import { DistrictPickerSheet } from "@/components/DistrictPickerSheet";
 import { LocationPreview } from "@/components/LocationPreview";
 import { AuthError, AuthHeading, AuthLayout, IdentifierChip } from "@/layouts/AuthLayout";
@@ -74,112 +71,103 @@ export function RegisterPage() {
 
   return (
     <AuthLayout>
-      <div className="flex flex-col gap-5">
-        {step === "phone" && (
-          <div className="flex flex-col gap-[18px]">
-            <AuthHeading title={tr("Crea tu cuenta")} subtitle={tr("Primero ingresa tu número de teléfono.")} />
-            <Input
-              type="tel"
-              inputMode="numeric"
-              maxLength={8}
-              placeholder={tr("Número de teléfono")}
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ""))}
-            />
-            <AuthError message={error} />
-            <Button onClick={validarTelefono}>{tr("Continuar")}</Button>
-          </div>
-        )}
+      {step === "phone" && (
+        <>
+          <AuthHeading title={tr("Crea tu cuenta")} subtitle={tr("Primero ingresa tu número de teléfono.")} />
+          <Input
+            type="tel"
+            inputMode="numeric"
+            icon="call"
+            maxLength={8}
+            placeholder={tr("Número de teléfono")}
+            value={telefono}
+            error={error ?? undefined}
+            onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ""))}
+          />
+          <Button onClick={validarTelefono}>{tr("Continuar")}</Button>
+        </>
+      )}
 
-        {step === "details" && (
-          <div className="flex flex-col gap-4">
-            <AuthHeading title={tr("Tus nombres")} subtitle={tr("Agrega tus nombres y apellidos.")} />
+      {step === "details" && (
+        <>
+          <AuthHeading title={tr("Tus nombres")} subtitle={tr("Agrega tus nombres y apellidos.")} />
+          <div className="grid gap-3">
             <Input placeholder={tr("Primer nombre")} value={nombres.nombre} onChange={(e) => setNombres({ ...nombres, nombre: e.target.value })} />
             <Input placeholder={tr("Segundo nombre (opcional)")} value={nombres.nombre2} onChange={(e) => setNombres({ ...nombres, nombre2: e.target.value })} />
             <Input placeholder={tr("Primer apellido")} value={nombres.apellido} onChange={(e) => setNombres({ ...nombres, apellido: e.target.value })} />
             <Input placeholder={tr("Segundo apellido (opcional)")} value={nombres.apellido2} onChange={(e) => setNombres({ ...nombres, apellido2: e.target.value })} />
-            <AuthError message={error} />
-            <Button onClick={validarNombres}>{tr("Continuar")}</Button>
-            <Button variant="outlined" onClick={() => ir("phone")}>
-              {tr("Cambiar teléfono")}
-            </Button>
           </div>
-        )}
+          <AuthError message={error} />
+          <Button onClick={validarNombres}>{tr("Continuar")}</Button>
+          <Button variant="plain" onClick={() => ir("phone")}>
+            {tr("Cambiar teléfono")}
+          </Button>
+        </>
+      )}
 
-        {step === "district" && (
-          <div className="flex flex-col gap-4">
-            <AuthHeading
-              title={tr("Tu ubicación")}
-              subtitle={tr("Elige tu distrito y ajusta tu ubicación dentro de esa zona.")}
-            />
-            <button
-              type="button"
-              onClick={() => setPickerOpen(true)}
-              className="flex min-h-14 items-center justify-between rounded-cira-input bg-cira-input-bg px-3.5 text-left text-cira-control"
-            >
-              <span className={distrito ? "text-cira-text-primary" : "text-cira-text-helper"}>
-                {distrito ? `${distrito.nombre}, ${distrito.canton}` : tr("Selecciona un distrito")}
-              </span>
-              <Icon name="keyboard_arrow_down" size={24} className="text-cira-text-secondary" />
-            </button>
-            <LocationPreview
-              center={distrito ? [distrito.lat, distrito.lng] : null}
-              text={
-                distrito
-                  ? `${distrito.nombre}, ${distrito.canton}, ${distrito.provincia}`
-                  : tr("Selecciona un distrito para centrar el mapa")
-              }
-            />
-            <AuthError message={error} />
-            <Button onClick={enviarSms}>{tr("Enviar SMS")}</Button>
-            <Button variant="outlined" onClick={() => ir("details")}>
-              {tr("Editar nombres")}
-            </Button>
+      {step === "district" && (
+        <>
+          <AuthHeading title={tr("Tu ubicación")} subtitle={tr("Elige tu distrito y ajusta tu ubicación dentro de esa zona.")} />
+          <Input
+            readOnly
+            icon="location_on"
+            placeholder={tr("Selecciona un distrito")}
+            value={distrito ? `${distrito.nombre}, ${distrito.canton}` : ""}
+            onClick={() => setPickerOpen(true)}
+            trailing={<Icon name="expand_more" size={22} />}
+            style={{ cursor: "pointer" }}
+          />
+          <LocationPreview
+            center={distrito ? [distrito.lat, distrito.lng] : null}
+            text={
+              distrito
+                ? `${distrito.nombre}, ${distrito.canton}, ${distrito.provincia}`
+                : tr("Selecciona un distrito para centrar el mapa")
+            }
+          />
+          <AuthError message={error} />
+          <Button onClick={enviarSms}>{tr("Enviar SMS")}</Button>
+          <Button variant="plain" onClick={() => ir("details")}>
+            {tr("Editar nombres")}
+          </Button>
+        </>
+      )}
+
+      {step === "token" && (
+        <>
+          <div className="grid gap-3">
+            <AuthHeading title={tr("Verifica tu teléfono")} />
+            <IdentifierChip>{telefono}</IdentifierChip>
           </div>
-        )}
+          <PinInput value={token} onChange={setToken} length={6} isPassword={false} allowLetters autoUppercase autoFocus />
+          <AuthError message={error} />
+          <Button disabled={token.length < 6} onClick={() => ir("pin")}>
+            {tr("Verificar")}
+          </Button>
+          <Button variant="plain" onClick={() => setToken("")}>
+            {tr("Reenviar SMS")}
+          </Button>
+        </>
+      )}
 
-        {step === "token" && (
-          <div className="flex flex-col gap-[18px]">
-            <div className="flex flex-col gap-2">
-              <AuthHeading title={tr("Verifica tu teléfono")} />
-              <IdentifierChip>{telefono}</IdentifierChip>
-            </div>
-            <PinInput value={token} onChange={setToken} length={6} isPassword={false} allowLetters autoUppercase autoFocus />
-            <AuthError message={error} />
-            <Button disabled={token.length < 6} onClick={() => ir("pin")}>
-              {tr("Verificar")}
-            </Button>
-            <Button variant="outlined" onClick={() => setToken("")}>
-              {tr("Reenviar SMS")}
-            </Button>
-          </div>
-        )}
+      {step === "pin" && (
+        <>
+          <AuthHeading title={tr("Crea tu PIN")} subtitle={tr("Usarás estos 4 dígitos para iniciar sesión.")} />
+          <PinInput label={tr("PIN")} value={pin} onChange={setPin} />
+          <PinInput label={tr("Confirmar PIN")} value={confirmPin} onChange={setConfirmPin} error={!!error} />
+          <AuthError message={error} />
+          <Button disabled={pin.length < 4 || confirmPin.length < 4} onClick={crearCuenta}>
+            {tr("Crear cuenta")}
+          </Button>
+        </>
+      )}
 
-        {step === "pin" && (
-          <div className="flex flex-col gap-5">
-            <AuthHeading title={tr("Crea tu PIN")} subtitle={tr("Usarás estos 4 dígitos para iniciar sesión.")} />
-            <div className="flex flex-col gap-2">
-              <p className="text-center text-cira-body font-bold text-cira-text-primary">{tr("PIN")}</p>
-              <PinInput value={pin} onChange={setPin} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <p className="text-center text-cira-body font-bold text-cira-text-primary">{tr("Confirmar PIN")}</p>
-              <PinInput value={confirmPin} onChange={setConfirmPin} />
-            </div>
-            <AuthError message={error} />
-            <Button disabled={pin.length < 4 || confirmPin.length < 4} onClick={crearCuenta}>
-              {tr("Crear cuenta")}
-            </Button>
-          </div>
-        )}
-
-        <p className="flex items-center justify-center gap-1 text-[13px]">
-          <span className="text-cira-text-secondary">{tr("Ya tienes cuenta?")}</span>
-          <Link to="/login" className="font-bold text-cira-accent underline">
-            {tr("Iniciar Sesión")}
-          </Link>
-        </p>
-      </div>
+      <p className="aire-text-subhead flex items-center justify-center gap-1">
+        <span className="text-aire-ink-2">{tr("¿Ya tienes cuenta?")}</span>
+        <Link to="/login" className="font-semibold text-aire-accent-text">
+          {tr("Inicia sesión")}
+        </Link>
+      </p>
 
       <DistrictPickerSheet
         open={pickerOpen}

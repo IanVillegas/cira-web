@@ -1,28 +1,24 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { ExploreTabs } from "@/components/ui/ExploreTabs";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Icon } from "@/components/ui/Icon";
-import { Loader } from "@/components/ui/Loader";
-import { Button } from "@/components/ui/Button";
-import { CardAction, JobStatusCard, type StatusBadge } from "@/components/JobStatusCard";
-import { SeguimientoTrabajo } from "@/components/SeguimientoTrabajo";
+import { Button, Loader, PageHeader, Stagger } from "@/components/aire";
+import { ExploreTabs } from "@/components/ExploreTabs";
+import { CardAction, JobStatusCard, type EstadoTono } from "@/components/JobStatusCard";
 import { RatingSheet } from "@/components/RatingSheet";
+import { SeguimientoTrabajo } from "@/components/SeguimientoTrabajo";
+import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
 import { ETAPAS } from "@/lib/etapas";
-import { usePolling } from "@/lib/usePolling";
-import type { Trabajo } from "@/lib/types";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
+import { usePolling } from "@/lib/usePolling";
+import type { Trabajo } from "@/lib/types";
 
-// Colores del StatusBackground/StatusTextColor de MisTrabajosPage.xaml.cs
-function badgeDe(t: Trabajo): StatusBadge {
-  if (t.estado === "Pendiente") return { text: tr("Postulado"), bg: "#EEF3FF", color: "#3E7BE1" };
-  if (t.estado === "Asignado") return { text: tr("Asignado"), bg: "#FFF8E1", color: "#F57C00" };
-  if (t.estado === "En progreso") return { text: tr("En proceso"), bg: "#E8F5E9", color: "#2E7D32" };
-  if (t.estado === "Finalizado") return { text: tr("Por calificar"), bg: "#E8F5E9", color: "#2E7D32" };
-  return { text: tr(t.estado), bg: "#EEF3FF", color: "#3E7BE1" };
+function estadoDe(t: Trabajo): { text: string; tone: EstadoTono } {
+  if (t.estado === "Pendiente") return { text: tr("Postulado"), tone: "accent" };
+  if (t.estado === "Asignado") return { text: tr("Asignado"), tone: "warning" };
+  if (t.estado === "En progreso") return { text: tr("En proceso"), tone: "success" };
+  if (t.estado === "Finalizado") return { text: tr("Por calificar"), tone: "success" };
+  return { text: tr(t.estado), tone: "neutral" };
 }
 
 const ICONO_ETAPA: Record<string, string> = { "En camino": "directions_car", Llegó: "pin_drop", Terminado: "task_alt" };
@@ -61,84 +57,77 @@ export function MisTrabajosPage() {
   };
 
   return (
-    <div className="flex min-h-full flex-col pb-4">
-      <PageHeader title={tr("Mis trabajos")} subtitle={tr("Consulta y gestiona tus trabajos activos.")} icon="work" />
+    <div className="pb-6">
+      <PageHeader
+        title={tr("Mis trabajos")}
+        subtitle={tr("Consulta y gestiona tus trabajos activos.")}
+        action={{ icon: "history", label: tr("Ver historial"), onClick: () => navigate("/historial") }}
+      />
       <ExploreTabs />
 
-      <div className="flex-1 px-5 pt-4">
+      <div className="grid gap-3 px-5 pt-4">
         {error && (
-          <p role="alert" className="mb-3 rounded-2xl bg-cira-btn-destructive-bg p-3 text-[13px] font-semibold text-cira-btn-destructive-text">
+          <p role="alert" className="aire-text-subhead rounded-aire-md bg-aire-danger-soft p-3 font-semibold text-aire-danger-text">
             {error}
           </p>
         )}
         {trabajos === null ? (
           <Loader label={tr("Cargando tus trabajos...")} />
         ) : trabajos.length === 0 ? (
-          <EmptyState
-            title={tr("No tienes trabajos activos")}
-            message={tr("Aquí aparecerán los trabajos a los que te postules o que te asignen.")}
-          />
+          <Vacio title={tr("No tienes trabajos activos")} message={tr("Aquí aparecerán los trabajos a los que te postules o que te asignen.")} />
         ) : (
-          trabajos.map((t) => {
-            const siguiente = ETAPAS[ETAPAS.indexOf(t.etapa ?? "Aceptado") + 1];
-            const asignado = t.asignadoAMi && (t.estado === "Asignado" || t.estado === "En progreso");
-            return (
-              <JobStatusCard
-                key={t.id}
-                titulo={t.titulo}
-                publicador={t.publicador}
-                fecha={t.fecha}
-                badge={badgeDe(t)}
-                actions={
-                  <>
-                    <CardAction icon="chat" label={tr("Escribir al publicador")} onClick={() => abrirChat(t.publicadorId)} />
-                    {t.estado !== "Finalizado" && (
-                      <CardAction
-                        icon="cancel"
-                        label={t.asignadoAMi ? tr("Cancelar trabajo") : tr("Retirar postulación")}
-                        destructive
-                        onClick={() => ejecutar(
-                            () => api.trabajos.cancelar(t.id),
-                            t.asignadoAMi ? tr("Cancelaste el trabajo") : tr("Retiraste tu postulación"),
-                          )
-                        }
-                      />
-                    )}
-                  </>
-                }
-                footer={
-                  <>
-                    {t.urgente && (
-                      <p className="flex items-center gap-1 text-xs font-semibold text-cira-btn-destructive-text">
-                        <Icon name="bolt" filled size={14} /> {tr("Urgencia")}
-                      </p>
-                    )}
-                    {t.asignadoAMi && <SeguimientoTrabajo etapa={t.etapa} />}
-                    {asignado && siguiente && (
-                      <Button onClick={() => ejecutar(() => api.trabajos.avanzarEtapa(t.id), tr("Seguimiento actualizado"))}>
-                        <Icon name={ICONO_ETAPA[siguiente]} size={20} />
-                        {siguiente === "Terminado" ? tr("MARCAR COMO TERMINADO") : tr(siguiente === "En camino" ? "ESTOY EN CAMINO" : "YA LLEGUÉ")}
-                      </Button>
-                    )}
-                    {t.estado === "Finalizado" && (
-                      <Button onClick={() => setACalificar(t)}>{tr("CALIFICAR A {nombre}", { nombre: t.publicador.toUpperCase() })}</Button>
-                    )}
-                  </>
-                }
-              />
-            );
-          })
+          <Stagger className="grid gap-3">
+            {trabajos.map((t) => {
+              const siguiente = ETAPAS[ETAPAS.indexOf(t.etapa ?? "Aceptado") + 1];
+              const asignado = t.asignadoAMi && (t.estado === "Asignado" || t.estado === "En progreso");
+              return (
+                <JobStatusCard
+                  key={t.id}
+                  titulo={t.titulo}
+                  publicador={t.publicador}
+                  fecha={tr(t.fecha)}
+                  estado={estadoDe(t)}
+                  actions={
+                    <>
+                      <CardAction icon="chat_bubble" label={tr("Escribir al publicador")} onClick={() => abrirChat(t.publicadorId)} />
+                      {t.estado !== "Finalizado" && (
+                        <CardAction
+                          icon="close"
+                          label={t.asignadoAMi ? tr("Cancelar trabajo") : tr("Retirar postulación")}
+                          destructive
+                          onClick={() =>
+                            ejecutar(
+                              () => api.trabajos.cancelar(t.id),
+                              t.asignadoAMi ? tr("Cancelaste el trabajo") : tr("Retiraste tu postulación"),
+                            )
+                          }
+                        />
+                      )}
+                    </>
+                  }
+                  footer={
+                    <>
+                      {t.urgente && <p className="aire-text-eyebrow text-aire-danger-text">{tr("Urgencia")}</p>}
+                      {t.asignadoAMi && <SeguimientoTrabajo etapa={t.etapa} />}
+                      {asignado && siguiente && (
+                        <Button icon={ICONO_ETAPA[siguiente]} onClick={() => ejecutar(() => api.trabajos.avanzarEtapa(t.id), tr("Seguimiento actualizado"))}>
+                          {siguiente === "Terminado"
+                            ? tr("Marcar como terminado")
+                            : tr(siguiente === "En camino" ? "Estoy en camino" : "Ya llegué")}
+                        </Button>
+                      )}
+                      {t.estado === "Finalizado" && (
+                        <Button icon="star" onClick={() => setACalificar(t)}>
+                          {tr("Calificar a {nombre}", { nombre: t.publicador })}
+                        </Button>
+                      )}
+                    </>
+                  }
+                />
+              );
+            })}
+          </Stagger>
         )}
-      </div>
-
-      <div className="sticky bottom-[18px] flex justify-end px-5">
-        <button
-          onClick={() => navigate("/historial")}
-          aria-label={tr("Ver historial")}
-          className="flex h-[58px] w-[58px] items-center justify-center rounded-[20px] bg-cira-header-icon-bg shadow-[0_8px_18px_rgba(0,0,0,0.26)]"
-        >
-          <Icon name="history" size={30} className="text-cira-accent" />
-        </button>
       </div>
 
       <RatingSheet

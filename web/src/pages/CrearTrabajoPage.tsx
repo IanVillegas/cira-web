@@ -1,17 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
-import { Input } from "@/components/ui/Input";
-import { Field, FieldCaption } from "@/components/ui/FieldCaption";
-import { SelectableCard } from "@/components/ui/SelectableCard";
-import { SelectField } from "@/components/ui/SelectField";
-import { BudgetField } from "@/components/ui/BudgetField";
-import { DateTimeField } from "@/components/ui/DateTimeField";
-import { Card } from "@/components/ui/Card";
-import { Switch } from "@/components/ui/Switch";
-import { Loader } from "@/components/ui/Loader";
+import { Button, Card, Field, Icon, Input, Loader, PageHeader, SelectableCard, Switch, TextArea } from "@/components/aire";
+import { SelectSheet } from "@/components/SelectSheet";
 import { PagoResumen } from "@/components/PagoResumen";
 import { LocationPicker } from "@/components/LocationPicker";
 import { CATEGORIAS } from "@/lib/mockData";
@@ -23,8 +13,8 @@ import type { MetodoPago } from "@/lib/types";
 import { localeActual, tr } from "@/lib/i18n";
 
 const METODOS: { value: MetodoPago; icon: string; label: string }[] = [
-  { value: "Efectivo", icon: "payments", label: tr("EFECTIVO") },
-  { value: "Tarjeta", icon: "credit_card", label: tr("TARJETA") },
+  { value: "Efectivo", icon: "payments", label: tr("Efectivo") },
+  { value: "Tarjeta", icon: "credit_card", label: tr("Tarjeta") },
 ];
 
 function formatearFecha(fecha: string, hora: string) {
@@ -124,51 +114,48 @@ export function CrearTrabajoPage() {
   if (cargando) return <Loader label={tr("Cargando publicación...")} />;
 
   return (
-    <div>
-      <PageHeader title={editando ? tr("Editar Publicación") : tr("Crear Publicación")} icon="work" showBack />
+    <div className="pb-8">
+      <PageHeader
+        title={editando ? tr("Editar publicación") : tr("Crear publicación")}
+        onBack={() => navigate(-1)}
+        backLabel={tr("Atrás")}
+        large={false}
+      />
 
-      <form className="flex flex-col gap-3.5 px-5 pt-2 pb-9" onSubmit={handleSubmit}>
-        <Card className="flex flex-col gap-3.5">
-          <Field label={tr("Título del trabajo")}>
-            <Input
-              placeholder={tr("Ej: Reparación de fuga")}
-              value={form.titulo}
-              onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-            />
-          </Field>
+      <form className="grid gap-3 px-5 pt-2" onSubmit={handleSubmit}>
+        <Card className="grid gap-3.5">
+          <Input
+            label={tr("Título del trabajo")}
+            placeholder={tr("Ej: Reparación de fuga")}
+            value={form.titulo}
+            onChange={(e) => setForm({ ...form, titulo: e.target.value })}
+          />
 
-          <Field label={tr("Categoría")}>
-            <SelectField
-              value={form.categoria}
-              onChange={(categoria) => setForm({ ...form, categoria })}
-              placeholder={tr("Selecciona una categoría")}
-              options={CATEGORIAS}
-            />
-          </Field>
+          <SelectSheet
+            label={tr("Categoría")}
+            placeholder={tr("Selecciona una categoría")}
+            value={form.categoria}
+            options={CATEGORIAS}
+            onChange={(categoria) => setForm({ ...form, categoria })}
+          />
 
-          <Field label={tr("Descripción detallada")}>
-            <textarea
-              rows={4}
-              placeholder={tr("Describe el problema o necesidad con detalle...")}
-              value={form.descripcion}
-              onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-              className="min-h-[104px] w-full resize-y rounded-cira-input bg-cira-input-bg px-3.5 py-2.5 text-cira-body text-cira-text-primary placeholder:text-cira-text-helper focus:outline-none"
-            />
-          </Field>
+          <TextArea
+            label={tr("Descripción detallada")}
+            rows={4}
+            placeholder={tr("Describe el problema o necesidad con detalle...")}
+            value={form.descripcion}
+            onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+          />
         </Card>
 
         {(!editando || urgente) && (
-          <Card
-            className={`flex items-start gap-3 border ${
-              esUrgente ? "border-cira-btn-destructive-text" : "border-cira-border"
-            }`}
-          >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cira-btn-destructive-bg">
-              <Icon name="bolt" filled size={22} className="text-cira-btn-destructive-text" />
+          <Card className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-aire-md bg-aire-danger-soft">
+              <Icon name="bolt" filled size={22} className="text-aire-danger-text" />
             </span>
             <div className="flex-1">
-              <p className="text-[15px] font-semibold text-cira-text-primary">{tr("Es urgente")}</p>
-              <p className="text-xs text-cira-text-secondary">
+              <p className="aire-text-headline text-aire-ink">{tr("Es urgente")}</p>
+              <p className="aire-text-footnote text-aire-ink-2">
                 {tr("Alertamos primero a los trabajadores más cercanos y disponibles. Tiene una tarifa de urgencia del {pct}%, que se cobra con tu tarjeta registrada.", { pct: config.urgenciaPct })}
               </p>
             </div>
@@ -176,7 +163,7 @@ export function CrearTrabajoPage() {
           </Card>
         )}
 
-        <Card className="flex flex-col gap-3.5">
+        <Card className="grid gap-3.5">
           <LocationPicker
             value={form.coords}
             address={form.ubicacion}
@@ -184,41 +171,34 @@ export function CrearTrabajoPage() {
           />
 
           {esUrgente ? (
-            <p className="flex items-center gap-2 rounded-2xl bg-cira-btn-destructive-bg p-3 text-[13px] font-semibold text-cira-btn-destructive-text">
-              <Icon name="schedule" size={18} />
+            <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-danger-soft p-3 font-semibold text-aire-danger-text">
+              <Icon name="schedule" size={20} />
               {tr("Se atiende lo antes posible")}
             </p>
           ) : editando ? (
-            <Field label={tr("Fecha y hora")}>
-              <Input value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
-            </Field>
+            <Input label={tr("Fecha y hora")} value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
           ) : (
             <div className="grid grid-cols-2 gap-3">
-              <DateTimeField
-                label={tr("Fecha")}
-                icon="calendar_month"
-                type="date"
-                value={form.fecha}
-                onChange={(fecha) => setForm({ ...form, fecha })}
-              />
-              <DateTimeField
-                label={tr("Hora")}
-                icon="schedule"
-                type="time"
-                value={form.hora}
-                onChange={(hora) => setForm({ ...form, hora })}
-              />
+              <Input label={tr("Fecha")} type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
+              <Input label={tr("Hora")} type="time" value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} />
             </div>
           )}
         </Card>
 
-        <Card className="flex flex-col gap-3.5">
-          <Field label={tr("Presupuesto ofrecido")}>
-            <BudgetField value={form.pago} onChange={(pago) => setForm({ ...form, pago })} />
-          </Field>
+        <Card className="grid gap-3.5">
+          <Input
+            label={tr("Presupuesto ofrecido")}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            prefix="₡"
+            placeholder="20000"
+            hint={tr("Monto en colones")}
+            value={form.pago}
+            onChange={(e) => setForm({ ...form, pago: e.target.value })}
+          />
 
-          <div className="flex flex-col gap-2">
-            <FieldCaption>{tr("Método de pago")}</FieldCaption>
+          <Field label={tr("Método de pago")}>
             <div className="grid grid-cols-2 gap-2.5">
               {METODOS.map((m) => (
                 <SelectableCard
@@ -230,29 +210,27 @@ export function CrearTrabajoPage() {
                 />
               ))}
             </div>
-          </div>
+          </Field>
 
-          {Number(form.pago) > 0 && (
-            <PagoResumen resumen={calcularResumen(Number(form.pago), esUrgente, metodoEfectivo, config)} />
-          )}
+          {Number(form.pago) > 0 && <PagoResumen resumen={calcularResumen(Number(form.pago), esUrgente, metodoEfectivo, config)} />}
         </Card>
 
         {faltaTarjeta && (
-          <Card className="flex flex-col gap-2.5 border border-cira-btn-destructive-text/40">
-            <p className="flex items-start gap-2 text-[13px] text-cira-text-primary">
-              <Icon name="credit_card_off" size={20} className="shrink-0 text-cira-btn-destructive-text" />
+          <Card className="grid gap-3">
+            <p className="aire-text-subhead flex items-start gap-2 text-aire-ink">
+              <Icon name="credit_card_off" size={20} className="mt-0.5 shrink-0 text-aire-danger-text" />
               {tr("Para pagar con tarjeta o publicar una urgencia primero debes registrar una tarjeta.")}
             </p>
-            <Button variant="outlined" type="button" onClick={() => navigate("/cuenta/tarjeta")}>
-              {tr("REGISTRAR TARJETA")}
+            <Button variant="secondary" type="button" onClick={() => navigate("/cuenta/tarjeta")}>
+              {tr("Registrar tarjeta")}
             </Button>
           </Card>
         )}
 
-        {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}
+        {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
 
-        <Button type="submit" disabled={!valido || enviando} className="my-2">
-          {enviando ? tr("GUARDANDO...") : editando ? tr("GUARDAR CAMBIOS") : esUrgente ? tr("PUBLICAR URGENCIA") : tr("PUBLICAR AHORA")}
+        <Button type="submit" size="lg" icon={esUrgente ? "bolt" : undefined} disabled={!valido} loading={enviando} className="mt-1">
+          {editando ? tr("Guardar cambios") : esUrgente ? tr("Publicar urgencia") : tr("Publicar ahora")}
         </Button>
       </form>
     </div>

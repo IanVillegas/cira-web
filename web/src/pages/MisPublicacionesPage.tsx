@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { ExploreTabs } from "@/components/ui/ExploreTabs";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Loader } from "@/components/ui/Loader";
-import { Button } from "@/components/ui/Button";
+import { Button, Dialog, Loader, PageHeader, Stagger } from "@/components/aire";
+import { ExploreTabs } from "@/components/ExploreTabs";
+import { Vacio } from "@/components/Vacio";
 import { PublicacionCard } from "@/components/PublicacionCard";
 import { RatingSheet } from "@/components/RatingSheet";
 import { PagarSheet } from "@/components/PagarSheet";
 import { PagoResumen } from "@/components/PagoResumen";
-import { SuccessModal } from "@/components/ui/SuccessModal";
 import { mostrarToast } from "@/lib/toast";
 import { api } from "@/lib/api";
 import { usePolling } from "@/lib/usePolling";
@@ -43,32 +40,25 @@ export function MisPublicacionesPage() {
     );
 
   return (
-    <div className="pb-4">
-      <PageHeader title={tr("Explorar")} subtitle={tr("Consulta y administra tus publicaciones.")} icon="article" />
+    <div className="pb-6">
+      <PageHeader title={tr("Explorar")} subtitle={tr("Consulta y administra tus publicaciones.")} />
       <ExploreTabs />
 
-      <div className="px-5 pt-4">
-        <Button className="mb-4" onClick={() => navigate("/crear-trabajo")}>
+      <div className="grid gap-3 px-5 pt-4">
+        <Button icon="add" onClick={() => navigate("/crear-trabajo")}>
           {tr("Crear publicación")}
         </Button>
 
         {publicaciones === null ? (
           <Loader label={tr("Cargando publicaciones...")} />
         ) : publicaciones.length === 0 ? (
-          <EmptyState
-            title={tr("No tienes publicaciones todavía")}
-            message={tr("Crea tu primera publicación para recibir postulantes.")}
-          />
+          <Vacio title={tr("No tienes publicaciones todavía")} message={tr("Crea tu primera publicación para recibir postulantes.")} />
         ) : (
-          publicaciones.map((trabajo) => (
-            <PublicacionCard
-              key={trabajo.id}
-              trabajo={trabajo}
-              onChange={actualizar}
-              onRate={setACalificar}
-              onPay={setAPagar}
-            />
-          ))
+          <Stagger className="grid gap-3">
+            {publicaciones.map((trabajo) => (
+              <PublicacionCard key={trabajo.id} trabajo={trabajo} onChange={actualizar} onRate={setACalificar} onPay={setAPagar} />
+            ))}
+          </Stagger>
         )}
       </div>
 
@@ -92,19 +82,31 @@ export function MisPublicacionesPage() {
         }}
       />
 
-      <SuccessModal
+      <Dialog
         open={pagado !== null}
+        contained
+        onClose={() => setPagado(null)}
         title={tr("¡Pago realizado!")}
         message={tr("Le pagaste a {nombre}.", { nombre: pagado?.trabajadorNombre ?? "" })}
-        buttonLabel={tr("CALIFICAR AHORA")}
-        onClose={() => {
-          const t = pagado;
-          setPagado(null);
-          if (t && !t.calificadoPorMi) setACalificar(t);
-        }}
+        actions={
+          <>
+            <Button
+              onClick={() => {
+                const t = pagado;
+                setPagado(null);
+                if (t && !t.calificadoPorMi) setACalificar(t);
+              }}
+            >
+              {tr("Calificar ahora")}
+            </Button>
+            <Button variant="plain" onClick={() => setPagado(null)}>
+              {tr("Ahora no")}
+            </Button>
+          </>
+        }
       >
         {pagado && <PagoResumen resumen={pagado.resumenPago} />}
-      </SuccessModal>
+      </Dialog>
     </div>
   );
 }

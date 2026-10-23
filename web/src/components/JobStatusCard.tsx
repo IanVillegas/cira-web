@@ -1,63 +1,50 @@
 import type { ReactNode } from "react";
-import { Icon } from "./ui/Icon";
+import { Badge, Card, Icon } from "@/components/aire";
+import type { BadgeTone } from "@/components/aire/Badge";
 
-export interface StatusBadge {
-  text: string;
-  /** Color de fondo y de texto del badge (hex). */
-  bg: string;
-  color: string;
-}
+export type EstadoTono = BadgeTone;
 
 interface JobStatusCardProps {
   titulo: string;
   publicador?: string;
   fecha: string;
-  badge: StatusBadge;
-  /** Color del ícono de trabajo (acento en "Mis trabajos", gris en el historial). */
-  iconClassName?: string;
+  /** Texto y tono del estado. */
+  estado: { text: string; tone: EstadoTono };
+  /** Ícono gris en el historial, acento en "Mis trabajos". */
+  apagado?: boolean;
   actions?: ReactNode;
   /** Contenido a todo el ancho debajo de la tarjeta (seguimiento, botones largos). */
   footer?: ReactNode;
 }
 
-/** Tarjeta de "Mis trabajos" / "Historial" (Border radio 14, padding 14, ícono 46 a la derecha). */
-export function JobStatusCard({
-  titulo,
-  publicador,
-  fecha,
-  badge,
-  iconClassName = "text-cira-accent",
-  actions,
-  footer,
-}: JobStatusCardProps) {
+/** Tarjeta de "Mis trabajos" y del historial. */
+export function JobStatusCard({ titulo, publicador, fecha, estado, apagado = false, actions, footer }: JobStatusCardProps) {
   return (
-    <div className="mb-3 rounded-[14px] bg-cira-card p-3.5">
-    <div className="flex items-stretch gap-3">
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <p className="text-base font-semibold text-cira-text-primary">{titulo}</p>
-        {publicador && <p className="text-[13px] text-cira-text-secondary">{publicador}</p>}
-        <p className="text-xs text-cira-text-helper">{fecha}</p>
+    <Card className="grid gap-3">
+      <div className="flex items-start gap-3">
         <span
-          className="self-start rounded-lg px-2 py-[3px] text-[11px] font-semibold"
-          style={{ backgroundColor: badge.bg, color: badge.color }}
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md ${
+            apagado ? "bg-aire-surface-3 text-aire-ink-2" : "bg-aire-accent-soft text-aire-accent-text"
+          }`}
         >
-          {badge.text}
+          <Icon name="work" size={26} />
         </span>
+        <div className="grid min-w-0 flex-1 gap-1">
+          <p className="aire-text-headline truncate text-aire-ink">{titulo}</p>
+          {publicador && <p className="aire-text-subhead truncate text-aire-ink-2">{publicador}</p>}
+          <p className="aire-text-footnote text-aire-ink-2">{fecha}</p>
+          <span className="mt-0.5 self-start">
+            <Badge tone={estado.tone}>{estado.text}</Badge>
+          </span>
+        </div>
+        {actions && <div className="flex shrink-0 gap-2">{actions}</div>}
       </div>
-
-      <div className="flex shrink-0 flex-col items-end justify-center gap-2">
-        <span className="flex h-[46px] w-[46px] items-center justify-center rounded-[14px] bg-cira-header-icon-bg">
-          <Icon name="work" size={27} className={iconClassName} />
-        </span>
-        {actions && <div className="flex gap-2">{actions}</div>}
-      </div>
-    </div>
-    {footer && <div className="mt-3 flex flex-col gap-3">{footer}</div>}
-    </div>
+      {footer && <div className="grid gap-3">{footer}</div>}
+    </Card>
   );
 }
 
-/** Botón cuadrado de 34 px con ícono (iniciar / completar / cancelar). */
+/** Botón circular con ícono (escribir, cancelar…). */
 export function CardAction({
   icon,
   onClick,
@@ -71,15 +58,13 @@ export function CardAction({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       aria-label={label}
-      className={`flex h-[34px] w-[34px] items-center justify-center rounded-[10px] ${
-        destructive
-          ? "bg-cira-btn-destructive-bg text-cira-btn-destructive-text"
-          : "bg-cira-nav-selected-bg text-cira-accent"
-      }`}
+      className="ca-iconbtn"
+      style={{ color: destructive ? "var(--aire-danger-text)" : "var(--aire-accent-text)" }}
     >
-      <Icon name={icon} size={20} />
+      <Icon name={icon} size={22} />
     </button>
   );
 }

@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
-import { Loader } from "@/components/ui/Loader";
-import { Switch } from "@/components/ui/Switch";
-import { DateTimeField } from "@/components/ui/DateTimeField";
+import { Button, Card, Icon, Input, Loader, PageHeader, Switch } from "@/components/aire";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
@@ -48,71 +43,57 @@ export function ConfigurarDisponibilidadPage() {
   };
 
   return (
-    <div>
+    <div className="pb-6">
       <PageHeader
         title={tr("Disponibilidad")}
         subtitle={tr("Indica cuándo puedes recibir solicitudes.")}
-        icon="event_available"
-        showBack
+        onBack={() => navigate(-1)}
+        backLabel={tr("Atrás")}
+        large={false}
       />
 
-      <div className="flex flex-col gap-[18px] px-5 pt-2 pb-7">
-        <div className="flex flex-col gap-3.5 rounded-[14px] bg-cira-card p-4">
-          <h2 className="text-base font-semibold text-cira-text-primary">{tr("Estado actual")}</h2>
+      <div className="grid gap-4 px-5 pt-2">
+        <Card className="grid gap-3.5">
+          <h2 className="aire-text-title-3 text-aire-ink">{tr("Estado actual")}</h2>
           <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cira-nav-selected-bg">
-              <Icon
-                name={disponible ? "check_circle" : "cancel"}
-                size={26}
-                className={disponible ? "text-cira-accent" : "text-cira-text-helper"}
-              />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+              <Icon name={disponible ? "check_circle" : "cancel"} filled size={26} className={disponible ? "text-aire-accent-text" : "text-aire-ink-3"} />
             </span>
             <div className="flex-1">
-              <p className="text-lg font-semibold text-cira-text-primary">
-                {disponible ? tr("Disponible") : tr("No disponible")}
-              </p>
-              <p className="text-[13px] text-cira-text-secondary">
-                {usarRango ? tr("Rango configurado") : tr("Sin rango configurado")}
-              </p>
+              <p className="aire-text-headline text-aire-ink">{disponible ? tr("Disponible") : tr("No disponible")}</p>
+              <p className="aire-text-footnote text-aire-ink-2">{usarRango ? tr("Rango configurado") : tr("Sin rango configurado")}</p>
             </div>
             <Switch checked={disponible} onChange={setDisponible} label={tr("Disponibilidad")} />
           </div>
-        </div>
+        </Card>
 
-        <div className="flex flex-col gap-3.5 rounded-[14px] bg-cira-card p-4">
-          <label className="flex items-center gap-2.5">
-            <input
-              type="checkbox"
-              checked={usarRango}
-              onChange={(e) => setUsarRango(e.target.checked)}
-              className="h-5 w-5 shrink-0 accent-cira-accent"
-            />
-            <span className="flex flex-col gap-0.5">
-              <span className="text-[15px] font-semibold text-cira-text-primary">{tr("Usar rango opcional")}</span>
-              <span className="text-[13px] text-cira-text-secondary">
-                {tr("Define una fecha y hora de inicio y fin.")}
-              </span>
-            </span>
-          </label>
+        <Card className="grid gap-3.5">
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <p className="aire-text-headline text-aire-ink">{tr("Usar rango opcional")}</p>
+              <p className="aire-text-footnote text-aire-ink-2">{tr("Define una fecha y hora de inicio y fin.")}</p>
+            </div>
+            <Switch checked={usarRango} onChange={setUsarRango} label={tr("Usar rango opcional")} />
+          </div>
 
           {usarRango && (
-            <div className="flex flex-col gap-3.5">
+            <div className="grid gap-3">
               <div className="grid grid-cols-2 gap-3">
-                <DateTimeField label={tr("Desde")} icon="calendar_month" type="date" value={rango.desdeFecha} onChange={(v) => setRango({ ...rango, desdeFecha: v })} />
-                <DateTimeField label={tr("Hora")} icon="schedule" type="time" value={rango.desdeHora} onChange={(v) => setRango({ ...rango, desdeHora: v })} />
+                <Input label={tr("Desde")} type="date" value={rango.desdeFecha} onChange={(e) => setRango({ ...rango, desdeFecha: e.target.value })} />
+                <Input label={tr("Hora")} type="time" value={rango.desdeHora} onChange={(e) => setRango({ ...rango, desdeHora: e.target.value })} />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <DateTimeField label={tr("Hasta")} icon="calendar_month" type="date" value={rango.hastaFecha} onChange={(v) => setRango({ ...rango, hastaFecha: v })} />
-                <DateTimeField label={tr("Hora")} icon="schedule" type="time" value={rango.hastaHora} onChange={(v) => setRango({ ...rango, hastaHora: v })} />
+                <Input label={tr("Hasta")} type="date" value={rango.hastaFecha} onChange={(e) => setRango({ ...rango, hastaFecha: e.target.value })} />
+                <Input label={tr("Hora")} type="time" value={rango.hastaHora} onChange={(e) => setRango({ ...rango, hastaHora: e.target.value })} />
               </div>
             </div>
           )}
-        </div>
+        </Card>
 
-        {estado && <p className="text-[13px] text-cira-accent">{estado}</p>}
+        {estado && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{estado}</p>}
 
-        <Button onClick={guardar} disabled={guardando}>
-          {tr("GUARDAR DISPONIBILIDAD")}
+        <Button loading={guardando} onClick={guardar}>
+          {tr("Guardar disponibilidad")}
         </Button>
       </div>
     </div>

@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { PinInput } from "@/components/ui/PinInput";
+import { Button, Input, PinInput } from "@/components/aire";
 import { AuthError, AuthHeading, AuthLayout, IdentifierChip } from "@/layouts/AuthLayout";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -15,6 +13,7 @@ export function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(false);
 
   if (isAuthenticated) return <Navigate to="/explorar" replace />;
 
@@ -24,80 +23,89 @@ export function LoginPage() {
       return;
     }
     setError(null);
+    setCargando(true);
     try {
       await api.auth.existe(identifier.trim());
       setStep("pin");
     } catch (e) {
       setError(e instanceof Error ? e.message : tr("No se pudo iniciar sesión."));
+    } finally {
+      setCargando(false);
     }
   };
 
   const ingresar = async () => {
     setError(null);
+    setCargando(true);
     try {
       await login(identifier.trim(), pin);
       navigate("/explorar", { replace: true });
     } catch (e) {
       setPin("");
       setError(e instanceof Error ? e.message : tr("No se pudo iniciar sesión."));
+    } finally {
+      setCargando(false);
     }
   };
 
   return (
     <AuthLayout>
       {step === "identifier" ? (
-        <div className="flex flex-col gap-[18px]">
+        <>
           <AuthHeading title={tr("Inicia sesión")} subtitle={tr("Ingresa tu teléfono o correo para continuar.")} />
 
           <Input
             type="text"
             inputMode="email"
+            icon="person"
             placeholder={tr("Teléfono o correo")}
             value={identifier}
+            error={error ?? undefined}
             onChange={(e) => setIdentifier(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && continuar()}
           />
 
-          <AuthError message={error} />
+          <Button loading={cargando} onClick={continuar}>
+            {tr("Continuar")}
+          </Button>
 
-          <Button onClick={continuar}>{tr("Continuar")}</Button>
-
-          <p className="flex items-center justify-center gap-1 text-[13px]">
-            <span className="text-cira-text-secondary">{tr("¿No tienes una cuenta?")}</span>
-            <Link to="/registro" className="font-bold text-cira-accent underline">
+          <p className="aire-text-subhead flex items-center justify-center gap-1">
+            <span className="text-aire-ink-2">{tr("¿No tienes una cuenta?")}</span>
+            <Link to="/registro" className="font-semibold text-aire-accent-text">
               {tr("Regístrate.")}
             </Link>
           </p>
-        </div>
+        </>
       ) : (
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-2">
+        <>
+          <div className="grid gap-3">
             <AuthHeading title={tr("Ingresa tu PIN")} />
             <IdentifierChip>{identifier}</IdentifierChip>
           </div>
 
-          <PinInput value={pin} onChange={setPin} autoFocus />
+          <PinInput value={pin} onChange={setPin} autoFocus error={!!error} />
 
           <AuthError message={error} />
 
-          <Link to="/recuperar" className="text-center text-[13px] font-bold text-cira-accent underline">
+          <Link to="/recuperar" className="aire-text-subhead text-center font-semibold text-aire-accent-text">
             {tr("¿Olvidaste tu PIN?")}
           </Link>
 
-          <Button disabled={pin.length < 4} onClick={ingresar}>
+          <Button disabled={pin.length < 4} loading={cargando} onClick={ingresar}>
             {tr("Ingresar")}
           </Button>
 
           <Button
-            variant="outlined"
+            variant="plain"
             onClick={() => {
               setPin("");
+              setError(null);
               setStep("identifier");
             }}
           >
             {tr("Cambiar teléfono o correo")}
           </Button>
-        </div>
+        </>
       )}
     </AuthLayout>
   );

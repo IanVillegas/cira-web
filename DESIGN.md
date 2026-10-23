@@ -107,9 +107,11 @@ Interletrado negativo en todo texto de 15px o más; ya viene en cada clase.
 | `PageHeader` | `PageHeader` | `title`, `subtitle`, `onBack`, `backLabel`, `action` (`{ icon, label, onClick }`), `large` |
 | `EmptyState` | `EmptyState` | `title`, `message`, `image` (`/images/empty_*.svg`), `action` |
 | `Loader`, `Spinner`, `Skeleton` | `Loader` | `Skeleton`: `width`, `height`, `radius`, `lines` |
-| `TabBar` | `BottomNav` | `items` (`{ key, label, icon }`), `value`, `onChange`, `floating` |
+| `TabBar` | `BottomNav` | `items` (`{ key, label, icon, badge? }`), `value`, `onChange`, `floating`. `badge` pinta un contador rojo (mensajes sin leer) |
 | `Sheet` | `DistrictPickerSheet` y similares | `open`, `onClose`, `title`, `subtitle`, `contained` |
-| `Toast` | nuevo | `open`, `message`, `tone`, `icon`, `onClose`, `duration` |
+| `Toast` | nuevo | `open`, `message`, `tone`, `icon`, `onClose`, `duration`, `onPress` (tocar el aviso hace algo, p. ej. abrir un chat) |
+| `Dialog` | `SuccessModal` | `open`, `onClose`, `title`, `message`, `icon`, `tone` (`success`, `accent`, `danger`), `actions`, `contained`; el contenido extra va como `children` |
+| `Fab` | nuevo | `icon`, `label` (accesible, obligatoria), `onClick`; círculo de 56px para la acción principal de una lista |
 | `Reveal`, `Stagger` | nuevos | `effect` (`up`, `scale`, `fade`), `delay`, `step` |
 | `Icon` | `Icon` | `name` (Material Symbols Rounded), `filled`, `size` |
 
@@ -162,6 +164,19 @@ Tarjeta de trabajo típica:
 - Material Symbols Rounded (ya cargada en `index.html` con los ejes de relleno y peso). Contorno en estado normal y relleno en activo o seleccionado.
 - Isotipo: `web/public/images/cira_isotipo_outline_blue.svg`. Ilustraciones de estados vacíos: `web/public/images/empty_*.svg`.
 
+## Componentes de la app construidos sobre Aire
+
+Viven en `web/src/components/` (no en `aire/`) porque dependen de la lógica de CIRA, pero solo usan componentes y tokens de Aire:
+
+| Componente | Para qué |
+|---|---|
+| `SelectSheet` | Selector de una opción: campo de solo lectura que abre una `Sheet` con la lista (categorías) |
+| `Vacio` | `EmptyState` con la ilustración elegida por nombre (`empty_no_signal`, …) |
+| `ExploreTabs` | `SegmentedControl` de Explorar atado a la ruta |
+| `ToastHost` y `lib/toast.ts` | `mostrarToast(texto, tipo, accion?)` desde cualquier lugar; el host muestra el aviso más reciente con `Toast` |
+| `JobCard`, `WorkerCard`, `PublicacionCard`, `JobStatusCard` | Tarjetas de trabajo y personas (una acción principal por tarjeta) |
+| `PagarSheet`, `RatingSheet`, `ReportSheet`, `DistrictPickerSheet` | Hojas de pago con propina, calificación, reporte y distrito |
+
 ## Migración
 
-Las pantallas actuales siguen con `components/ui/` y los tokens `cira-*`. Aire convive con ellos: no hace falta migrar todo de una vez. Cuando rediseñes o crees una pantalla, hazla completa con Aire (no mezcles un `Button` de `ui/` con uno de `aire/` en la misma pantalla) y envuélvela en `ca-root`.
+Toda la interfaz de `web/` ya usa Aire: se eliminó `components/ui/` y los tokens `cira-*`. Si agregas una pantalla o un componente nuevo, usa Aire y envuélvelo en el marco `ca-root` que ya pone `PhoneFrame`. Las hojas y diálogos se montan con `contained` para quedar dentro del marco del teléfono.

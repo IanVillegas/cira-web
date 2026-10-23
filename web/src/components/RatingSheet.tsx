@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { BottomSheet } from "./ui/BottomSheet";
-import { Button } from "./ui/Button";
+import { Button, Sheet, TextArea } from "@/components/aire";
 import { EstrellasInput } from "./Estrellas";
 import { api } from "@/lib/api";
-import type { Trabajo } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import type { Trabajo } from "@/lib/types";
 
 interface RatingSheetProps {
   trabajo: Trabajo | null;
@@ -36,28 +35,24 @@ export function RatingSheet({ trabajo, onClose, onDone }: RatingSheetProps) {
   };
 
   return (
-    <BottomSheet
+    <Sheet
       open={trabajo !== null}
       onClose={onClose}
       title={tr("Califica a {nombre}", { nombre: trabajo?.contraparteNombre ?? tr("la otra persona") })}
       subtitle={trabajo?.titulo}
+      contained
     >
-      <EstrellasInput value={estrellas} onChange={setEstrellas} />
-      <textarea
-        rows={3}
-        maxLength={500}
-        placeholder={tr("Cuéntanos cómo fue (opcional)")}
-        value={comentario}
-        onChange={(e) => setComentario(e.target.value)}
-        className="w-full resize-none rounded-cira-input bg-cira-input-bg px-3.5 py-2.5 text-cira-body text-cira-text-primary ring-1 ring-cira-border placeholder:text-cira-text-helper focus:outline-none"
-      />
-      {error && <p className="text-center text-[13px] text-cira-btn-destructive-text">{error}</p>}
-      <Button disabled={estrellas === 0 || enviando} onClick={enviar}>
-        {enviando ? tr("ENVIANDO...") : tr("ENVIAR CALIFICACIÓN")}
-      </Button>
-      <Button variant="outlined" onClick={onClose}>
-        {tr("Ahora no")}
-      </Button>
-    </BottomSheet>
+      <div className="grid gap-4">
+        <EstrellasInput value={estrellas} onChange={setEstrellas} />
+        <TextArea rows={3} maxLength={500} placeholder={tr("Cuéntanos cómo fue (opcional)")} value={comentario} onChange={(e) => setComentario(e.target.value)} />
+        {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
+        <Button disabled={estrellas === 0} loading={enviando} onClick={enviar}>
+          {tr("Enviar calificación")}
+        </Button>
+        <Button variant="plain" onClick={onClose}>
+          {tr("Ahora no")}
+        </Button>
+      </div>
+    </Sheet>
   );
 }
