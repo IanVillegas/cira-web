@@ -1,0 +1,167 @@
+# CIRA Aire — sistema de diseño
+
+El lenguaje visual de CIRA con la claridad de Apple: fondo gris perla, tarjetas blancas casi planas, un único azul de acción, píldoras, vidrio en las barras y movimiento con resorte. La interfaz se aparta para que se vean los trabajos y las personas; el movimiento confirma cada toque.
+
+Esta guía es la fuente de verdad para cualquier interfaz nueva o rediseñada de `web/`. La versión navegable, con ejemplos interactivos en tema claro y oscuro, está en el artefacto «CIRA Aire» de claude.ai.
+
+## Dónde está
+
+| Qué | Archivo |
+|---|---|
+| Componentes React (TSX, sin dependencias nuevas) | `web/src/components/aire/` — impórtalos desde `@/components/aire` |
+| Tokens (variables CSS `--aire-*`), estilos de texto `.aire-text-*` y estilos de los componentes (`.ca-*`) | `web/src/components/aire/aire.css` |
+| Tokens como utilidades de Tailwind (`bg-aire-accent`, `rounded-aire-lg`…) | `web/src/components/aire/aire-tailwind.css` |
+| Ambos se cargan desde | `web/src/index.css` |
+
+**Por qué el prefijo `--aire-`:** Tailwind 4 ya usa `--radius-*`, `--font-sans`, `--ease-out` y `--shadow-*`. Con el prefijo, Aire convive con los tokens `cira-*` actuales sin cambiar ninguna pantalla existente.
+
+**Contenedor:** envuelve la pantalla (o la app) en un elemento con `className="ca-root"`: fija fondo, fuente y color de texto. Para el tema oscuro, pon `data-theme="dark"` en `<html>` o en el contenedor.
+
+## Principios
+
+- **Un solo color de acción.** `aire-accent` marca lo que se puede tocar y lo que está activo: botón principal, pestaña, interruptor, foco. El resto es tinta (`aire-ink`, `aire-ink-2`) sobre `aire-bg` y `aire-surface`. No hay degradados decorativos.
+- **Profundidad por superficie, no por sombra.** Las pantallas son `aire-bg`, el contenido va en `aire-surface` (tarjetas) y lo interno en `aire-surface-2`. Solo flota lo que de verdad flota: la barra inferior y los avisos de vidrio (`aire-glass`) y las hojas (`aire-shadow-float`).
+- **Cada toque responde.** Todo lo que se puede presionar se encoge a `--aire-press-scale` (0.97) y vuelve con `--aire-ease-pop`. Los cambios de estado se deslizan con `--aire-ease-spring` y lo que aparece entra con `--aire-ease-out`.
+- **Táctil primero.** Ningún control mide menos de 44px (`--aire-hit-target`). El texto principal va a 17px.
+
+## Color
+
+| Token (`--aire-…` / Tailwind `…-aire-…`) | Claro | Oscuro | Uso |
+|---|---|---|---|
+| `bg` | `#f5f5f7` | `#000000` | Fondo de la app |
+| `surface` | `#ffffff` | `#1c1c1e` | Tarjetas, hojas, campos |
+| `surface-2` | `#fafafc` | `#2c2c2e` | Bloques dentro de una tarjeta, celdas |
+| `surface-3` | `#e8e8ed` | `#3a3a3c` | Rellenos neutros, pista del segmentado, skeleton |
+| `ink` | `#1d1d1f` | `#f5f5f7` | Títulos y texto principal |
+| `ink-2` | `#6e6e73` | `#a1a1a6` | Texto secundario (4.6:1 o más) |
+| `ink-3` | `#86868b` | `#6e6e73` | Solo placeholders y deshabilitado (3.3:1, nunca texto que haya que leer) |
+| `hairline` | `#0000001a` | `#ffffff24` | Bordes y divisores de 1px |
+| `brand` | `#3e7be1` | `#3e7be1` | Azul exacto de CIRA: isotipo, ilustraciones, texto de 24px o más |
+| `accent` / `on-accent` | `#2f6fdc` / blanco | igual | Botón principal, estados activos (4.7:1 con blanco) |
+| `accent-text` | `#2867d1` | `#5aa2ff` | Enlaces y texto de acento |
+| `accent-soft` | `#e8f0fd` | `#0f2a52` | Fondos de selección (chip activo, ícono destacado) |
+| `success` / `-text` / `-soft` | `#34c759` / `#1d7f45` / `#e3f6e8` | `#30d158` / `#4cd77a` / `#0d2e18` | Éxito: relleno / texto / fondo |
+| `warning` / `-text` / `-soft` | `#ff9f0a` / `#a65200` / `#fff1dc` | `#ff9f0a` / `#ffb340` / `#33230a` | Advertencia |
+| `danger` / `-text` / `-soft` | `#ff3b30` / `#d70015` / `#ffe8ea` | `#ff453a` / `#ff6961` / `#3a1012` | Error y acciones destructivas |
+| `glass` / `glass-border` | `#f5f5f7b8` / `#ffffffb3` | `#1c1c1eb8` / `#ffffff1a` | Barras y avisos de vidrio |
+| `scrim` | `#00000059` | `#0000008c` | Velo detrás de hojas |
+| `focus` | `#2f6fdc80` | `#5aa2ff99` | Anillo de foco de 3px |
+
+- Nunca escribas un hex en un componente: usa `var(--aire-…)` o la clase de Tailwind (`bg-aire-surface`, `text-aire-ink-2`, `border-aire-hairline`).
+- Los colores de estado (`success`, `warning`, `danger`) son rellenos y puntos; para texto usa su versión `-text`. Siempre acompaña el color con una palabra o un ícono.
+
+## Tipografía
+
+Fuente del sistema Apple (SF Pro) en iPhone y Mac, e Inter en el resto (`--aire-font-sans`, `--aire-font-display`). Usa las clases `aire-text-<estilo>`:
+
+| Clase | Tamaño / peso | Uso |
+|---|---|---|
+| `aire-text-large-title` | 34 / 700 | Título de las secciones principales |
+| `aire-text-title-1` · `-title-2` · `-title-3` | 28 · 22 · 20 / 600–700 | Hojas, tarjetas destacadas |
+| `aire-text-headline` | 17 / 600 | Nombres en tarjetas y filas |
+| `aire-text-body` | 17 / 400 | Texto principal |
+| `aire-text-callout` · `-subhead` | 16 · 15 / 400 | Botones, texto secundario |
+| `aire-text-footnote` · `-caption` | 13 · 12 | Metadatos (distancia, fecha) |
+| `aire-text-eyebrow` | 11 / 600, mayúsculas | Categoría, etiqueta de campo |
+| `aire-text-figure` | 32 / 700 | Montos y cifras |
+
+Interletrado negativo en todo texto de 15px o más; ya viene en cada clase.
+
+## Espacio, forma y sombra
+
+- Espaciado (`--aire-space-1` … `--aire-space-12`): 4, 8, 12, 16, 20, 24, 32, 48. Márgenes de pantalla de 20px, relleno de tarjeta de 16px, 12px entre tarjetas y 32px entre secciones.
+- Radios (`rounded-aire-*`): `sm` 12 (inputs), `md` 16 (íconos contenedores, bloques internos), `lg` 22 (tarjetas), `xl` 32 (hojas, barra inferior) y `full` (botones, chips, controles).
+- Sombras (`shadow-aire-*`): `card` en reposo (casi nada), `lift` al interactuar, `float` para lo que flota, `thumb` en pulgares y `accent` solo en el botón principal.
+
+## Movimiento
+
+| Momento | Duración | Curva | Ejemplo |
+|---|---|---|---|
+| Presionar | `--aire-dur-instant` (100ms) al hundirse, `--aire-dur-base` al volver | `--aire-ease-pop` | `Button`, `Card interactive`, chips |
+| Cambiar de estado | `--aire-dur-base` (320ms) | `--aire-ease-spring` | píldora de `SegmentedControl` y `TabBar` |
+| Confirmar | `--aire-dur-base` | `--aire-ease-pop` | check de `SelectableCard`, `Switch`, `Badge` |
+| Aparecer | `--aire-dur-slow` (480ms), escalonado cada 45ms | `--aire-ease-out` | `Reveal`, `Stagger`, título de `PageHeader` |
+| Hojas | `--aire-dur-sheet` (560ms) | `--aire-ease-spring` | `Sheet` |
+| Avisar | `--aire-dur-slow` | `--aire-ease-pop` | `Toast` |
+| Error | 420ms | sacudida | `Input` y `PinInput` con `error` |
+
+- Anima solo `transform` y `opacity` (y `grid-template-rows` de `0fr` a `1fr` para expandir); nunca `top`, `left`, `height` ni `width` en listas.
+- En Tailwind: `transition-transform duration-[320ms] ease-aire-spring`.
+- Las listas que llegan con datos aparecen con `<Stagger>`; al cambiar de pestaña, cambia la `key` del `Stagger` para repetir la cascada.
+- Con «reducir movimiento» activado en el sistema, todo cambia de forma instantánea; `aire.css` y `Reveal` ya lo respetan. No agregues animaciones que se salten esa regla.
+
+## Componentes
+
+| Componente | Reemplaza a (en `components/ui/`) | Props clave |
+|---|---|---|
+| `Button` | `Button` | `variant` (`primary`, `secondary`, `tinted`, `outlined`, `destructive`, `plain`), `size` (`sm`, `md`, `lg`), `icon`, `loading`, `fullWidth` (por defecto `true`) |
+| `Card` | `Card` | `interactive` (con `onClick`), `inset` (bloque interno), `padding` |
+| `Input`, `TextArea` | `Input`, `TextArea`, `SelectField`, `DateTimeField`, `BudgetField` | `label`, `icon`, `prefix` («₡»), `trailing`, `hint`, `error` |
+| `Field`, `FieldCaption` | `Field`, `FieldCaption` | `label`, `hint` |
+| `Badge` | `Badge` | `tone` (`accent`, `success`, `warning`, `danger`, `neutral`), `dot`, `pulse` |
+| `Switch` | `Switch` | `checked`, `onChange`, `label` |
+| `SelectableCard` | `SelectableCard` | `icon`, `text`, `selected`, `onClick` |
+| `FilterChip` | `FilterChip` | `label`, `active` |
+| `SegmentedControl` | `ExploreTabs` | `items` (`{ value, label }`), `value`, `onChange`, `fullWidth` |
+| `PinInput` | `PinInput` | igual que hoy + `error` |
+| `PageHeader` | `PageHeader` | `title`, `subtitle`, `onBack`, `backLabel`, `action` (`{ icon, label, onClick }`), `large` |
+| `EmptyState` | `EmptyState` | `title`, `message`, `image` (`/images/empty_*.svg`), `action` |
+| `Loader`, `Spinner`, `Skeleton` | `Loader` | `Skeleton`: `width`, `height`, `radius`, `lines` |
+| `TabBar` | `BottomNav` | `items` (`{ key, label, icon }`), `value`, `onChange`, `floating` |
+| `Sheet` | `DistrictPickerSheet` y similares | `open`, `onClose`, `title`, `subtitle`, `contained` |
+| `Toast` | nuevo | `open`, `message`, `tone`, `icon`, `onClose`, `duration` |
+| `Reveal`, `Stagger` | nuevos | `effect` (`up`, `scale`, `fade`), `delay`, `step` |
+| `Icon` | `Icon` | `name` (Material Symbols Rounded), `filled`, `size` |
+
+Con React Router:
+
+```tsx
+import { useLocation, useNavigate } from "react-router-dom";
+import { TabBar } from "@/components/aire";
+
+const TABS = [
+  { key: "/mapa", label: "Mapa", icon: "map" },
+  { key: "/explorar", label: "Explorar", icon: "explore" },
+  { key: "/chats", label: "Chats", icon: "chat_bubble" },
+  { key: "/perfil", label: "Perfil", icon: "person" },
+];
+
+export function AppTabBar() {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const value = TABS.find((t) => pathname.startsWith(t.key))?.key ?? "/explorar";
+  return <TabBar items={TABS} value={value} onChange={navigate} />;
+}
+```
+
+Tarjeta de trabajo típica:
+
+```tsx
+<Card className="grid gap-3">
+  <p className="aire-text-eyebrow text-aire-accent-text">Jardinería</p>
+  <p className="aire-text-headline">Corte de césped y poda</p>
+  <p className="aire-text-figure">₡25 000</p>
+  <Badge tone="warning" dot>Urgente</Badge>
+  <div className="grid grid-cols-2 gap-2.5">
+    <Button variant="secondary" icon="chat_bubble">Contactar</Button>
+    <Button loading={enviando} onClick={postular}>Postularme</Button>
+  </div>
+</Card>
+```
+
+## Voz y contenido
+
+- Habla de tú, con verbos claros: «Postularme», «Publicar trabajo», «Elegir distrito».
+- Botones y pestañas en mayúscula inicial. Las MAYÚSCULAS quedan solo para `aire-text-eyebrow` y `FieldCaption`: «PAGO ESTIMADO», «JARDINERÍA».
+- Montos en colones con espacio de miles: «₡25 000».
+- Los estados vacíos dicen qué pasa y qué hacer.
+- Sin emoji en la interfaz.
+
+## Íconos e imágenes
+
+- Material Symbols Rounded (ya cargada en `index.html` con los ejes de relleno y peso). Contorno en estado normal y relleno en activo o seleccionado.
+- Isotipo: `web/public/images/cira_isotipo_outline_blue.svg`. Ilustraciones de estados vacíos: `web/public/images/empty_*.svg`.
+
+## Migración
+
+Las pantallas actuales siguen con `components/ui/` y los tokens `cira-*`. Aire convive con ellos: no hace falta migrar todo de una vez. Cuando rediseñes o crees una pantalla, hazla completa con Aire (no mezcles un `Button` de `ui/` con uno de `aire/` en la misma pantalla) y envuélvela en `ca-root`.
