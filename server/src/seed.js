@@ -16,7 +16,7 @@ const APP = "Pago en la app";
 // (p. ej. { "u-1": { "telefono": "8888-0000" } }); se aplica en cada arranque.
 const USUARIOS = [
   // id, nombre, cédula, teléfono, descripción, zona, lat, lng, plan, cédula✔, antecedentes✔, urgencias, base de trabajos
-  ["u-1", "Ian Villegas", "", "6104-4195", "Electricidad y reparaciones menores en Alajuela y alrededores.", "Alajuela Centro", 10.0163, -84.2113, "gratis", 1, 0, 0, 23],
+  ["u-1", "Ian Villegas", "", "6104-4195", "Electricidad y reparaciones menores en Alajuela y alrededores.", "Alajuela Centro", 10.0163, -84.2113, "plus", 1, 0, 0, 23],
   ["u-2", "Marisol Hidalgo", "", "6361-7541", "Limpieza de casas y cuidado de mascotas.", "San José, Escazú", 9.9189, -84.1394, "gratis", 0, 0, 0, 0],
   ["u-3", "Bayron Camacho", "", "8512-8068", "Plomero y cerrajero. Respondo urgencias.", "Alajuela, Desamparados", 10.025, -84.25, "plus", 1, 0, 1, 8],
   ["u-4", "Eduardo Picado", "", "6252-4226", "Electricista con 10 años de experiencia. Atiendo urgencias.", "Alajuela Centro", 10.018, -84.213, "plus", 1, 1, 1, 52],

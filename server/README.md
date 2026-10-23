@@ -40,7 +40,7 @@ Hay 6 usuarios sembrados (`src/seed.js`), todos con el PIN **1234** (fase de pru
 
 | Id | Nombre | Teléfono | Plan | Servicios |
 | --- | --- | --- | --- | --- |
-| `u-1` | Ian Villegas | 6104-4195 | Gratis | Electricidad, Reparaciones |
+| `u-1` | Ian Villegas | 6104-4195 | Plus | Electricidad, Reparaciones |
 | `u-2` | Marisol Hidalgo | 6361-7541 | Gratis | Limpieza, Cuidado de mascotas |
 | `u-3` | Bayron Camacho | 8512-8068 | Plus | Plomería, Cerrajería |
 | `u-4` | Eduardo Picado | 6252-4226 | Plus | Electricidad, Reparaciones |
