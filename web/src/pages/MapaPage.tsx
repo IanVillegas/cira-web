@@ -102,7 +102,7 @@ export function MapaPage() {
   };
 
   return (
-    <div className="relative h-full min-h-[480px] bg-aire-surface-3">
+    <div className="ca-mapa-full relative h-full min-h-[480px] bg-aire-surface-3">
       {cargando ? (
         <div className="flex h-full items-center justify-center">
           <Loader label={tr("Cargando mapa...")} />
@@ -226,7 +226,8 @@ export function MapaPage() {
         type="button"
         onClick={centrar}
         aria-label={tr("Centrar en mi ubicación")}
-        className="absolute right-4 bottom-5 z-[1000] flex h-14 w-14 items-center justify-center rounded-aire-full border border-aire-glass-border bg-aire-glass shadow-aire-float backdrop-blur-xl transition-transform duration-[100ms] ease-aire-pop active:scale-90"
+        style={{ bottom: "calc(var(--aire-tabbar-space) + 8px)" }}
+        className="absolute right-4 z-[1000] flex h-14 w-14 items-center justify-center rounded-aire-full border border-aire-glass-border bg-aire-glass shadow-aire-float backdrop-blur-xl transition-transform duration-[100ms] ease-aire-pop active:scale-90"
       >
         <Icon name="my_location" size={28} className="text-aire-accent-text" />
       </button>

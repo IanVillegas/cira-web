@@ -96,7 +96,7 @@ export function ExplorarTrabajosPage() {
         )}
       </div>
 
-      <div className="pointer-events-none sticky bottom-4 mt-4 flex justify-end px-5">
+      <div className="pointer-events-none sticky mt-4 flex justify-end px-5" style={{ bottom: "calc(var(--aire-tabbar-space) + 4px)" }}>
         <span className="pointer-events-auto">
           <Fab icon="add" label={tr("Crear publicación")} onClick={() => navigate("/crear-trabajo")} />
         </span>

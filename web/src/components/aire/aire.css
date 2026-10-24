@@ -635,7 +635,7 @@
 
 /* ── Barra inferior de vidrio ──────────────────────────── */
 .ca-tabbar { padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); background: var(--aire-glass); -webkit-backdrop-filter: blur(var(--ca-blur)) saturate(180%); backdrop-filter: blur(var(--ca-blur)) saturate(180%); border-top: 1px solid var(--aire-hairline); }
-.ca-tabbar.is-floating { margin: 0 16px 12px; padding: 6px; border: 1px solid var(--aire-glass-border); border-radius: var(--aire-radius-xl); box-shadow: var(--aire-shadow-float); }
+.ca-tabbar.is-floating { margin: 0 16px calc(12px + env(safe-area-inset-bottom, 0px)); padding: 6px; border: 1px solid var(--aire-glass-border); border-radius: var(--aire-radius-xl); box-shadow: var(--aire-shadow-float); }
 .ca-tabbar__row { position: relative; display: grid; }
 .ca-tabbar__pill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: var(--aire-radius-xl); background: var(--aire-accent-soft); opacity: 0; }
 .ca-tabbar__pill.is-ready { opacity: 1; transition: transform var(--ca-dur-base) var(--ca-ease-spring), width var(--ca-dur-base) var(--ca-ease-spring); }
@@ -860,6 +860,16 @@ a.ca-photocard__iconbtn { text-decoration: none; }
   box-shadow: inset 0 0 0 1px var(--aire-hairline);
 }
 .ca-catchip .ca-catthumb { width: 24px; height: 24px; border-radius: var(--aire-radius-full); }
+
+/* ── Barra inferior flotante sobre el contenido ───────────
+   El contenido pasa por detrás de la cápsula de vidrio; --aire-tabbar-space es el alto que
+   ocupa (cápsula + margen) para que el final de cada pantalla y lo fijo abajo no quede tapado. */
+:root { --aire-tabbar-space: calc(92px + env(safe-area-inset-bottom, 0px)); }
+.ca-tabbar-dock { position: absolute; inset: auto 0 0 0; z-index: 1100; pointer-events: none; }
+.ca-tabbar-dock > * { pointer-events: auto; }
+.ca-scroll-under-tabbar { padding-bottom: var(--aire-tabbar-space); }
+/* Mapa a pantalla completa: los controles de Leaflet (y la atribución de OSM) suben sobre la barra. */
+.ca-mapa-full .leaflet-bottom { margin-bottom: var(--aire-tabbar-space); }
 
 /* ── Movimiento reducido: sin desplazamientos, solo cambios de opacidad breves ── */
 @media (prefers-reduced-motion: reduce) {

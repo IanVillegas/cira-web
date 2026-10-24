@@ -21,7 +21,7 @@ const TABS = [
   { key: "/perfil", label: "Perfil", icon: "person", matches: ["/perfil", "/cuenta", "/historial"] },
 ];
 
-/** Pantallas autenticadas: contenido con scroll, barra inferior de vidrio y avisos por encima. */
+/** Pantallas autenticadas: contenido con scroll, barra inferior de vidrio flotando encima y avisos. */
 export function AppShell() {
   const { isAuthenticated, lastIdentifier } = useAuth();
   const { pathname } = useLocation();
@@ -42,10 +42,13 @@ export function AppShell() {
 
   return (
     <PhoneFrame>
-      <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
+      {/* El contenido corre por detrás de la cápsula; el mapa llega hasta el borde inferior. */}
+      <div className={`no-scrollbar min-h-0 flex-1 overflow-y-auto ${pathname.startsWith("/mapa") ? "" : "ca-scroll-under-tabbar"}`}>
         <Outlet />
       </div>
-      <TabBar items={items} value={actual} onChange={(key) => navigate(key)} />
+      <div className="ca-tabbar-dock">
+        <TabBar items={items} value={actual} onChange={(key) => navigate(key)} />
+      </div>
       <AlertBanner />
       <ToastHost />
       <ChatNotifier />
