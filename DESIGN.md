@@ -158,6 +158,14 @@ Tarjeta de trabajo típica:
 
 En las listas de gestión (Mis publicaciones, Mis trabajos, Historial) la foto aparece como miniatura de 48px con `CategoriaThumb` (`apagado` la pone en gris para el historial), y en Trabajadores los servicios se muestran con `CategoriaChip`; ambos están en `web/src/components/CategoriaThumb.tsx`. La tarjeta grande con foto se reserva para Explorar.
 
+### De confianza y Recontratar
+
+- `ConfianzaButton` (corazón, `components/`): agrega o quita a alguien de "De confianza"; va en `WorkerCard` y en el perfil público. El corazón activo usa `accent-text` sobre `accent-soft`.
+- `WorkerCard modo="confianza"` (pantalla `/de-confianza`): la acción principal es **Recontratar**; Chatear y Recomendar son secundarias.
+- `GuardadoPor`: "Guardado por N clientes" en el perfil (solo el número, nunca quiénes).
+- Recomendar usa `compartirPerfil` (`lib/compartir.ts`): menú nativo de compartir con el link al perfil en CIRA; nunca expone el teléfono.
+- Recontratar abre `/crear-trabajo?para=<id>`: la publicación es una oferta directa que solo ve esa persona (en Mis trabajos, con Aceptar / No puedo). Si la rechaza, queda abierta para todos.
+
 ## Voz y contenido
 
 - Habla de tú, con verbos claros: «Postularme», «Publicar trabajo», «Elegir distrito».

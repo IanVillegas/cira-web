@@ -64,6 +64,8 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
   };
 
   const pendiente = trabajo.estado === "Pendiente";
+  // Oferta directa sin respuesta todavía: no recibe postulantes.
+  const esperandoInvitado = pendiente && !!trabajo.invitadoId && !trabajo.invitacionRechazada;
   const enCurso = trabajo.estado === "Asignado" || trabajo.estado === "En progreso";
 
   return (
@@ -94,26 +96,42 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
         </p>
       )}
 
+      {esperandoInvitado && (
+        <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-accent-soft p-3 text-aire-accent-text">
+          <Icon name="favorite" filled size={20} />
+          {tr("Oferta directa para {nombre}. Esperando su respuesta…", { nombre: trabajo.invitadoNombre ?? "" })}
+        </p>
+      )}
+
+      {pendiente && trabajo.invitacionRechazada && (
+        <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-surface-2 p-3 text-aire-ink-2">
+          <Icon name="info" size={20} />
+          {tr("{nombre} no pudo tomarlo. Tu publicación ahora está abierta para todos.", { nombre: trabajo.invitadoNombre ?? "" })}
+        </p>
+      )}
+
       {pendiente && (
         <>
-          <button
-            type="button"
-            aria-expanded={verPostulantes}
-            onClick={togglePostulantes}
-            className="aire-text-headline flex min-h-12 items-center justify-between rounded-aire-md bg-aire-surface-2 px-4 text-left text-aire-ink transition-transform duration-[100ms] ease-aire-pop active:scale-[0.98]"
-          >
-            <span className="flex items-center gap-2">
-              <Icon name="groups" size={20} className="text-aire-accent-text" />
-              {tr("{n} postulante(s)", { n: trabajo.postulantes })}
-            </span>
-            <Icon
-              name="expand_more"
-              size={22}
-              className={`text-aire-ink-2 transition-transform duration-[320ms] ease-aire-spring ${verPostulantes ? "rotate-180" : ""}`}
-            />
-          </button>
+          {!esperandoInvitado && (
+            <button
+              type="button"
+              aria-expanded={verPostulantes}
+              onClick={togglePostulantes}
+              className="aire-text-headline flex min-h-12 items-center justify-between rounded-aire-md bg-aire-surface-2 px-4 text-left text-aire-ink transition-transform duration-[100ms] ease-aire-pop active:scale-[0.98]"
+            >
+              <span className="flex items-center gap-2">
+                <Icon name="groups" size={20} className="text-aire-accent-text" />
+                {tr("{n} postulante(s)", { n: trabajo.postulantes })}
+              </span>
+              <Icon
+                name="expand_more"
+                size={22}
+                className={`text-aire-ink-2 transition-transform duration-[320ms] ease-aire-spring ${verPostulantes ? "rotate-180" : ""}`}
+              />
+            </button>
+          )}
 
-          {verPostulantes &&
+          {!esperandoInvitado && verPostulantes &&
             (postulantes === null ? null : postulantes.length === 0 ? (
               <p className="aire-text-subhead text-center text-aire-ink-2">{tr("Aún no hay postulantes.")}</p>
             ) : (

@@ -21,6 +21,9 @@ import {
 export const router = Router();
 
 const ESTADOS_CERRADOS = ["Finalizado", "Cancelado"];
+/** Una oferta directa todavía sin respuesta: nadie más la ve ni puede postularse. */
+const INVITACION_PENDIENTE = "(invitado_id IS NOT NULL AND invitacion_rechazada = 0)";
+const invitacionPendiente = (row) => !!row.invitado_id && !row.invitacion_rechazada;
 const error = (res, status, mensaje) => res.status(status).json({ error: mensaje });
 
 const MSG_SIN_TARJETA = "Registra una tarjeta en tu cuenta para pagar con tarjeta o publicar una urgencia.";
@@ -264,17 +267,19 @@ router.get("/trabajos", (req, res) => {
       .prepare(
         `SELECT * FROM trabajo
           WHERE publicador_id != ? AND estado != 'Cancelado'
-            AND (trabajador_id = ? OR id IN (SELECT trabajo_id FROM postulacion WHERE usuario_id = ?))
+            AND (trabajador_id = ? OR id IN (SELECT trabajo_id FROM postulacion WHERE usuario_id = ?)
+                 OR (invitado_id = ? AND invitacion_rechazada = 0))
           ${ORDEN_RECIENTES}`,
       )
-      .all(yo, yo, yo);
+      .all(yo, yo, yo, yo);
     const lista = rows.map((r) => mapTrabajo(r, yo));
     return res.json(lista.filter((t) => t.estado !== "Finalizado" || !t.calificadoPorMi));
   }
   rows = db
     .prepare(
       `SELECT * FROM trabajo
-        WHERE estado = 'Pendiente' AND trabajador_id IS NULL AND publicador_id != ? ${ORDEN_RECIENTES}`,
+        WHERE estado = 'Pendiente' AND trabajador_id IS NULL AND publicador_id != ?
+          AND NOT ${INVITACION_PENDIENTE} ${ORDEN_RECIENTES}`,
     )
     .all(yo);
   res.json(rows.map((r) => mapTrabajo(r, yo)));
@@ -295,8 +300,13 @@ router.get("/trabajos/:id", (req, res) => {
 });
 
 router.post("/trabajos", (req, res) => {
-  const { titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodoPago, urgente } = req.body;
+  const { titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodoPago, urgente, invitadoId } = req.body;
   const esUrgente = !!urgente;
+  if (invitadoId) {
+    if (invitadoId === req.usuarioId) return error(res, 400, "No puedes contratarte a ti mismo.");
+    if (!obtenerUsuario(invitadoId)) return error(res, 404, "Usuario no encontrado.");
+    if (esUrgente) return error(res, 400, "Una oferta directa no puede ser urgencia.");
+  }
   if (!titulo || !categoria || !ubicacion || !(pago > 0) || (!fecha && !esUrgente)) {
     return error(res, 400, "Faltan campos obligatorios o el pago no es válido.");
   }
@@ -306,11 +316,11 @@ router.post("/trabajos", (req, res) => {
 
   const id = `t-${randomUUID()}`;
   db.prepare(
-    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodo_pago, publicador_id, urgente)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodo_pago, publicador_id, urgente, invitado_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
     id, titulo, descripcion ?? "", categoria, ubicacion, lat ?? null, lng ?? null,
-    fecha || "Lo antes posible", pago, metodo, req.usuarioId, esUrgente ? 1 : 0,
+    fecha || "Lo antes posible", pago, metodo, req.usuarioId, esUrgente ? 1 : 0, invitadoId || null,
   );
   responderTrabajo(req, res, id, 201);
 });
@@ -352,6 +362,7 @@ router.patch("/trabajos/:id/postular", (req, res) => {
   if (!row) return;
   if (row.publicador_id === req.usuarioId) return error(res, 400, "No puedes postularte a tu propio trabajo.");
   if (row.estado !== "Pendiente") return error(res, 409, "Este trabajo ya no recibe postulaciones.");
+  if (invitacionPendiente(row)) return error(res, 409, "Este trabajo es una oferta directa para otra persona.");
 
   const existe = db
     .prepare("SELECT 1 FROM postulacion WHERE trabajo_id = ? AND usuario_id = ?")
@@ -392,6 +403,28 @@ router.post("/trabajos/:id/asignar", (req, res) => {
     trabajadorId,
     row.id,
   );
+  responderTrabajo(req, res, row.id);
+});
+
+/** Oferta directa ("Recontratar"): la persona invitada acepta y queda asignada. */
+router.post("/trabajos/:id/invitacion/aceptar", (req, res) => {
+  const row = trabajoDe(req, res);
+  if (!row) return;
+  if (row.invitado_id !== req.usuarioId || !invitacionPendiente(row)) return error(res, 403, "Esta oferta no es para ti.");
+  if (row.estado !== "Pendiente" || row.trabajador_id) return error(res, 409, "Esta oferta ya no está disponible.");
+  db.prepare("UPDATE trabajo SET trabajador_id = ?, estado = 'Asignado', etapa = 'Aceptado' WHERE id = ?").run(
+    req.usuarioId,
+    row.id,
+  );
+  responderTrabajo(req, res, row.id);
+});
+
+/** La persona invitada no puede: la publicación queda abierta para todos. */
+router.post("/trabajos/:id/invitacion/rechazar", (req, res) => {
+  const row = trabajoDe(req, res);
+  if (!row) return;
+  if (row.invitado_id !== req.usuarioId || !invitacionPendiente(row)) return error(res, 403, "Esta oferta no es para ti.");
+  db.prepare("UPDATE trabajo SET invitacion_rechazada = 1, creado_en = datetime('now') WHERE id = ?").run(row.id);
   responderTrabajo(req, res, row.id);
 });
 
@@ -506,6 +539,33 @@ router.get("/trabajadores", (req, res) => {
   res.json(rows.map((r) => mapTrabajador(r, yo)).sort((a, b) => a.distanciaKm - b.distanciaKm));
 });
 
+// ── De confianza (trabajadores guardados) ───────────────────────────
+router.get("/favoritos", (req, res) => {
+  const yo = obtenerUsuario(req.usuarioId);
+  const rows = db
+    .prepare(
+      `SELECT u.* FROM favorito f JOIN usuario u ON u.id = f.trabajador_id
+        WHERE f.usuario_id = ? ORDER BY f.creado_en DESC, f.rowid DESC`,
+    )
+    .all(req.usuarioId);
+  res.json(rows.map((r) => mapTrabajador(r, yo)));
+});
+
+router.post("/favoritos/:id", (req, res) => {
+  if (req.params.id === req.usuarioId) return error(res, 400, "No puedes agregarte a ti mismo.");
+  const row = obtenerUsuario(req.params.id);
+  if (!row) return error(res, 404, "Usuario no encontrado.");
+  db.prepare("INSERT OR IGNORE INTO favorito (usuario_id, trabajador_id) VALUES (?, ?)").run(req.usuarioId, row.id);
+  res.status(201).json(mapTrabajador(row, obtenerUsuario(req.usuarioId)));
+});
+
+router.delete("/favoritos/:id", (req, res) => {
+  const row = obtenerUsuario(req.params.id);
+  if (!row) return error(res, 404, "Usuario no encontrado.");
+  db.prepare("DELETE FROM favorito WHERE usuario_id = ? AND trabajador_id = ?").run(req.usuarioId, row.id);
+  res.json(mapTrabajador(row, obtenerUsuario(req.usuarioId)));
+});
+
 router.get("/usuarios/:id", (req, res) => {
   const row = obtenerUsuario(req.params.id);
   if (!row) return error(res, 404, "Usuario no encontrado.");
@@ -549,6 +609,7 @@ function calcularAlertas(usuarioId) {
     .prepare(
       `SELECT * FROM trabajo
         WHERE estado = 'Pendiente' AND trabajador_id IS NULL AND publicador_id != ?
+          AND NOT ${INVITACION_PENDIENTE}
           AND id NOT IN (SELECT trabajo_id FROM alerta_descartada WHERE usuario_id = ?)
         ${ORDEN_RECIENTES}`,
     )

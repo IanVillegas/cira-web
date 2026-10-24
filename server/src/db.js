@@ -9,9 +9,10 @@ export const db = new DatabaseSync(DB_PATH);
 
 // Versión del esquema. Al subirla, la base local (solo datos de prueba) se recrea
 // y se vuelve a sembrar: el modelo pasó de un usuario fijo a varios usuarios reales.
-const VERSION_ESQUEMA = 5;
+const VERSION_ESQUEMA = 6;
 
 const TABLAS = [
+  "favorito",
   "alerta_descartada",
   "suscripcion",
   "pago",
@@ -85,6 +86,9 @@ db.exec(`
     estado TEXT NOT NULL DEFAULT 'Pendiente',
     etapa TEXT,
     urgente INTEGER NOT NULL DEFAULT 0,
+    -- Oferta directa ("Recontratar"): solo esta persona la ve hasta que acepte o rechace.
+    invitado_id TEXT REFERENCES usuario(id),
+    invitacion_rechazada INTEGER NOT NULL DEFAULT 0,
     pagado INTEGER NOT NULL DEFAULT 0,
     creado_en TEXT NOT NULL DEFAULT (datetime('now')),
     finalizado_en TEXT
@@ -152,6 +156,14 @@ db.exec(`
     usuario_id TEXT NOT NULL REFERENCES usuario(id),
     monto INTEGER NOT NULL,
     creado_en TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- "De confianza": trabajadores que cada usuario guardó para volver a contratar.
+  CREATE TABLE IF NOT EXISTS favorito (
+    usuario_id TEXT NOT NULL REFERENCES usuario(id),
+    trabajador_id TEXT NOT NULL REFERENCES usuario(id),
+    creado_en TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (usuario_id, trabajador_id)
   );
 
   CREATE TABLE IF NOT EXISTS alerta_descartada (

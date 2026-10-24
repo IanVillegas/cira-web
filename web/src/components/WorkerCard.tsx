@@ -2,18 +2,24 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, Icon } from "@/components/aire";
 import { CategoriaChip } from "./CategoriaThumb";
+import { ConfianzaButton } from "./ConfianzaButton";
 import { Calificacion } from "./Estrellas";
 import { InsigniaChips } from "./InsigniaChips";
 import { api } from "@/lib/api";
+import { compartirPerfil } from "@/lib/compartir";
 import { tr } from "@/lib/i18n";
 import type { Trabajador } from "@/lib/types";
 
 interface WorkerCardProps {
   trabajador: Trabajador;
+  /** Se llama al agregarlo o quitarlo de "De confianza". */
+  onChange?: (trabajador: Trabajador) => void;
+  /** "confianza": la acción principal es Recontratar (lista De confianza). */
+  modo?: "explorar" | "confianza";
 }
 
 /** Tarjeta de trabajador: reputación, insignias y acciones para ver el perfil o contactar. */
-export function WorkerCard({ trabajador }: WorkerCardProps) {
+export function WorkerCard({ trabajador, onChange, modo = "explorar" }: WorkerCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [abriendoChat, setAbriendoChat] = useState(false);
   const navigate = useNavigate();
@@ -30,22 +36,25 @@ export function WorkerCard({ trabajador }: WorkerCardProps) {
 
   return (
     <Card className="grid gap-4">
-      <button type="button" aria-expanded={expanded} className="flex w-full items-start gap-3 text-left" onClick={() => setExpanded((v) => !v)}>
-        <span className="aire-text-headline flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-full bg-aire-accent-soft text-aire-accent-text">
-          {iniciales(trabajador.nombre)}
-        </span>
-        <span className="min-w-0 flex-1 self-center">
-          <span className="flex items-center gap-2">
-            <span className="aire-text-headline truncate text-aire-ink">{trabajador.nombre}</span>
-            <Calificacion valor={trabajador.calificacion} total={trabajador.numCalificaciones} />
+      <div className="flex items-start gap-2">
+        <button type="button" aria-expanded={expanded} className="flex min-w-0 flex-1 items-start gap-3 text-left" onClick={() => setExpanded((v) => !v)}>
+          <span className="aire-text-headline flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-full bg-aire-accent-soft text-aire-accent-text">
+            {iniciales(trabajador.nombre)}
           </span>
-        </span>
-        <Icon
-          name="expand_more"
-          size={22}
-          className={`mt-1 shrink-0 text-aire-ink-2 transition-transform duration-[320ms] ease-aire-spring ${expanded ? "rotate-180" : ""}`}
-        />
-      </button>
+          <span className="min-w-0 flex-1 self-center">
+            <span className="flex items-center gap-2">
+              <span className="aire-text-headline truncate text-aire-ink">{trabajador.nombre}</span>
+              <Calificacion valor={trabajador.calificacion} total={trabajador.numCalificaciones} />
+            </span>
+          </span>
+          <Icon
+            name="expand_more"
+            size={22}
+            className={`mt-3 shrink-0 text-aire-ink-2 transition-transform duration-[320ms] ease-aire-spring ${expanded ? "rotate-180" : ""}`}
+          />
+        </button>
+        <ConfianzaButton trabajador={trabajador} onChange={onChange} />
+      </div>
 
       <div className="aire-text-subhead flex items-center gap-2.5 text-aire-ink-2">
         <Icon name="location_on" size={20} className="shrink-0 text-aire-accent-text" />
@@ -69,14 +78,33 @@ export function WorkerCard({ trabajador }: WorkerCardProps) {
 
       {trabajador.insignias.length > 0 && <InsigniaChips insignias={trabajador.insignias} compact />}
 
-      <div className="grid grid-cols-2 gap-2.5">
-        <Button variant="secondary" onClick={() => navigate(`/usuarios/${trabajador.id}`)}>
-          {tr("Ver perfil")}
-        </Button>
-        <Button icon="chat_bubble" loading={abriendoChat} onClick={contactar}>
-          {tr("Contactar")}
-        </Button>
-      </div>
+      {modo === "confianza" ? (
+        <div className="grid gap-2.5">
+          <Button icon="replay" onClick={() => navigate(`/crear-trabajo?para=${trabajador.id}`)}>
+            {tr("Recontratar")}
+          </Button>
+          <div className="grid grid-cols-2 gap-2.5">
+            <Button variant="secondary" icon="chat_bubble" loading={abriendoChat} onClick={contactar}>
+              {tr("Chatear")}
+            </Button>
+            <Button variant="secondary" icon="share" onClick={() => compartirPerfil(trabajador)}>
+              {tr("Recomendar")}
+            </Button>
+          </div>
+          <Button variant="plain" onClick={() => navigate(`/usuarios/${trabajador.id}`)}>
+            {tr("Ver perfil")}
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2.5">
+          <Button variant="secondary" onClick={() => navigate(`/usuarios/${trabajador.id}`)}>
+            {tr("Ver perfil")}
+          </Button>
+          <Button icon="chat_bubble" loading={abriendoChat} onClick={contactar}>
+            {tr("Contactar")}
+          </Button>
+        </div>
+      )}
 
       <div className="grid transition-[grid-template-rows] duration-[320ms] ease-aire-spring" style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}>
         <div className="overflow-hidden">

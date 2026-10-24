@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Button, Card, Field, Icon, Input, Loader, PageHeader, SelectableCard, Switch, TextArea } from "@/components/aire";
 import { SelectSheet } from "@/components/SelectSheet";
 import { PagoResumen } from "@/components/PagoResumen";
@@ -9,7 +9,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { mostrarToast } from "@/lib/toast";
 import { calcularResumen, useConfig } from "@/lib/useConfig";
-import type { MetodoPago } from "@/lib/types";
+import type { MetodoPago, PerfilPublico } from "@/lib/types";
 import { localeActual, tr } from "@/lib/i18n";
 
 const METODOS: { value: MetodoPago; icon: string; label: string }[] = [
@@ -31,6 +31,10 @@ export function CrearTrabajoPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const editando = id !== undefined;
+  // "Recontratar": /crear-trabajo?para=<id> crea una oferta directa solo para esa persona.
+  const [searchParams] = useSearchParams();
+  const paraId = editando ? null : searchParams.get("para");
+  const [invitado, setInvitado] = useState<PerfilPublico | null>(null);
   const config = useConfig();
   const { usuario } = useAuth();
   const [cargando, setCargando] = useState(editando);
@@ -48,6 +52,18 @@ export function CrearTrabajoPage() {
     pago: "",
     metodoPago: "Tarjeta" as MetodoPago,
   });
+
+  useEffect(() => {
+    if (!paraId) return;
+    api.usuarios
+      .perfil(paraId)
+      .then((p) => {
+        setInvitado(p);
+        // Si ofrece un solo oficio, la categoría ya queda elegida.
+        if (p.servicios.length === 1) setForm((f) => ({ ...f, categoria: f.categoria || p.servicios[0] }));
+      })
+      .catch(() => setError(tr("No se encontró a la persona que quieres contratar.")));
+  }, [paraId]);
 
   useEffect(() => {
     if (!id) return;
@@ -75,13 +91,13 @@ export function CrearTrabajoPage() {
       .finally(() => setCargando(false));
   }, [id]);
 
-  const esUrgente = urgente;
+  const esUrgente = urgente && !paraId;
   const metodoEfectivo: MetodoPago = form.metodoPago;
   // Con tarjeta, o en una urgencia (la tarifa se cobra con tarjeta), hace falta una tarjeta registrada.
   const faltaTarjeta = (metodoEfectivo === "Tarjeta" || esUrgente) && !usuario?.tarjeta;
 
   const valido =
-    form.titulo.trim() && form.categoria && form.ubicacion && (esUrgente || form.fecha) && Number(form.pago) > 0 && !faltaTarjeta;
+    form.titulo.trim() && form.categoria && form.ubicacion && (esUrgente || form.fecha) && Number(form.pago) > 0 && !faltaTarjeta && (!paraId || invitado);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,8 +117,8 @@ export function CrearTrabajoPage() {
         metodoPago: metodoEfectivo,
       };
       if (id) await api.trabajos.editar(id, datos);
-      else await api.trabajos.crear({ ...datos, urgente: esUrgente });
-      mostrarToast(editando ? tr("Cambios guardados") : esUrgente ? tr("Urgencia publicada: avisamos a los trabajadores cercanos") : tr("Trabajo publicado"));
+      else await api.trabajos.crear({ ...datos, urgente: esUrgente, invitadoId: invitado?.id });
+      mostrarToast(editando ? tr("Cambios guardados") : invitado ? tr("Oferta enviada a {nombre}", { nombre: invitado.nombre }) : esUrgente ? tr("Urgencia publicada: avisamos a los trabajadores cercanos") : tr("Trabajo publicado"));
       navigate("/publicaciones");
     } catch (e) {
       setError(e instanceof Error ? e.message : tr("No se pudo publicar el trabajo."));
@@ -116,13 +132,27 @@ export function CrearTrabajoPage() {
   return (
     <div className="pb-8">
       <PageHeader
-        title={editando ? tr("Editar publicación") : tr("Crear publicación")}
+        title={editando ? tr("Editar publicación") : paraId ? tr("Recontratar") : tr("Crear publicación")}
         onBack={() => navigate(-1)}
         backLabel={tr("Atrás")}
         large={false}
       />
 
       <form className="grid gap-3 px-5 pt-2" onSubmit={handleSubmit}>
+        {invitado && (
+          <Card className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+              <Icon name="favorite" filled size={22} className="text-aire-accent-text" />
+            </span>
+            <div className="flex-1">
+              <p className="aire-text-headline text-aire-ink">{tr("Oferta directa para {nombre}", { nombre: invitado.nombre })}</p>
+              <p className="aire-text-footnote text-aire-ink-2">
+                {tr("Solo esa persona verá este trabajo. Si no puede tomarlo, se publica para todos.")}
+              </p>
+            </div>
+          </Card>
+        )}
+
         <Card className="grid gap-3.5">
           <Input
             label={tr("Título del trabajo")}
@@ -135,7 +165,7 @@ export function CrearTrabajoPage() {
             label={tr("Categoría")}
             placeholder={tr("Selecciona una categoría")}
             value={form.categoria}
-            options={CATEGORIAS}
+            options={invitado && invitado.servicios.length > 0 ? invitado.servicios : CATEGORIAS}
             onChange={(categoria) => setForm({ ...form, categoria })}
           />
 
@@ -148,7 +178,7 @@ export function CrearTrabajoPage() {
           />
         </Card>
 
-        {(!editando || urgente) && (
+        {!paraId && (!editando || urgente) && (
           <Card className="flex items-start gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-aire-md bg-aire-danger-soft">
               <Icon name="bolt" filled size={22} className="text-aire-danger-text" />
@@ -230,7 +260,13 @@ export function CrearTrabajoPage() {
         {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
 
         <Button type="submit" size="lg" icon={esUrgente ? "bolt" : undefined} disabled={!valido} loading={enviando} className="mt-1">
-          {editando ? tr("Guardar cambios") : esUrgente ? tr("Publicar urgencia") : tr("Publicar ahora")}
+          {editando
+            ? tr("Guardar cambios")
+            : invitado
+              ? tr("Enviar oferta a {nombre}", { nombre: invitado.nombre })
+              : esUrgente
+                ? tr("Publicar urgencia")
+                : tr("Publicar ahora")}
         </Button>
       </form>
     </div>

@@ -60,6 +60,20 @@ const TRABAJOS_ABIERTOS = [
   ["p-1", "Limpieza profunda de apartamento", "Limpieza general de apartamento de 2 habitaciones antes de mudanza.", "Limpieza", "Alajuela Centro", 10.0163, -84.2113, "Viernes, 1:00 p.m.", 20000, APP, "u-1"],
 ];
 
+// Oferta directa ("Recontratar"): id, título, descripción, categoría, ubicación, lat, lng, fecha, pago, método, publicador, invitado
+const OFERTA_DIRECTA = [
+  "o-1", "Revisar breaker que se dispara", "Igual que la vez pasada: el breaker de la cocina se dispara cuando uso el horno.",
+  "Electricidad", "Alajuela, Río Segundo", 10.0134, -84.2239, "Lunes, 9:00 a.m.", 15000, APP, "u-5", "u-1",
+];
+
+// "De confianza": quién guardó a quién (usuario, trabajador).
+const FAVORITOS = [
+  ["u-1", "u-4"], ["u-1", "u-3"],
+  ["u-2", "u-1"], ["u-5", "u-1"], ["u-6", "u-1"],
+  ["u-2", "u-4"], ["u-5", "u-4"], ["u-6", "u-4"],
+  ["u-6", "u-3"],
+];
+
 const POSTULACIONES = [
   ["t-1", "u-1"], ["t-1", "u-5"], ["t-1", "u-3"],
   ["t-2", "u-1"], ["t-2", "u-4"],
@@ -128,6 +142,16 @@ function sembrar() {
   for (const [id, titulo, desc, cat, ubic, lat, lng, fecha, pago, metodo, pub] of TRABAJOS_ABIERTOS) {
     insertTrabajo.run(id, titulo, desc, cat, ubic, lat, lng, fecha, pago, metodo, pub, null, "Pendiente", null, 0, null);
   }
+
+  // Oferta directa de ejemplo: José recontrata a Ian (la ve en "Mis trabajos").
+  db.prepare(
+    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodo_pago, publicador_id,
+                          estado, invitado_id, creado_en)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendiente', ?, datetime('now', '-1 day'))`,
+  ).run(...OFERTA_DIRECTA);
+
+  const insertFavorito = db.prepare("INSERT INTO favorito (usuario_id, trabajador_id) VALUES (?, ?)");
+  for (const f of FAVORITOS) insertFavorito.run(...f);
 
   const insertPostulacion = db.prepare("INSERT INTO postulacion (trabajo_id, usuario_id) VALUES (?, ?)");
   for (const p of POSTULACIONES) insertPostulacion.run(...p);

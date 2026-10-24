@@ -56,6 +56,15 @@ export function insigniasDe(row, completados) {
   return lista;
 }
 
+/** Cuántas personas guardaron a este trabajador en "De confianza". */
+export function guardadoPorDe(usuarioId) {
+  return db.prepare("SELECT COUNT(*) AS n FROM favorito WHERE trabajador_id = ?").get(usuarioId).n;
+}
+
+function esDeConfianza(viewerId, trabajadorId) {
+  return !!db.prepare("SELECT 1 FROM favorito WHERE usuario_id = ? AND trabajador_id = ?").get(viewerId, trabajadorId);
+}
+
 function serviciosDe(usuarioId) {
   return db.prepare("SELECT * FROM servicio WHERE usuario_id = ?").all(usuarioId);
 }
@@ -90,6 +99,7 @@ export function mapUsuario(row) {
     insignias: insigniasDe(row, completados),
     trabajosCompletados: completados,
     servicios: serviciosDe(row.id).map(mapServicio),
+    guardadoPor: guardadoPorDe(row.id),
     ...reputacionDe(row.id),
   };
 }
@@ -109,6 +119,8 @@ export function mapTrabajador(row, viewer) {
     zona: row.zona,
     insignias: insigniasDe(row, completados),
     trabajosCompletados: completados,
+    deConfianza: viewer ? esDeConfianza(viewer.id, row.id) : false,
+    guardadoPor: guardadoPorDe(row.id),
     ...reputacionDe(row.id),
   };
 }
@@ -180,6 +192,7 @@ export function mapTrabajo(row, viewerId) {
     .get(row.id, viewerId);
   const esPublicador = row.publicador_id === viewerId;
   const contraparte = esPublicador ? trabajador : publicador;
+  const invitado = row.invitado_id ? obtenerUsuario(row.invitado_id) : null;
 
   return {
     id: row.id,
@@ -201,6 +214,12 @@ export function mapTrabajo(row, viewerId) {
     estado: row.estado,
     etapa: row.etapa ?? undefined,
     urgente: !!row.urgente,
+    invitadoId: invitado?.id,
+    invitadoNombre: invitado?.nombre,
+    // Oferta directa esperando respuesta de quien mira.
+    invitacionParaMi:
+      row.invitado_id === viewerId && !row.invitacion_rechazada && row.estado === "Pendiente" && !row.trabajador_id,
+    invitacionRechazada: !!row.invitacion_rechazada,
     postulantes,
     yaPostulado,
     esMio: esPublicador,

@@ -37,6 +37,8 @@ export interface Usuario {
   calificacion: number | null;
   numCalificaciones: number;
   trabajosCompletados: number;
+  /** Cuántas personas lo tienen en "De confianza". */
+  guardadoPor: number;
 }
 
 export interface ServicioUsuario {
@@ -66,6 +68,13 @@ export interface Trabajo {
   estado: EstadoTrabajo;
   etapa?: EtapaTrabajo;
   urgente: boolean;
+  /** Oferta directa ("Recontratar"): a quién se le ofreció. */
+  invitadoId?: string;
+  invitadoNombre?: string;
+  /** La oferta directa es para quien mira y todavía no responde. */
+  invitacionParaMi: boolean;
+  /** La persona invitada no pudo: la publicación quedó abierta para todos. */
+  invitacionRechazada: boolean;
   postulantes: number;
   yaPostulado: boolean;
   esMio: boolean;
@@ -139,6 +148,10 @@ export interface Trabajador {
   descripcion: string;
   insignias: Insignia[];
   trabajosCompletados: number;
+  /** Quien mira lo tiene en "De confianza". */
+  deConfianza: boolean;
+  /** Cuántas personas lo tienen en "De confianza" (nunca quiénes). */
+  guardadoPor: number;
 }
 
 export interface ComentarioCalificacion {

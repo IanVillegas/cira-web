@@ -8,12 +8,14 @@ import { SeguimientoTrabajo } from "@/components/SeguimientoTrabajo";
 import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
 import { ETAPAS } from "@/lib/etapas";
+import { formatoColones } from "@/lib/format";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
 import { usePolling } from "@/lib/usePolling";
 import type { Trabajo } from "@/lib/types";
 
 function estadoDe(t: Trabajo): { text: string; tone: EstadoTono } {
+  if (t.invitacionParaMi) return { text: tr("Te quieren recontratar"), tone: "accent" };
   if (t.estado === "Pendiente") return { text: tr("Postulado"), tone: "accent" };
   if (t.estado === "Asignado") return { text: tr("Asignado"), tone: "warning" };
   if (t.estado === "En progreso") return { text: tr("En proceso"), tone: "success" };
@@ -91,7 +93,7 @@ export function MisTrabajosPage() {
                   actions={
                     <>
                       <CardAction icon="chat_bubble" label={tr("Escribir al publicador")} onClick={() => abrirChat(t.publicadorId)} />
-                      {t.estado !== "Finalizado" && (
+                      {t.estado !== "Finalizado" && !t.invitacionParaMi && (
                         <CardAction
                           icon="close"
                           label={t.asignadoAMi ? tr("Cancelar trabajo") : tr("Retirar postulación")}
@@ -109,6 +111,30 @@ export function MisTrabajosPage() {
                   footer={
                     <>
                       {t.urgente && <p className="aire-text-eyebrow text-aire-danger-text">{tr("Urgencia")}</p>}
+                      {t.invitacionParaMi && (
+                        <>
+                          <p className="aire-text-subhead text-aire-ink-2">
+                            {tr("{nombre} te envió una oferta directa por {pago}. Solo tú puedes verla.", {
+                              nombre: t.publicador,
+                              pago: formatoColones.format(t.pago),
+                            })}
+                          </p>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <Button
+                              variant="secondary"
+                              onClick={() => ejecutar(() => api.trabajos.rechazarInvitacion(t.id), tr("Rechazaste la oferta"))}
+                            >
+                              {tr("No puedo")}
+                            </Button>
+                            <Button
+                              icon="check"
+                              onClick={() => ejecutar(() => api.trabajos.aceptarInvitacion(t.id), tr("¡Aceptaste el trabajo!"))}
+                            >
+                              {tr("Aceptar")}
+                            </Button>
+                          </div>
+                        </>
+                      )}
                       {t.asignadoAMi && <SeguimientoTrabajo etapa={t.etapa} />}
                       {asignado && siguiente && (
                         <Button icon={ICONO_ETAPA[siguiente]} onClick={() => ejecutar(() => api.trabajos.avanzarEtapa(t.id), tr("Seguimiento actualizado"))}>

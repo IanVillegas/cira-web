@@ -87,16 +87,18 @@ Todos (salvo `auth` y `config`) requieren la cabecera `X-Cira-User`.
 | POST/PUT/DELETE | `/api/usuario/servicios[/:id]` | Servicios ofrecidos |
 | GET | `/api/usuarios/:id` | Perfil público: calificación, insignias, comentarios |
 | GET | `/api/trabajos` | Trabajos abiertos de otros; `?publicadas=true` o `?mios=true` |
-| POST | `/api/trabajos` | Publica (con `urgente: true` para el modo urgencia) |
+| POST | `/api/trabajos` | Publica (con `urgente: true` para el modo urgencia, o `invitadoId` para una oferta directa) |
 | PATCH | `/api/trabajos/:id` | Edita una publicación pendiente (solo su dueño) |
 | PATCH | `/api/trabajos/:id/postular` | Postula/retira postulación |
 | GET/POST | `/api/trabajos/:id/postulantes`, `/asignar` | El publicador elige a un postulante |
+| POST | `/api/trabajos/:id/invitacion/aceptar`, `/rechazar` | La persona invitada acepta la oferta directa o la rechaza (queda abierta para todos) |
 | POST | `/api/trabajos/:id/aceptar-urgencia` | El primero que acepta se queda con la urgencia |
 | PATCH | `/api/trabajos/:id/etapa` | Seguimiento: Aceptado → En camino → Llegó → Terminado |
 | POST | `/api/trabajos/:id/cancelar`, `/pagar`, `/calificar` | Cancelar/retirarse, pago simulado (con `propina` opcional), calificación 1–5 |
 | POST | `/api/reportes` | Reportar a un usuario |
 | GET | `/api/alertas`, POST `/api/alertas/:trabajoId/descartar` | Alertas por oficio y zona (Plus primero) |
-| GET | `/api/trabajadores` | Personas que ofrecen servicios |
+| GET | `/api/trabajadores` | Personas que ofrecen servicios (con `deConfianza` y `guardadoPor`) |
+| GET/POST/DELETE | `/api/favoritos[/:id]` | "De confianza": lista, agrega o quita trabajadores guardados |
 | GET/POST | `/api/conversaciones[/:id]`, `/api/conversaciones/:id/mensajes` | Chats entre dos usuarios |
 | GET | `/api/conversaciones/no-leidos` | Mensajes sin leer (insignia y avisos) |
 | GET | `/api/historial`, `/api/actividad`, `/api/ingresos` | Historial; pagos hechos y ganancias propias; ingresos de CIRA (demo) |

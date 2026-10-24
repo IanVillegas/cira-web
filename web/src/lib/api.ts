@@ -120,12 +120,15 @@ export const api = {
       return request<Trabajo[]>(`/trabajos${suffix}`);
     },
     obtener: (id: string) => request<Trabajo>(`/trabajos/${id}`),
-    crear: (datos: DatosTrabajo & { urgente?: boolean }) => post<Trabajo>("/trabajos", datos),
+    /** Con `invitadoId` es una oferta directa: solo esa persona la ve hasta que responda. */
+    crear: (datos: DatosTrabajo & { urgente?: boolean; invitadoId?: string }) => post<Trabajo>("/trabajos", datos),
     editar: (id: string, datos: Partial<DatosTrabajo>) =>
       request<Trabajo>(`/trabajos/${id}`, { method: "PATCH", body: JSON.stringify(datos) }),
     postular: (id: string) => request<Trabajo>(`/trabajos/${id}/postular`, { method: "PATCH" }),
     postulantes: (id: string) => request<Trabajador[]>(`/trabajos/${id}/postulantes`),
     asignar: (id: string, trabajadorId: string) => post<Trabajo>(`/trabajos/${id}/asignar`, { trabajadorId }),
+    aceptarInvitacion: (id: string) => post<Trabajo>(`/trabajos/${id}/invitacion/aceptar`),
+    rechazarInvitacion: (id: string) => post<Trabajo>(`/trabajos/${id}/invitacion/rechazar`),
     aceptarUrgencia: (id: string) => post<Trabajo>(`/trabajos/${id}/aceptar-urgencia`),
     avanzarEtapa: (id: string) => request<Trabajo>(`/trabajos/${id}/etapa`, { method: "PATCH" }),
     cancelar: (id: string) => post<Trabajo>(`/trabajos/${id}/cancelar`),
@@ -136,6 +139,13 @@ export const api = {
 
   trabajadores: {
     listar: () => request<Trabajador[]>("/trabajadores"),
+  },
+
+  /** "De confianza": trabajadores guardados para volver a contratar. */
+  favoritos: {
+    listar: () => request<Trabajador[]>("/favoritos"),
+    agregar: (id: string) => post<Trabajador>(`/favoritos/${id}`),
+    quitar: (id: string) => request<Trabajador>(`/favoritos/${id}`, { method: "DELETE" }),
   },
 
   reportes: {

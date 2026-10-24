@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Card, Icon, Loader, PageHeader, Reveal, Stagger } from "@/components/aire";
+import { CategoriaChip } from "@/components/CategoriaThumb";
+import { ConfianzaButton } from "@/components/ConfianzaButton";
 import { Calificacion } from "@/components/Estrellas";
+import { GuardadoPor } from "@/components/GuardadoPor";
 import { InsigniaChips } from "@/components/InsigniaChips";
 import { ReportSheet } from "@/components/ReportSheet";
 import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import { compartirPerfil } from "@/lib/compartir";
 import { tr } from "@/lib/i18n";
 import type { PerfilPublico } from "@/lib/types";
 
@@ -13,6 +18,7 @@ import type { PerfilPublico } from "@/lib/types";
 export function PerfilPublicoPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { usuario } = useAuth();
   const [perfil, setPerfil] = useState<PerfilPublico | null>(null);
   const [noEncontrado, setNoEncontrado] = useState(false);
   const [reportando, setReportando] = useState(false);
@@ -27,6 +33,9 @@ export function PerfilPublicoPage() {
 
   if (noEncontrado) return <Vacio image="empty_not_found_variant" title={tr("Perfil no encontrado")} message={tr("Es posible que la cuenta ya no exista.")} />;
   if (!perfil) return <Loader label={tr("Cargando perfil...")} />;
+
+  const esYo = usuario?.id === perfil.id;
+  const ofreceServicios = perfil.servicios.length > 0;
 
   const contactar = async () => {
     const conversacion = await api.conversaciones.con(perfil.id);
@@ -49,10 +58,19 @@ export function PerfilPublicoPage() {
             <span className="flex h-24 w-24 items-center justify-center rounded-aire-full bg-aire-accent-soft">
               <Icon name="account_circle" filled size={58} className="text-aire-accent-text" />
             </span>
-            <p className="aire-text-title-1 text-aire-ink">{perfil.nombre}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="aire-text-title-1 text-aire-ink">{perfil.nombre}</p>
+              {!esYo && (
+                <ConfianzaButton
+                  trabajador={perfil}
+                  onChange={(t) => setPerfil((p) => (p ? { ...p, deConfianza: t.deConfianza, guardadoPor: t.guardadoPor } : p))}
+                />
+              )}
+            </div>
             <p className="aire-text-subhead text-aire-ink-2">{perfil.zona || tr("Sin ubicación")}</p>
             <Calificacion valor={perfil.calificacion} total={perfil.numCalificaciones} />
             <InsigniaChips insignias={perfil.insignias} />
+            {perfil.guardadoPor > 0 && <GuardadoPor n={perfil.guardadoPor} />}
           </div>
         </Reveal>
 
@@ -73,9 +91,7 @@ export function PerfilPublicoPage() {
           <h2 className="aire-text-title-2 text-aire-ink">{tr("Servicios")}</h2>
           <div className="flex flex-wrap gap-2">
             {perfil.servicios.map((s) => (
-              <span key={s} className="aire-text-subhead rounded-aire-full bg-aire-surface px-3.5 py-2.5 text-aire-ink shadow-aire-card">
-                {tr(s)}
-              </span>
+              <CategoriaChip key={s} categoria={s} />
             ))}
           </div>
         </section>
@@ -99,12 +115,28 @@ export function PerfilPublicoPage() {
           )}
         </section>
 
-        <Button icon="chat_bubble" onClick={contactar}>
-          {tr("Contactar")}
-        </Button>
-        <Button variant="destructive" icon="flag" onClick={() => setReportando(true)}>
-          {tr("Reportar usuario")}
-        </Button>
+        {!esYo && (
+          <div className="grid gap-2.5">
+            {ofreceServicios && (
+              <Button icon={perfil.deConfianza ? "replay" : "handshake"} onClick={() => navigate(`/crear-trabajo?para=${perfil.id}`)}>
+                {perfil.deConfianza ? tr("Recontratar") : tr("Contratar directo")}
+              </Button>
+            )}
+            <div className="grid grid-cols-2 gap-2.5">
+              <Button variant="secondary" icon="chat_bubble" onClick={contactar}>
+                {tr("Chatear")}
+              </Button>
+              <Button variant="secondary" icon="share" onClick={() => compartirPerfil(perfil)}>
+                {tr("Recomendar")}
+              </Button>
+            </div>
+          </div>
+        )}
+        {!esYo && (
+          <Button variant="destructive" icon="flag" onClick={() => setReportando(true)}>
+            {tr("Reportar usuario")}
+          </Button>
+        )}
       </div>
 
       <ReportSheet usuario={reportando ? { id: perfil.id, nombre: perfil.nombre } : null} onClose={() => setReportando(false)} />

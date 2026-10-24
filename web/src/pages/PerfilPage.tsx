@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Card, Icon, Input, Loader, PageHeader, Reveal, Sheet, Switch } from "@/components/aire";
 import { Calificacion } from "@/components/Estrellas";
+import { GuardadoPor } from "@/components/GuardadoPor";
 import { InsigniaChips } from "@/components/InsigniaChips";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -60,6 +61,7 @@ export function PerfilPage() {
             <p className="aire-text-subhead text-aire-ink-2">{usuario.zona || tr("Sin ubicación")}</p>
             <Calificacion valor={usuario.calificacion} total={usuario.numCalificaciones} />
             <InsigniaChips insignias={usuario.insignias} />
+            {usuario.guardadoPor > 0 && <GuardadoPor n={usuario.guardadoPor} />}
             {usuario.plan !== "plus" && (
               <button type="button" onClick={() => navigate("/cuenta/plan")} className="aire-text-subhead min-h-11 font-semibold text-aire-accent-text">
                 {tr("Conoce el Plan Plus")}
@@ -77,6 +79,17 @@ export function PerfilPage() {
             <p className="aire-text-eyebrow text-aire-ink-2">{usuario.disponible ? tr("ESTADO ACTUAL") : tr("NO DISPONIBLE")}</p>
           </div>
           <Switch checked={usuario.disponible} onChange={onToggle} disabled={guardando} label={tr("Disponibilidad")} />
+        </Card>
+
+        <Card interactive onClick={() => navigate("/de-confianza")} className="flex items-center gap-3.5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+            <Icon name="favorite" filled size={24} className="text-aire-accent-text" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="aire-text-headline text-aire-ink">{tr("Mis trabajadores de confianza")}</p>
+            <p className="aire-text-footnote text-aire-ink-2">{tr("Recontrata, chatea o recomienda a quienes ya conoces.")}</p>
+          </div>
+          <Icon name="chevron_forward" size={22} className="shrink-0 text-aire-ink-2" />
         </Card>
 
         <section className="grid gap-3">
