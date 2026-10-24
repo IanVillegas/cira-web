@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, Icon } from "@/components/aire";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { visualDeCategoria } from "@/lib/categorias";
 import { formatoColones as formatoPago } from "@/lib/format";
 import { tr } from "@/lib/i18n";
@@ -37,6 +38,9 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
   const [abriendoChat, setAbriendoChat] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const navigate = useNavigate();
+  const { usuario } = useAuth();
+  // Las urgencias solo las acepta quien tiene la cédula verificada.
+  const puedeUrgencias = usuario?.verificacion.cedula.estado === "verificada";
 
   const comunicarse = async () => {
     setAbriendoChat(true);
@@ -134,7 +138,11 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
         </div>
 
         <div className="ca-photocard__actions">
-          {trabajo.urgente ? (
+          {trabajo.urgente && !puedeUrgencias ? (
+            <Button variant="photo-soft" icon="badge" onClick={() => navigate("/cuenta/verificacion")}>
+              {tr("Verifica tu cédula")}
+            </Button>
+          ) : trabajo.urgente ? (
             <Button variant="photo" icon="bolt" loading={enviando} onClick={accionPrincipal}>
               {tr("Aceptar urgencia")}
             </Button>

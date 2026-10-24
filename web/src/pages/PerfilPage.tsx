@@ -46,6 +46,14 @@ export function PerfilPage() {
   };
 
   const servicios = usuario.servicios.slice(0, 5);
+  // Recordatorio de verificación: lo más importante primero (hoja vencida, luego cédula sin verificar).
+  const { cedula, antecedentes } = usuario.verificacion;
+  const aviso =
+    antecedentes.estado === "vencida"
+      ? { icon: "event_busy", titulo: tr("Tu hoja de delincuencia venció"), texto: tr("Renuévala para recuperar la insignia en tu perfil.") }
+      : cedula.estado === "sin_enviar"
+        ? { icon: "badge", titulo: tr("Verifica tu cédula"), texto: tr("Genera confianza y podrás aceptar urgencias.") }
+        : null;
 
   return (
     <div className="pb-6">
@@ -69,6 +77,19 @@ export function PerfilPage() {
             )}
           </div>
         </Reveal>
+
+        {aviso && (
+          <Card interactive onClick={() => navigate("/cuenta/verificacion")} className="flex items-center gap-3.5">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-warning-soft text-aire-warning-text">
+              <Icon name={aviso.icon} size={24} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="aire-text-headline text-aire-ink">{aviso.titulo}</p>
+              <p className="aire-text-footnote text-aire-ink-2">{aviso.texto}</p>
+            </div>
+            <Icon name="chevron_forward" size={22} className="shrink-0 text-aire-ink-2" />
+          </Card>
+        )}
 
         <Card className="flex items-center gap-3.5">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">

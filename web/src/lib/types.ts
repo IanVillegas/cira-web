@@ -39,6 +39,21 @@ export interface Usuario {
   trabajosCompletados: number;
   /** Cuántas personas lo tienen en "De confianza". */
   guardadoPor: number;
+  verificacion: Verificacion;
+}
+
+export type EstadoDocumento = "sin_enviar" | "en_revision" | "verificada" | "vencida";
+
+/** Verificación simulada de documentos (solo la ve su dueño; los demás ven las insignias). */
+export interface Verificacion {
+  cedula: { estado: Exclude<EstadoDocumento, "vencida">; numero: string };
+  antecedentes: {
+    estado: EstadoDocumento;
+    /** Fecha de emisión (YYYY-MM-DD). */
+    emision: string | null;
+    venceEl: string | null;
+    vigenciaMeses: number;
+  };
 }
 
 export interface ServicioUsuario {

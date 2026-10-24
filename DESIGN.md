@@ -170,6 +170,10 @@ En las listas de gestión (Mis publicaciones, Mis trabajos, Historial) la foto a
 
 La app elige el tema con `lib/tema.ts` (Cuenta → Apariencia: Automático, Claro u Oscuro; se guarda en `cira.tema`). El tema se aplica con `data-theme` en `<html>`, así que los tokens `--aire-*` cambian solos: cualquier pantalla hecha solo con tokens ya funciona en oscuro. Un script en `index.html` lo aplica antes de pintar para que no parpadee. Excepciones en `index.css`: las teselas del mapa se invierten y el patrón del login se atenúa. Los tonos de categoría y los textos sobre foto (`--aire-cat-*`, `--aire-on-photo*`) son iguales en ambos temas.
 
+### Verificación de documentos
+
+Cuenta → Verificación (`/cuenta/verificacion`). Cada documento es una tarjeta con su estado en `Badge`: Sin enviar (`neutral`), En revisión (`warning`, con `pulse`), Verificada (`success`) y Vencida (`danger`). Los flujos van en `Sheet`: la cédula pide fotos del frente y del reverso (en el teléfono abre la cámara), simula la lectura y muestra los datos para confirmar; la hoja de delincuencia pide el archivo y la fecha de emisión. Las imágenes solo se ven en el teléfono (vista previa local) y nunca se envían. Las insignias «Cédula verificada» y «Hoja de delincuencia al día» salen de aquí; sin cédula verificada, la tarjeta de una urgencia muestra «Verifica tu cédula» en lugar de «Aceptar urgencia». El Perfil muestra un recordatorio si la hoja venció o falta la cédula.
+
 ## Voz y contenido
 
 - Habla de tú, con verbos claros: «Postularme», «Publicar trabajo», «Elegir distrito».

@@ -36,6 +36,11 @@ export function AccountMenuPage() {
 
   if (!usuario) return <Loader label={tr("Cargando cuenta...")} />;
 
+  const pendientes = [usuario.verificacion.cedula.estado, usuario.verificacion.antecedentes.estado].filter(
+    (e) => e === "sin_enviar" || e === "vencida",
+  ).length;
+  const detalleVerificacion = pendientes === 0 ? tr("Al día") : tr(pendientes === 1 ? "1 pendiente" : "{n} pendientes", { n: pendientes });
+
   return (
     <div className="pb-6">
       <PageHeader title={tr("Cuenta")} onBack={() => navigate(-1)} backLabel={tr("Atrás")} large={false} />
@@ -53,6 +58,7 @@ export function AccountMenuPage() {
           {OPCIONES.map((o) => (
             <Fila key={o.to} icon={o.icon} label={tr(o.label)} onClick={() => navigate(o.to)} />
           ))}
+          <Fila icon="verified_user" label={tr("Verificación")} detalle={detalleVerificacion} onClick={() => navigate("/cuenta/verificacion")} />
           <Fila
             icon={oscuro ? "dark_mode" : "light_mode"}
             label={tr("Apariencia")}

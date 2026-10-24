@@ -13,6 +13,7 @@ import type {
   Trabajador,
   Trabajo,
   Usuario,
+  Verificacion,
 } from "./types";
 import { tr } from "@/lib/i18n";
 
@@ -104,6 +105,12 @@ export const api = {
       servicio: { categoria: string; descripcion: string; precioAproximado?: number },
     ) => request(`/usuario/servicios/${id}`, { method: "PUT", body: JSON.stringify(servicio) }),
     eliminarServicio: (id: string) => request(`/usuario/servicios/${id}`, { method: "DELETE" }),
+    /** Verificación simulada: los archivos no se envían, solo que se tomaron y la fecha de emisión. */
+    verificacion: () => request<Verificacion>("/usuario/verificacion"),
+    enviarCedula: (datos: { numero: string; frente: boolean; reverso: boolean }) =>
+      post<Verificacion>("/usuario/verificacion/cedula", datos),
+    enviarAntecedentes: (datos: { emision: string; archivo: string }) =>
+      post<Verificacion>("/usuario/verificacion/antecedentes", datos),
   },
 
   usuarios: {

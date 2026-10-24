@@ -82,6 +82,7 @@ Todos (salvo `auth` y `config`) requieren la cabecera `X-Cira-User`.
 | POST | `/api/auth/existe`, `/login`, `/registro` (`/api/auth/…`) | Verifica la cuenta, inicia sesión, crea cuenta |
 | GET | `/api/config` | Comisión, tarifa de urgencia, precio Plus |
 | GET/PUT | `/api/usuario` | Perfil del usuario actual |
+| GET/POST | `/api/usuario/verificacion`, `/cedula`, `/antecedentes` | Verificación simulada: estado de cada documento; enviar cédula (fotos + número) u hoja de delincuencia (archivo + fecha de emisión). Pasa "En revisión" `CIRA_REVISION_SEG` segundos (6 por defecto) y se aprueba sola; la hoja vale 3 meses |
 | PUT/DELETE | `/api/usuario/tarjeta` | Registra (simulada) o elimina la tarjeta |
 | PUT | `/api/usuario/disponibilidad`, `/api/usuario/plan` | Disponibilidad; cambio de plan Gratis/Plus (simulado) |
 | POST/PUT/DELETE | `/api/usuario/servicios[/:id]` | Servicios ofrecidos |

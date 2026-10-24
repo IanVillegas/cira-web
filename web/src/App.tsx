@@ -27,6 +27,7 @@ import { ActividadPage } from "@/pages/ActividadPage";
 import { PlanPage } from "@/pages/PlanPage";
 import { IngresosPage } from "@/pages/IngresosPage";
 import { DeConfianzaPage } from "@/pages/DeConfianzaPage";
+import { VerificacionPage } from "@/pages/VerificacionPage";
 import { PerfilPublicoPage } from "@/pages/PerfilPublicoPage";
 import { InhabilitarCuentaPage } from "@/pages/InhabilitarCuentaPage";
 
@@ -60,6 +61,7 @@ export default function App() {
             <Route path="/perfil/editar" element={<EditProfilePage />} />
             <Route path="/cuenta" element={<AccountMenuPage />} />
             <Route path="/cuenta/tarjeta" element={<TarjetaPage />} />
+            <Route path="/cuenta/verificacion" element={<VerificacionPage />} />
             <Route path="/cuenta/actividad" element={<ActividadPage />} />
             <Route path="/cuenta/plan" element={<PlanPage />} />
             <Route path="/cuenta/ingresos" element={<IngresosPage />} />

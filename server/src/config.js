@@ -21,6 +21,10 @@ export const CONFIG = {
   VENTANA_ALERTAS_MIN: num(process.env.CIRA_VENTANA_ALERTAS_MIN, 30),
   /** Radio máximo para alertar a un trabajador (km), si hay coordenadas. */
   RADIO_ALERTAS_KM: 15,
+  /** Verificación simulada: segundos que un documento pasa "En revisión" antes de aprobarse. */
+  REVISION_DOCUMENTOS_SEG: num(process.env.CIRA_REVISION_SEG, 6),
+  /** Meses que se considera vigente la hoja de delincuencia desde su emisión (regla de CIRA). */
+  VIGENCIA_ANTECEDENTES_MESES: 3,
 };
 
 export const METODOS_PAGO = ["Efectivo", "Tarjeta"];

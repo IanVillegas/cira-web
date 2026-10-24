@@ -9,7 +9,7 @@ export const db = new DatabaseSync(DB_PATH);
 
 // Versión del esquema. Al subirla, la base local (solo datos de prueba) se recrea
 // y se vuelve a sembrar: el modelo pasó de un usuario fijo a varios usuarios reales.
-const VERSION_ESQUEMA = 6;
+const VERSION_ESQUEMA = 7;
 
 const TABLAS = [
   "favorito",
@@ -54,6 +54,10 @@ db.exec(`
     plan_desde TEXT,
     cedula_verificada INTEGER NOT NULL DEFAULT 0,
     antecedentes INTEGER NOT NULL DEFAULT 0,
+    -- Verificación simulada: cuándo se envió cada documento (los archivos no se guardan).
+    cedula_enviada_en TEXT,
+    antecedentes_enviada_en TEXT,
+    antecedentes_emision TEXT,
     responde_urgencias INTEGER NOT NULL DEFAULT 0,
     trabajos_base INTEGER NOT NULL DEFAULT 0,
     tarjeta_marca TEXT,

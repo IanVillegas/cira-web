@@ -12,6 +12,8 @@ import {
   mapTrabajador,
   mapTrabajo,
   mapUsuario,
+  mapVerificacion,
+  resolverRevision,
   contarNoLeidos,
   obtenerUsuario,
   parseFechaSql,
@@ -113,7 +115,47 @@ router.use((req, res, next) => {
 
 // ── Usuario / perfil ────────────────────────────────────────────────
 router.get("/usuario", (req, res) => {
-  res.json(mapUsuario(obtenerUsuario(req.usuarioId)));
+  res.json(mapUsuario(resolverRevision(obtenerUsuario(req.usuarioId))));
+});
+
+// ── Verificación de documentos (simulada) ───────────────────────────
+// Los archivos nunca llegan al servidor: solo se registra que se enviaron y, para la hoja de
+// delincuencia, su fecha de emisión. Pasados unos segundos "En revisión" se aprueban solos.
+router.get("/usuario/verificacion", (req, res) => {
+  res.json(mapVerificacion(resolverRevision(obtenerUsuario(req.usuarioId))));
+});
+
+const normalizarCedula = (v) => String(v ?? "").replace(/\D/g, "");
+
+router.post("/usuario/verificacion/cedula", (req, res) => {
+  const { numero, frente, reverso } = req.body;
+  if (!frente || !reverso) return error(res, 400, "Toma la foto del frente y del reverso de tu cédula.");
+  const digitos = normalizarCedula(numero);
+  if (digitos.length < 9 || digitos.length > 12) return error(res, 400, "El número de cédula no es válido.");
+  const yo = obtenerUsuario(req.usuarioId);
+  if (yo.cedula_verificada && normalizarCedula(yo.cedula) === digitos) return error(res, 409, "Tu cédula ya está verificada.");
+  db.prepare("UPDATE usuario SET cedula = ?, cedula_verificada = 0, cedula_enviada_en = datetime('now') WHERE id = ?").run(
+    String(numero).trim(),
+    req.usuarioId,
+  );
+  res.json(mapVerificacion(obtenerUsuario(req.usuarioId)));
+});
+
+router.post("/usuario/verificacion/antecedentes", (req, res) => {
+  const { emision, archivo } = req.body;
+  if (!archivo) return error(res, 400, "Adjunta el PDF o una foto de tu hoja de delincuencia.");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(emision ?? ""))) return error(res, 400, "Indica la fecha de emisión.");
+  const hoy = new Date().toISOString().slice(0, 10);
+  if (emision > hoy) return error(res, 400, "La fecha de emisión no puede ser futura.");
+  const limite = new Date();
+  limite.setUTCMonth(limite.getUTCMonth() - CONFIG.VIGENCIA_ANTECEDENTES_MESES);
+  if (emision < limite.toISOString().slice(0, 10)) {
+    return error(res, 400, `La hoja tiene más de ${CONFIG.VIGENCIA_ANTECEDENTES_MESES} meses: solicita una nueva.`);
+  }
+  db.prepare(
+    "UPDATE usuario SET antecedentes = 0, antecedentes_emision = ?, antecedentes_enviada_en = datetime('now') WHERE id = ?",
+  ).run(emision, req.usuarioId);
+  res.json(mapVerificacion(obtenerUsuario(req.usuarioId)));
 });
 
 router.put("/usuario", (req, res) => {
@@ -131,7 +173,10 @@ router.put("/usuario", (req, res) => {
        metodos_pago = COALESCE(?, metodos_pago),
        telefono = COALESCE(?, telefono),
        correo = COALESCE(?, correo),
-       cedula = COALESCE(?, cedula)
+       cedula = COALESCE(?, cedula),
+       -- Cambiar el número de cédula obliga a verificarla de nuevo.
+       cedula_verificada = CASE WHEN ? IS NOT NULL AND ? != cedula THEN 0 ELSE cedula_verificada END,
+       cedula_enviada_en = CASE WHEN ? IS NOT NULL AND ? != cedula THEN NULL ELSE cedula_enviada_en END
      WHERE id = ?`,
   ).run(
     nombre ?? null,
@@ -142,6 +187,10 @@ router.put("/usuario", (req, res) => {
     metodosPago ? JSON.stringify(metodosPago) : null,
     telefono ?? null,
     correo ?? null,
+    cedula ?? null,
+    cedula ?? null,
+    cedula ?? null,
+    cedula ?? null,
     cedula ?? null,
     req.usuarioId,
   );
@@ -434,6 +483,9 @@ router.post("/trabajos/:id/aceptar-urgencia", (req, res) => {
   if (!row) return;
   if (!row.urgente) return error(res, 400, "Este trabajo no es una urgencia.");
   if (row.publicador_id === req.usuarioId) return error(res, 400, "No puedes aceptar tu propia urgencia.");
+  if (!resolverRevision(obtenerUsuario(req.usuarioId)).cedula_verificada) {
+    return error(res, 403, "Verifica tu cédula para aceptar urgencias.");
+  }
   if (row.estado !== "Pendiente" || row.trabajador_id) {
     return error(res, 409, "Otra persona ya aceptó esta urgencia.");
   }

@@ -25,7 +25,7 @@ const CORREOS = {
 
 const USUARIOS = [
   // id, nombre, cédula (ficticia), teléfono, descripción, zona, lat, lng, plan, cédula✔, antecedentes✔, urgencias, base de trabajos
-  ["u-1", "Ian Villegas", "1-1234-5678", "6104-4195", "Electricidad y reparaciones menores en Alajuela y alrededores.", "Alajuela Centro", 10.0163, -84.2113, "plus", 1, 0, 0, 23],
+  ["u-1", "Ian Villegas", "1-1234-5678", "6104-4195", "Electricidad y reparaciones menores en Alajuela y alrededores.", "Alajuela Centro", 10.0163, -84.2113, "plus", 1, 1, 0, 23],
   ["u-2", "Marisol Hidalgo", "1-2345-6789", "6361-7541", "Limpieza de casas y cuidado de mascotas.", "San José, Escazú", 9.9189, -84.1394, "gratis", 0, 0, 0, 0],
   ["u-3", "Bayron Camacho", "2-3456-7890", "8512-8068", "Plomero y cerrajero. Respondo urgencias.", "Alajuela, Desamparados", 10.025, -84.25, "plus", 1, 0, 1, 8],
   ["u-4", "Eduardo Picado", "3-4567-8901", "6252-4226", "Electricista con 10 años de experiencia. Atiendo urgencias.", "Alajuela Centro", 10.018, -84.213, "plus", 1, 1, 1, 52],
@@ -74,6 +74,11 @@ const FAVORITOS = [
   ["u-6", "u-3"],
 ];
 
+// Hoja de delincuencia: hace cuántos días se emitió. La de Ian ya venció (más de 3 meses) para
+// poder mostrar en la demo cómo se renueva; la de Eduardo está vigente.
+const DIAS_EMISION_ANTECEDENTES = { "u-1": 125, "u-4": 20 };
+const haceDias = (n) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
+
 const POSTULACIONES = [
   ["t-1", "u-1"], ["t-1", "u-5"], ["t-1", "u-3"],
   ["t-2", "u-1"], ["t-2", "u-4"],
@@ -116,15 +121,15 @@ function sembrar() {
 
   const insertUsuario = db.prepare(
     `INSERT INTO usuario (id, nombre, cedula, telefono, correo, pin, descripcion, zona, lat, lng, metodos_pago, disponible, plan, plan_desde,
-                          cedula_verificada, antecedentes, responde_urgencias, trabajos_base)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?)`,
+                          cedula_verificada, antecedentes, antecedentes_emision, responde_urgencias, trabajos_base)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?)`,
   );
   for (const [id, nombre, cedula, tel, desc, zona, lat, lng, plan, cedulaOk, antec, urg, base] of USUARIOS) {
     insertUsuario.run(
       id, nombre, cedula, tel, CORREOS[id], PIN, desc, zona, lat, lng,
       JSON.stringify([EFECTIVO, APP]),
       plan, plan === "plus" ? new Date().toISOString() : null,
-      cedulaOk, antec, urg, base,
+      cedulaOk, antec, antec && DIAS_EMISION_ANTECEDENTES[id] ? haceDias(DIAS_EMISION_ANTECEDENTES[id]) : null, urg, base,
     );
   }
 

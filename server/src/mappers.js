@@ -46,11 +46,60 @@ export function trabajosCompletadosDe(row) {
   return row.trabajos_base + n;
 }
 
+// ── Verificación de documentos (simulada) ───────────────────────────
+const hoyIso = () => new Date().toISOString().slice(0, 10);
+
+/** Fecha (YYYY-MM-DD) en que vence una hoja de delincuencia emitida en `emision`. */
+export function venceAntecedentes(emision) {
+  const d = new Date(`${emision}T00:00:00Z`);
+  d.setUTCMonth(d.getUTCMonth() + CONFIG.VIGENCIA_ANTECEDENTES_MESES);
+  return d.toISOString().slice(0, 10);
+}
+
+const antecedentesVigentes = (row) =>
+  !!row.antecedentes && !!row.antecedentes_emision && venceAntecedentes(row.antecedentes_emision) >= hoyIso();
+
+/**
+ * La "revisión" de un documento termina sola pasados unos segundos: al leer el usuario se
+ * aprueba lo que ya cumplió el tiempo. Devuelve la fila actualizada.
+ */
+export function resolverRevision(row) {
+  const listo = (enviada) => enviada && Date.now() - parseFechaSql(enviada) >= CONFIG.REVISION_DOCUMENTOS_SEG * 1000;
+  let cambio = false;
+  if (!row.cedula_verificada && listo(row.cedula_enviada_en)) {
+    db.prepare("UPDATE usuario SET cedula_verificada = 1 WHERE id = ?").run(row.id);
+    cambio = true;
+  }
+  if (row.antecedentes_enviada_en && !row.antecedentes && listo(row.antecedentes_enviada_en)) {
+    db.prepare("UPDATE usuario SET antecedentes = 1 WHERE id = ?").run(row.id);
+    cambio = true;
+  }
+  return cambio ? obtenerUsuario(row.id) : row;
+}
+
+/** Estado de cada documento para la pantalla de Verificación (solo para su dueño). */
+export function mapVerificacion(row) {
+  const cedula = row.cedula_verificada ? "verificada" : row.cedula_enviada_en ? "en_revision" : "sin_enviar";
+  let antecedentes = "sin_enviar";
+  if (row.antecedentes) antecedentes = antecedentesVigentes(row) ? "verificada" : "vencida";
+  else if (row.antecedentes_enviada_en) antecedentes = "en_revision";
+  return {
+    cedula: { estado: cedula, numero: row.cedula },
+    antecedentes: {
+      estado: antecedentes,
+      emision: row.antecedentes_emision ?? null,
+      venceEl: row.antecedentes_emision ? venceAntecedentes(row.antecedentes_emision) : null,
+      vigenciaMeses: CONFIG.VIGENCIA_ANTECEDENTES_MESES,
+    },
+  };
+}
+
 export function insigniasDe(row, completados) {
   const lista = [];
   if (row.plan === "plus") lista.push("plus");
   if (row.cedula_verificada) lista.push("cedula");
-  if (row.antecedentes) lista.push("antecedentes");
+  // La hoja de delincuencia solo cuenta mientras está vigente.
+  if (antecedentesVigentes(row)) lista.push("antecedentes");
   if (completados >= 50) lista.push("mas50");
   if (row.responde_urgencias) lista.push("urgencias");
   return lista;
@@ -100,6 +149,7 @@ export function mapUsuario(row) {
     trabajosCompletados: completados,
     servicios: serviciosDe(row.id).map(mapServicio),
     guardadoPor: guardadoPorDe(row.id),
+    verificacion: mapVerificacion(row),
     ...reputacionDe(row.id),
   };
 }
