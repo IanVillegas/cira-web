@@ -16,5 +16,6 @@ export { Sheet } from "./Sheet";
 export { Toast } from "./Toast";
 export { Reveal, Stagger } from "./Reveal";
 export { Icon } from "./Icon";
+export { PhotoJobCard } from "./PhotoJobCard";
 export { cx } from "./cx";
 export { useInView, prefersReducedMotion } from "./motion";

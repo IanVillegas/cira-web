@@ -1,15 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { ExploreTabs } from "@/components/ui/ExploreTabs";
-import { FilterChip } from "@/components/ui/FilterChip";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Loader } from "@/components/ui/Loader";
-import { JobCard } from "@/components/JobCard";
-import { Icon } from "@/components/ui/Icon";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  EmptyState,
+  FilterChip,
+  Icon,
+  Loader,
+  PageHeader,
+  PhotoJobCard,
+  SegmentedControl,
+  Stagger,
+} from "@/components/aire";
 import { api } from "@/lib/api";
 import type { Trabajo } from "@/lib/types";
 
+const SECCIONES = [
+  { value: "/explorar", label: "Trabajos" },
+  { value: "/trabajadores", label: "Trabajadores" },
+  { value: "/publicaciones", label: "Mis publicaciones" },
+  { value: "/mis-trabajos", label: "Mis trabajos" },
+];
+
 export function ExplorarTrabajosPage() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [trabajos, setTrabajos] = useState<Trabajo[] | null>(null);
   const [ordenPorCercania, setOrdenPorCercania] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,43 +46,51 @@ export function ExplorarTrabajosPage() {
   };
 
   return (
-    <div className="pb-4">
-      <PageHeader title="Explorar" subtitle="Encuentra tu próximo servicio hoy." icon="work" />
+    <div className="ca-root min-h-full pb-4">
+      <PageHeader title="Explorar" subtitle="Encuentra tu próximo servicio hoy." />
 
-      <ExploreTabs />
+      <div className="px-5">
+        <SegmentedControl items={SECCIONES} value={pathname} onChange={navigate} label="Explorar" />
+      </div>
 
-      <div className="mt-4 flex items-center gap-2 overflow-x-auto px-5 pb-1">
+      <div className="no-scrollbar mt-4 flex items-center gap-2 overflow-x-auto px-5 pb-1">
         <FilterChip label="Precio" />
-        <FilterChip
-          label="Cercanía"
-          active={ordenPorCercania}
-          onClick={() => setOrdenPorCercania((v) => !v)}
-        />
+        <FilterChip label="Cercanía" active={ordenPorCercania} onClick={() => setOrdenPorCercania((v) => !v)} />
         <FilterChip label="Fecha" />
         <FilterChip label="Categoría" />
         <button
-          className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cira-card text-cira-accent shadow"
+          type="button"
+          className="ca-iconbtn ml-auto shrink-0"
           aria-label="Limpiar filtros"
           onClick={() => setOrdenPorCercania(false)}
         >
-          <Icon name="cleaning_services" size={20} />
+          <Icon name="filter_alt_off" size={20} />
         </button>
       </div>
 
       <div className="px-5 pt-4">
         {error ? (
-          <EmptyState image="empty_no_signal" title="Sin conexión" message={error} />
+          <EmptyState image="/images/empty_no_signal.svg" title="Sin conexión" message={error} />
         ) : trabajos === null ? (
-          <Loader label="Cargando trabajos..." />
+          <Loader label="Cargando trabajos…" />
         ) : lista.length === 0 ? (
           <EmptyState
+            image="/images/empty_no_data_variant.svg"
             title="Sin trabajos disponibles"
             message="Cuando existan publicaciones activas aparecerán aquí."
           />
         ) : (
-          lista.map((trabajo) => (
-            <JobCard key={trabajo.id} trabajo={trabajo} onApply={toggleApply} />
-          ))
+          <Stagger key={ordenPorCercania ? "cerca" : "todos"} className="grid gap-3">
+            {lista.map((trabajo) => (
+              <PhotoJobCard
+                key={trabajo.id}
+                trabajo={trabajo}
+                onApply={toggleApply}
+                onContact={() => navigate("/chats")}
+                onMap={() => navigate("/mapa")}
+              />
+            ))}
+          </Stagger>
         )}
       </div>
     </div>

@@ -3,7 +3,7 @@ import { cx } from "./cx";
 import { Icon } from "./Icon";
 import { Spinner } from "./Spinner";
 
-export type ButtonVariant = "primary" | "secondary" | "tinted" | "outlined" | "destructive" | "plain";
+export type ButtonVariant = "primary" | "secondary" | "tinted" | "outlined" | "destructive" | "plain" | "photo" | "photo-soft";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;

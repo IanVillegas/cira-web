@@ -38,6 +38,9 @@ export function seedIfEmpty() {
     ["t-2", "Pintar sala y comedor", "Pintura de dos ambientes, aproximadamente 40 m². La pintura ya está comprada.", "Reparaciones", "Alajuela, Río Segundo", 10.0134, -84.2239, 1.1, "Mañana, 8:00 a.m.", 45000, "Transferencia", "Carlos Méndez", "Pendiente", 5, 0],
     ["t-3", "Mudanza de apartamento pequeño", "Ayuda para mover cajas y muebles de un apartamento de 1 habitación a otro edificio cercano.", "Mudanzas", "Heredia Centro", 9.9989, -84.1174, 5.8, "Sábado, 9:00 a.m.", 25000, "Efectivo", "Laura Jiménez", "Pendiente", 1, 1],
     ["t-4", "Poda de jardín y limpieza de zacate", "Jardín de casa con zacate alto y algunos arbustos que necesitan poda.", "Jardinería", "Alajuela, Desamparados", 10.0250, -84.2500, 0.6, "Hoy, 5:30 p.m.", 12000, "SINPE", "Esteban Vargas", "Pendiente", 2, 0],
+    ["t-5", "Traer sofá comprado en Heredia", "Compré un sofá de 3 plazas en Marketplace y necesito traerlo hasta mi casa. Ideal si tenés pickup o carro grande.", "Transporte", "Alajuela, San Rafael", 10.0040, -84.2080, 3.4, "Domingo, 10:00 a.m.", 10000, "SINPE", "Andrea Solís", "Pendiente", 0, 0],
+    ["t-6", "Baño y cepillado para gato", "Gato de pelo largo, tranquilo. Necesita baño, secado y cepillado en casa.", "Cuidado de mascotas", "Alajuela, Guácima", 9.9800, -84.2550, 4.1, "Jueves, 4:00 p.m.", 8000, "Efectivo", "Valeria Mora", "Pendiente", 2, 0],
+    ["t-7", "Instalar lámparas en terraza", "Instalación de tres lámparas exteriores y un interruptor nuevo. Los materiales ya están comprados.", "Electricidad", "Alajuela, El Coyol", 10.0050, -84.2700, 2.8, "Mañana, 2:00 p.m.", 22000, "Transferencia", "Roberto Quesada", "Pendiente", 1, 0],
     ["p-1", "Limpieza profunda de apartamento", "Limpieza general de apartamento de 2 habitaciones antes de mudanza.", "Limpieza", "Alajuela Centro", 10.0163, -84.2113, 0, "Viernes, 1:00 p.m.", 20000, "SINPE", "Ian Villegas", "Pendiente", 4, 0],
   ];
   const insertTrabajo = db.prepare(

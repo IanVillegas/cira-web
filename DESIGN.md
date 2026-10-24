@@ -112,6 +112,7 @@ Interletrado negativo en todo texto de 15px o más; ya viene en cada clase.
 | `Toast` | nuevo | `open`, `message`, `tone`, `icon`, `onClose`, `duration` |
 | `Reveal`, `Stagger` | nuevos | `effect` (`up`, `scale`, `fade`), `delay`, `step` |
 | `Icon` | `Icon` | `name` (Material Symbols Rounded), `filled`, `size` |
+| `PhotoJobCard` | `JobCard` (en Explorar) | `trabajo`, `onApply`, `onContact`, `onMap` |
 
 Con React Router:
 
@@ -148,6 +149,10 @@ Tarjeta de trabajo típica:
   </div>
 </Card>
 ```
+
+### Tarjeta con foto (`PhotoJobCard`)
+
+Única excepción a «sin degradados»: el degradado no decora, es el velo que hace legible el texto sobre la foto. Cada categoría tiene su foto en `web/public/images/categorias/<slug>.webp` (640×800, WebP) y su tono `--aire-cat-<slug>`; el mapeo está en `web/src/lib/categorias.ts`. Sobre la foto el texto usa `--aire-on-photo` / `--aire-on-photo-2`, los chips `--aire-photo-chip` y las píldoras `--aire-photo-glass`. La acción principal usa `Button variant="photo"` (o `"photo-soft"` para retirar la postulación); las secundarias son botones de ícono de 44px. Para una categoría nueva: agrega la foto, el token `--aire-cat-<slug>` y la entrada en `categorias.ts`.
 
 ## Voz y contenido
 
