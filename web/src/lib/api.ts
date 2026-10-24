@@ -1,7 +1,9 @@
 import type {
   Actividad,
+  Agenda,
   Alerta,
   ConfigNegocio,
+  Frecuencia,
   Conversacion,
   HistorialItem,
   Ingresos,
@@ -9,6 +11,7 @@ import type {
   MetodoPago,
   NoLeidos,
   PerfilPublico,
+  Propiedad,
   Plan,
   Trabajador,
   Trabajo,
@@ -128,13 +131,26 @@ export const api = {
     },
     obtener: (id: string) => request<Trabajo>(`/trabajos/${id}`),
     /** Con `invitadoId` es una oferta directa: solo esa persona la ve hasta que responda. */
-    crear: (datos: DatosTrabajo & { urgente?: boolean; invitadoId?: string; trueque?: boolean; ofrece?: string }) =>
-      post<Trabajo>("/trabajos", datos),
+    crear: (
+      datos: DatosTrabajo & {
+        urgente?: boolean;
+        invitadoId?: string;
+        trueque?: boolean;
+        ofrece?: string;
+        /** Con `invitadoId`: servicio recurrente (CIRA genera las siguientes visitas al aceptar). */
+        frecuencia?: Frecuencia;
+        propiedadId?: string;
+      },
+    ) => post<Trabajo>("/trabajos", datos),
     editar: (id: string, datos: Partial<DatosTrabajo> & { ofrece?: string }) =>
       request<Trabajo>(`/trabajos/${id}`, { method: "PATCH", body: JSON.stringify(datos) }),
     /** En un trueque, `propuesta` es la contraoferta (qué pide a cambio); vacía = acepta lo ofrecido. */
     postular: (id: string, propuesta?: string) =>
       request<Trabajo>(`/trabajos/${id}/postular`, { method: "PATCH", body: JSON.stringify({ propuesta }) }),
+    /** Visita que el trabajador canceló: sugerencias de reemplazo, elegir uno o publicarla para todos. */
+    reemplazos: (id: string) => request<Trabajador[]>(`/trabajos/${id}/reemplazos`),
+    elegirReemplazo: (id: string, trabajadorId: string) => post<Trabajo>(`/trabajos/${id}/reemplazo`, { trabajadorId }),
+    publicarAbierto: (id: string) => post<Trabajo>(`/trabajos/${id}/publicar-abierto`),
     aceptarTrueque: (id: string) => post<Trabajo>(`/trabajos/${id}/trueque/aceptar`),
     finalizarTrueque: (id: string) => post<Trabajo>(`/trabajos/${id}/trueque/finalizar`),
     postulantes: (id: string) => request<Trabajador[]>(`/trabajos/${id}/postulantes`),
@@ -151,6 +167,25 @@ export const api = {
 
   trabajadores: {
     listar: () => request<Trabajador[]>("/trabajadores"),
+  },
+
+  /** CIRA Agenda: calendario, días bloqueados y servicios recurrentes. */
+  agenda: {
+    obtener: (desde: string, hasta: string) => request<Agenda>(`/agenda?desde=${desde}&hasta=${hasta}`),
+    bloquear: (fecha: string) => post<{ fecha: string }>("/agenda/bloqueos", { fecha }),
+    desbloquear: (fecha: string) => request<void>(`/agenda/bloqueos/${fecha}`, { method: "DELETE" }),
+    /** Días no disponibles de otra persona: solo "ocupado", nunca qué ni con quién. */
+    ocupado: (usuarioId: string, desde: string, hasta: string) =>
+      request<{ ocupados: string[] }>(`/usuarios/${usuarioId}/ocupado?desde=${desde}&hasta=${hasta}`),
+    terminarSerie: (serieId: string) => post<void>(`/series/${serieId}/cancelar`),
+  },
+
+  propiedades: {
+    listar: () => request<Propiedad[]>("/propiedades"),
+    crear: (datos: Omit<Propiedad, "id">) => post<Propiedad>("/propiedades", datos),
+    editar: (id: string, datos: Omit<Propiedad, "id">) =>
+      request<Propiedad>(`/propiedades/${id}`, { method: "PUT", body: JSON.stringify(datos) }),
+    eliminar: (id: string) => request<void>(`/propiedades/${id}`, { method: "DELETE" }),
   },
 
   /** "De confianza": trabajadores guardados para volver a contratar. */
@@ -195,7 +230,8 @@ export interface DatosTrabajo {
   ubicacion: string;
   lat?: number;
   lng?: number;
-  fecha: string;
+  /** "2026-10-31T09:00"; se omite en las urgencias (lo antes posible). */
+  fecha?: string;
   pago: number;
   metodoPago: MetodoPago;
 }

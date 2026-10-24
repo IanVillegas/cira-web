@@ -35,9 +35,9 @@ En esta etapa CIRA pasó de un **mockup interactivo de un solo usuario** a una *
 | **Experiencia** | Sistema de diseño CIRA Aire, tarjetas con foto por categoría, barra flotante, modo oscuro, español/inglés | La app se ve y se siente como un producto real, no como un prototipo |
 | **Confianza** | Calificaciones en ambas direcciones, reportes, verificación de cédula y hoja de delincuencia, "De confianza" | Contratar a un desconocido es el mayor freno del mercado informal |
 | **Monetización** | Comisión por pago con tarjeta, tarifa de urgencia, Plan Plus, propina, "Ingresos de CIRA" | El profesor pidió que el modelo de negocio **se vea funcionando**, no solo en el Canvas |
-| **Operación** | Multiusuario, Modo Urgencia con alertas, seguimiento tipo Uber, ofertas directas, trueque | Cubre el ciclo completo: necesidad → contacto → trabajo → pago → reputación |
+| **Operación** | Multiusuario, Modo Urgencia con alertas, seguimiento tipo Uber, ofertas directas, trueque, **agenda con servicios recurrentes, reemplazos y propiedades** | Cubre el ciclo completo: necesidad → contacto → trabajo → pago → reputación → **siguiente visita** |
 
-**En números:** 21 commits, 139 archivos cambiados, ~9 900 líneas nuevas, 29 pantallas, ~730 textos traducidos al inglés.
+**En números:** 23 commits, ~150 archivos cambiados, ~12 400 líneas nuevas, 31 pantallas, ~840 textos traducidos al inglés.
 
 **Mensaje central para la exposición:**
 > CIRA conecta a personas que necesitan un servicio con trabajadores independientes de su zona, y resuelve lo que más frena ese mercado: **la desconfianza**. Gana dinero solo cuando aporta valor: cuando el pago pasa por la app, cuando hay una urgencia y cuando un trabajador quiere enterarse primero.
@@ -68,7 +68,7 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 2. **¿Cómo lo resuelve CIRA?** Explorar trabajos y trabajadores cerca ([§4.2](#42-tarjetas-con-la-foto-de-cada-categoría)), con reputación y verificación visibles ([§5](#5-confianza-entre-desconocidos)).
 3. **¿Y si es una emergencia?** Modo Urgencia + seguimiento tipo Uber ([§7.2](#72-modo-urgencia-y-alertas), [§7.3](#73-seguimiento-del-trabajo-tipo-uber)).
 4. **¿Cómo gana dinero?** Comisión, urgencia y Plan Plus, mostrados en vivo ([§6](#6-cómo-gana-dinero-cira)).
-5. **¿Por qué la gente vuelve?** "De confianza" y recontratar ([§5.3](#53-de-confianza-y-recontratar)).
+5. **¿Por qué la gente vuelve?** "De confianza", recontratar y los servicios recurrentes de la agenda ([§5.3](#53-de-confianza-y-recontratar), [§7.6](#76-cira-agenda-servicios-recurrentes-reemplazos-y-propiedades)).
 6. **¿Qué nos diferencia?** Trueque de servicios para la comunidad ([§7.5](#75-trueque-de-servicios)).
 7. **¿Cómo lo medimos?** Métricas ([§9](#9-métricas-que-la-app-permite-medir)).
 8. **Honestidad técnica:** qué es real y qué simulado ([§10](#10-qué-es-real-y-qué-es-simulado)).
@@ -352,15 +352,50 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 
 ---
 
+### 7.6 CIRA Agenda: servicios recurrentes, reemplazos y propiedades
+
+> Une dos ideas que llegaron juntas: *CIRA Agenda* (el trabajador convierte trabajos ocasionales en ingresos recurrentes) y *CIRA para alquileres vacacionales* (la propiedad lista antes del próximo huésped). La valoración está en [`ideas-innovacion-cira.md`](ideas-innovacion-cira.md#11-agenda-servicios-recurrentes-y-propiedades).
+
+**Qué es:** una **agenda** para trabajadores y clientes, conectada con "Recontratar", que permite contratar el mismo servicio **cada semana, cada dos semanas o cada mes**, cubrir con un reemplazo la visita que el trabajador no pueda hacer y guardar **propiedades** con sus instrucciones.
+
+**Problema que resuelve:**
+- El trabajador no tenía dónde ver qué días ya tiene trabajo ni cómo avisar qué días no puede.
+- Quien necesita una limpieza cada viernes tenía que volver a contratarla cada semana.
+- Quien administra un Airbnb, un condominio o varios apartamentos repetía siempre la dirección y las instrucciones.
+- Si el trabajador de siempre no podía un día, el cliente se quedaba sin servicio.
+
+**Cómo funciona:**
+1. **Mi agenda** (Perfil, Cuenta o Disponibilidad): calendario del mes con un punto por día según lo que haya: trabajo propio, servicio contratado, visita que necesita reemplazo o trabajo hecho. Se filtra por rol (*como trabajador / como cliente*) y por propiedad. Al tocar un día se ve lo agendado, y el trabajador puede **marcarlo como no disponible**: nadie le puede enviar ofertas directas ese día.
+2. **Recontratar con frecuencia:** al recontratar se elige *Una vez, Semanal, Quincenal o Mensual*. Arriba de la fecha aparece la **disponibilidad de la persona** en las próximas tres semanas (libre u ocupado, nunca qué ni con quién). Si se elige un día ocupado, la app lo advierte y no deja enviar la oferta.
+3. **La persona acepta una sola vez** y CIRA agenda las próximas visitas: siempre hay cuatro creadas por adelantado. Cada visita es un trabajo normal (seguimiento, pago, calificación). En *Mis trabajos* y *Mis publicaciones* se muestra solo la próxima visita; el resto está en la agenda.
+4. **Reemplazo:** si el trabajador toca *"No puedo ir a esta visita"*, la visita **no se publica para todos**: el cliente ve "Falta reemplazo" y sugerencias de personas del mismo oficio, **libres ese día**, con sus trabajadores **"De confianza" primero**. Al elegir una, le llega como oferta directa solo para esa visita; si dice que no, el cliente elige a otra. La serie sigue con el trabajador de siempre. También puede publicar esa visita para todos.
+5. **Mis propiedades** (Cuenta): direcciones con nombre ("Apartamento Escazú") e **instrucciones fijas** (dónde está la llave, qué revisar). Al publicar o recontratar se elige la propiedad en un toque y se llenan la dirección y el mapa. Las instrucciones **solo las ven el cliente y quien hace el trabajo**.
+6. Cualquiera de los dos puede **terminar el servicio recurrente**: se cancelan las visitas que no han empezado.
+
+**Cambio de fondo: fechas reales.** Antes las fechas eran texto libre ("Sábado, 4:00 p.m."), con el que no se puede armar un calendario, y el rango de disponibilidad de la pantalla de Disponibilidad no se guardaba. Ahora cada trabajo tiene **fecha y hora reales** en hora de Costa Rica, o ninguna si es una urgencia ("lo antes posible"). La app las muestra de forma natural ("Mañana, 9:00 a. m.", "Viernes, 1:00 p. m.", "31 oct") en el idioma elegido, y *Mis trabajos* y *Mis publicaciones* se ordenan por lo más próximo. El rango que no se guardaba se reemplazó por los días bloqueados de la agenda.
+
+**Por qué así:**
+- **Retención y monetización:** una contratación produce muchas transacciones futuras, y cada visita pagada con tarjeta genera su comisión. Es la funcionalidad que más mueve el modelo de negocio por cliente.
+- **Recurrencia solo con oferta directa:** para repetir un servicio hay que saber quién lo hará cada vez. Por eso nace de "Recontratar" y de "De confianza".
+- **El reemplazo no se publica para todos por defecto:** el cliente ya confía en alguien, y su red de confianza es la mejor fuente de suplentes. Así lo defendemos frente a herramientas de agenda como Jobber: la diferencia es la **recurrencia + los reemplazos dentro de la comunidad local**.
+- **Privacidad:** la disponibilidad solo dice libre u ocupado, y las instrucciones de la propiedad no las ve nadie más.
+- **Lo que quedó para la siguiente fase:** la lista de verificación con fotos (baño limpio, llaves, luces) y crear un trabajo relacionado desde una visita (la limpieza detecta un grifo dañado → plomero). Abren el segmento de anfitriones con una mensualidad por propiedad.
+
+**Qué decir:** *"CIRA no solo ayuda a conseguir trabajo: ayuda a construir una cartera de clientes. Y si un día el trabajador no puede, tu propia red de confianza lo cubre."*
+
+**Dónde está:** `AgendaPage.tsx`, `PropiedadesPage.tsx`, `components/aire/Calendar.tsx`, `DisponibilidadStrip.tsx`, `ReemplazoVisita.tsx`, `lib/fechas.ts`; en el servidor `agenda.js` y `fechas.js` · Commit: *ver Registro de cambios*
+
+---
+
 ## 8. Conexión con el Business Model Canvas
 
 | Bloque del Canvas | Qué lo respalda en la app |
 |---|---|
-| **Segmentos de clientes** | Clientes (hogares y pequeños negocios) y trabajadores independientes: dos lados del mercado, con pantallas para cada uno (*Mis publicaciones* / *Mis trabajos*) |
+| **Segmentos de clientes** | Clientes (hogares y pequeños negocios) y trabajadores independientes: dos lados del mercado, con pantallas para cada uno (*Mis publicaciones* / *Mis trabajos*). A futuro, **administradores de propiedades** (Airbnb, condominios), que ya pueden usar *Mis propiedades* y los servicios recurrentes |
 | **Propuesta de valor** | Cliente: encontrar a alguien confiable y cercano, incluso en una emergencia. Trabajador: más trabajos, reputación que demuestra su calidad y clientes que vuelven |
 | **Canales** | App web en el teléfono; WhatsApp para compartir trabajos y recomendar perfiles (links que llevan a CIRA) |
-| **Relación con clientes** | Autoservicio + comunidad: calificaciones, "De confianza", trueque, avisos y chat |
-| **Fuentes de ingreso** | Comisión del 10 % (tarjeta), tarifa de urgencia del 15 % y Plan Plus de ₡2 500/mes; visibles en "Ingresos de CIRA" |
+| **Relación con clientes** | Autoservicio + comunidad: calificaciones, "De confianza", trueque, avisos y chat. **Relación continua** con los servicios recurrentes de la agenda |
+| **Fuentes de ingreso** | Comisión del 10 % (tarjeta), tarifa de urgencia del 15 % y Plan Plus de ₡2 500/mes; visibles en "Ingresos de CIRA". Los servicios recurrentes multiplican las comisiones por cliente; a futuro, mensualidad por propiedad para anfitriones |
 | **Recursos clave** | La plataforma, la base de usuarios verificados y su reputación acumulada |
 | **Actividades clave** | Emparejar trabajos con trabajadores cercanos, verificar identidades, procesar pagos y moderar reportes |
 | **Socios clave** | Pasarela de pagos (a futuro), Poder Judicial (hoja de delincuencia), OpenStreetMap (mapas sin costo) |
@@ -380,6 +415,9 @@ Para el punto de "métricas de lanzamiento y operación". Todas salen de datos q
 | Conversión a Plan Plus | Si la suscripción tiene valor | Usuarios por plan y suscripciones |
 | % de usuarios verificados | Nivel de confianza de la red | Verificación |
 | **Tasa de recontratación** | Si los clientes vuelven (retención) | Ofertas directas aceptadas |
+| Servicios recurrentes activos y visitas por cliente | Ingresos recurrentes y lealtad | Agenda (series y sus visitas) |
+| % de visitas cubiertas por un reemplazo | Si la red de confianza sostiene el servicio | Visitas con reemplazo |
+| Días bloqueados por trabajador | Capacidad real de la oferta | Agenda |
 | "Guardado por" promedio | Lealtad hacia los trabajadores | De confianza |
 | Calificación promedio y reportes por cada 100 trabajos | Calidad del servicio | Calificaciones y reportes |
 | Trueques que terminan cumplidos | Salud del trueque | Calificaciones con "¿Cumplió su parte?" |
@@ -398,6 +436,7 @@ Conviene decirlo con claridad en la exposición: el profesor pidió un mockup in
 | Varios usuarios a la vez, chat, postulaciones, calificaciones | Pagos con tarjeta y suscripción Plus: no se cobra dinero |
 | Mapa real con geocodificación (OpenStreetMap) | Verificación de documentos: la "lectura" de la cédula y la revisión son automáticas |
 | Cálculo de comisiones, tarifas, propinas e ingresos | Alertas: se consultan cada pocos segundos, sin notificaciones push |
+| Agenda, fechas, servicios recurrentes, reemplazos y propiedades (validados en el servidor) | Las visitas de los servicios recurrentes se crean al consultar la app, no con una tarea programada |
 | Reglas de negocio (límites del plan, vigencia de la hoja, acuerdo del trueque) validadas en el servidor | Los archivos de verificación no se guardan |
 
 ---
@@ -417,8 +456,14 @@ Unos 8 minutos. Cada integrante con su teléfono conectado (`npm run demo` en `s
 | 7 | Ian | Perfil de un trabajador: corazón, "Guardado por N", Recomendar y Recontratar → oferta directa | 5.3 |
 | 8 | Ian / Bayron | Trueque "Subir refrigeradora": la contrapropuesta de Bayron, el acuerdo y el cierre en dos pasos | 7.5 |
 | 9 | Ian | Su hoja de delincuencia viene vencida: la renueva | 5.2 |
+| 10 | Ian | **Mi agenda**: la limpieza semanal con Marisol en "Apartamento Escazú", filtro por propiedad | 7.6 |
+| 11 | Marisol | En *Mis trabajos* ve la visita del viernes con las instrucciones de la llave y toca **"No puedo ir a esta visita"** | 7.6 |
+| 12 | Ian | En *Mis publicaciones* aparece "Falta reemplazo": elige a **Jixi** (De confianza, libre ese día); Jixi acepta desde su teléfono | 7.6 |
+| 13 | Ian | Recontrata a Eduardo **cada mes** en "Casa Alajuela": la disponibilidad muestra sus días ocupados; Eduardo acepta una vez y su agenda se llena sola | 7.6 |
 
 > Para no esperar los 2 minutos del plan gratis en las alertas, se puede arrancar el servidor con `CIRA_RETRASO_ALERTAS_SEG=10`.
+>
+> **El día de la presentación**, corre `npm run reset` en `server/` antes de arrancar: las fechas de los datos de ejemplo se calculan desde el día en que se crea la base (mañana, el próximo viernes…).
 
 ---
 
@@ -433,6 +478,8 @@ Unos 8 minutos. Cada integrante con su teléfono conectado (`npm run demo` en `s
 | Quinto botón en la barra para "De confianza" | No | La barra es para lo diario; lo ocasional va dentro de Perfil y Trabajadores |
 | Tarjeta grande con foto en todas las pantallas | Solo en Explorar | En gestión importa ver mucho de un vistazo |
 | Sanciones automáticas del trueque | Como política futura | Requieren un panel de administración y generan preguntas de privacidad |
+| Lista de verificación con fotos para propiedades y trabajo relacionado automático | Siguiente fase de "Mis propiedades" | Dificultad alta y abre otro segmento (anfitriones con mensualidad por propiedad) |
+| Publicar para todos la visita que el trabajador cancela | Primero se ofrecen reemplazos | El cliente ya confía en alguien; su red "De confianza" es la mejor fuente de suplentes |
 | Créditos o monedas internas para el trueque | No | La propuesta original los descartaba; lo resolvimos con el diferencial en dinero |
 
 ### Preguntas que nos pueden hacer
@@ -441,6 +488,8 @@ Unos 8 minutos. Cada integrante con su teléfono conectado (`npm run demo` en `s
 - **"¿Cómo evitan que se vayan a WhatsApp después del primer trabajo?"** → Recontratar dentro de la app es más fácil, el teléfono no se muestra, y la reputación y el seguimiento solo existen dentro de CIRA ([§5.3](#53-de-confianza-y-recontratar)).
 - **"¿Por qué alguien pagaría Plus si igual recibe las alertas?"** → En urgencias, llegar primero es quedarse con el trabajo; y entre los Plus gana el mejor calificado ([§6.3](#63-plan-plus-para-trabajadores)).
 - **"¿Cómo verifican de verdad la cédula?"** → En la demo es simulado; en producción se integraría con un servicio de verificación de identidad y la consulta de la hoja del Poder Judicial. El flujo y los estados ya están diseñados para eso ([§5.2](#52-verificación-de-cédula-y-hoja-de-delincuencia)).
+- **"¿En qué se diferencia de una app de agenda como Jobber?"** → Jobber organiza la agenda de un negocio; CIRA conecta a un cliente con trabajadores de su comunidad y, si el de siempre no puede, propone un reemplazo de su propia red de confianza ([§7.6](#76-cira-agenda-servicios-recurrentes-reemplazos-y-propiedades)).
+- **"¿Qué pasa si el trabajador se va a la competencia con el cliente recurrente?"** → La agenda, los reemplazos, el pago protegido y la reputación solo existen dentro de CIRA; salir de la app es perder todo eso.
 - **"¿Dónde está la IA o la nube?"** → Usamos IA (Claude Code) para desarrollar la app y su sistema de diseño; la app corre como servicio web y se puede publicar en la nube.
 - **"¿Qué pasa si un trabajador no cumple?"** → Reportes, calificación de cumplimiento en el trueque y la verificación vinculada a la cédula.
 
@@ -452,6 +501,8 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| *(este commit)* | CIRA Agenda: fechas reales, servicios recurrentes, reemplazos y propiedades (idea #11) | 7.6 |
+| `bb585b5` | Esta guía de novedades | — |
 | `360d721` | Trueque de servicios (idea #10) | 7.5, 6.3 |
 | `07e3d10` | Verificación de cédula y hoja de delincuencia | 5.2 |
 | `09c4cbf` | Modo oscuro | 4.4 |

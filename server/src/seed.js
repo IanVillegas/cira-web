@@ -3,6 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { db } from "./db.js";
 import { CONFIG } from "./config.js";
+import { extenderSerie } from "./agenda.js";
+import { enDias, proximo } from "./fechas.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ARCHIVO_LOCAL = path.join(__dirname, "..", "usuarios.local.json");
@@ -46,30 +48,31 @@ const SERVICIOS = [
   ["s-10", "u-5", "Jardinería", "Poda y limpieza de zacate.", 10000],
   ["s-11", "u-6", "Jardinería", "Poda y mantenimiento de jardines.", 12000],
   ["s-12", "u-6", "Mudanzas", "Ayuda para mudanzas pequeñas.", 25000],
+  ["s-13", "u-6", "Limpieza", "Limpieza de casas y apartamentos amueblados.", 18000],
 ];
 
 // Trabajos abiertos. id, título, descripción, categoría, ubicación, lat, lng, fecha, pago, método, publicador
 const TRABAJOS_ABIERTOS = [
-  ["t-1", "Reparar fuga de agua en cocina", "Se necesita plomero para revisar y reparar una fuga debajo del fregadero de la cocina. Herramientas propias.", "Plomería", "San José, Escazú", 9.9189, -84.1394, "Hoy, 3:00 p.m.", 18000, APP, "u-2"],
-  ["t-2", "Pintar sala y comedor", "Pintura de dos ambientes, aproximadamente 40 m². La pintura ya está comprada.", "Reparaciones", "Alajuela, Río Segundo", 10.0134, -84.2239, "Mañana, 8:00 a.m.", 45000, APP, "u-5"],
-  ["t-3", "Mudanza de apartamento pequeño", "Ayuda para mover cajas y muebles de un apartamento de 1 habitación a otro edificio cercano.", "Mudanzas", "Heredia Centro", 9.9989, -84.1174, "Sábado, 9:00 a.m.", 25000, EFECTIVO, "u-5"],
-  ["t-4", "Poda de jardín y limpieza de zacate", "Jardín de casa con zacate alto y algunos arbustos que necesitan poda.", "Jardinería", "Alajuela, Desamparados", 10.025, -84.25, "Hoy, 5:30 p.m.", 12000, APP, "u-3"],
-  ["t-5", "Traer sofá comprado en Heredia", "Compré un sofá de 3 plazas en Marketplace y necesito traerlo hasta mi casa. Ideal si tienes pickup o carro grande.", "Transporte", "Alajuela, San Rafael", 10.004, -84.208, "Domingo, 10:00 a.m.", 10000, APP, "u-6"],
-  ["t-6", "Baño y cepillado para gato", "Gato de pelo largo, tranquilo. Necesita baño, secado y cepillado en casa.", "Cuidado de mascotas", "Alajuela, Guácima", 9.98, -84.255, "Jueves, 4:00 p.m.", 8000, EFECTIVO, "u-3"],
-  ["t-7", "Instalar lámparas en terraza", "Instalación de tres lámparas exteriores y un interruptor nuevo. Los materiales ya están comprados.", "Electricidad", "Alajuela, El Coyol", 10.005, -84.27, "Mañana, 2:00 p.m.", 22000, APP, "u-6"],
-  ["p-1", "Limpieza profunda de apartamento", "Limpieza general de apartamento de 2 habitaciones antes de mudanza.", "Limpieza", "Alajuela Centro", 10.0163, -84.2113, "Viernes, 1:00 p.m.", 20000, APP, "u-1"],
+  ["t-1", "Reparar fuga de agua en cocina", "Se necesita plomero para revisar y reparar una fuga debajo del fregadero de la cocina. Herramientas propias.", "Plomería", "San José, Escazú", 9.9189, -84.1394, enDias(1, "15:00"), 18000, APP, "u-2"],
+  ["t-2", "Pintar sala y comedor", "Pintura de dos ambientes, aproximadamente 40 m². La pintura ya está comprada.", "Reparaciones", "Alajuela, Río Segundo", 10.0134, -84.2239, enDias(2, "08:00"), 45000, APP, "u-5"],
+  ["t-3", "Mudanza de apartamento pequeño", "Ayuda para mover cajas y muebles de un apartamento de 1 habitación a otro edificio cercano.", "Mudanzas", "Heredia Centro", 9.9989, -84.1174, proximo(6, "09:00"), 25000, EFECTIVO, "u-5"],
+  ["t-4", "Poda de jardín y limpieza de zacate", "Jardín de casa con zacate alto y algunos arbustos que necesitan poda.", "Jardinería", "Alajuela, Desamparados", 10.025, -84.25, enDias(1, "17:30"), 12000, APP, "u-3"],
+  ["t-5", "Traer sofá comprado en Heredia", "Compré un sofá de 3 plazas en Marketplace y necesito traerlo hasta mi casa. Ideal si tienes pickup o carro grande.", "Transporte", "Alajuela, San Rafael", 10.004, -84.208, proximo(0, "10:00"), 10000, APP, "u-6"],
+  ["t-6", "Baño y cepillado para gato", "Gato de pelo largo, tranquilo. Necesita baño, secado y cepillado en casa.", "Cuidado de mascotas", "Alajuela, Guácima", 9.98, -84.255, proximo(4, "16:00"), 8000, EFECTIVO, "u-3"],
+  ["t-7", "Instalar lámparas en terraza", "Instalación de tres lámparas exteriores y un interruptor nuevo. Los materiales ya están comprados.", "Electricidad", "Alajuela, El Coyol", 10.005, -84.27, enDias(1, "14:00"), 22000, APP, "u-6"],
+  ["p-1", "Limpieza profunda de apartamento", "Limpieza general de apartamento de 2 habitaciones antes de mudanza.", "Limpieza", "Alajuela Centro", 10.0163, -84.2113, proximo(5, "13:00"), 20000, APP, "u-1"],
 ];
 
 // Oferta directa ("Recontratar"): id, título, descripción, categoría, ubicación, lat, lng, fecha, pago, método, publicador, invitado
 const OFERTA_DIRECTA = [
   "o-1", "Revisar breaker que se dispara", "Igual que la vez pasada: el breaker de la cocina se dispara cuando uso el horno.",
-  "Electricidad", "Alajuela, Río Segundo", 10.0134, -84.2239, "Lunes, 9:00 a.m.", 15000, APP, "u-5", "u-1",
+  "Electricidad", "Alajuela, Río Segundo", 10.0134, -84.2239, proximo(1, "09:00"), 15000, APP, "u-5", "u-1",
 ];
 
 // Trueques abiertos: id, título, descripción, categoría, ubicación, lat, lng, fecha, diferencial, método del diferencial, publicador, qué ofrece
 const TRUEQUES = [
-  ["p-2", "Subir refrigeradora al segundo piso", "Necesito ayuda para subir una refrigeradora por la escalera. Tengo carretilla.", "Mudanzas", "Alajuela Centro", 10.0163, -84.2113, "Sábado, 4:00 p.m.", 2000, EFECTIVO, "u-1", "Reviso la instalación eléctrica de tu casa (2 horas)"],
-  ["tr-1", "Cambiar chapa y bisagras de la puerta", "Puerta de la entrada que no cierra bien. Ya compré la chapa nueva.", "Reparaciones", "Alajuela, Desamparados", 10.026, -84.251, "Domingo, 10:00 a.m.", 0, EFECTIVO, "u-3", "Destapo y reviso las tuberías de tu baño o cocina"],
+  ["p-2", "Subir refrigeradora al segundo piso", "Necesito ayuda para subir una refrigeradora por la escalera. Tengo carretilla.", "Mudanzas", "Alajuela Centro", 10.0163, -84.2113, proximo(6, "16:00"), 2000, EFECTIVO, "u-1", "Reviso la instalación eléctrica de tu casa (2 horas)"],
+  ["tr-1", "Cambiar chapa y bisagras de la puerta", "Puerta de la entrada que no cierra bien. Ya compré la chapa nueva.", "Reparaciones", "Alajuela, Desamparados", 10.026, -84.251, proximo(0, "10:00"), 0, EFECTIVO, "u-3", "Destapo y reviso las tuberías de tu baño o cocina"],
 ];
 
 // Postulaciones a trueques: trabajo, usuario, contrapropuesta (null = acepta lo ofrecido).
@@ -78,9 +81,30 @@ const POSTULACIONES_TRUEQUE = [
   ["p-2", "u-3", "Cambiar 2 tomacorrientes de su taller"],
 ];
 
+// Mis propiedades (de Ian): id, dueño, nombre, ubicación, lat, lng, instrucciones.
+const PROPIEDADES = [
+  ["pr-1", "u-1", "Apartamento Escazú", "San José, Escazú", 9.9189, -84.1394,
+    "Lo alquilo por Airbnb. La llave está con el guarda de la entrada. Los productos de limpieza están bajo el fregadero; cambiar las sábanas y dejar toallas limpias."],
+  ["pr-2", "u-1", "Casa Alajuela", "Alajuela Centro", 10.0163, -84.2113,
+    "Tocar el timbre del portón negro. Hay un perro amigable en el patio."],
+];
+
+// CIRA Agenda: Ian contrata a Marisol para limpiar el Apartamento Escazú cada viernes.
+// Ya hubo una visita (el viernes pasado, pagada y calificada); CIRA genera las próximas.
+const SERIE_DEMO = {
+  id: "se-1", publicador: "u-1", trabajador: "u-2", frecuencia: "semanal",
+  titulo: "Limpieza semanal del apartamento", descripcion: "Limpieza general entre huéspedes: baño, cocina, pisos y cambio de ropa de cama.",
+  categoria: "Limpieza", propiedad: "pr-1", pago: 20000, metodo: APP, hora: "09:00",
+};
+
+// Agenda: días que cada trabajador marcó como no disponibles (días a partir de hoy).
+const BLOQUEOS = [
+  ["u-2", 5], ["u-4", 2], ["u-4", 3], ["u-4", 9],
+];
+
 // "De confianza": quién guardó a quién (usuario, trabajador).
 const FAVORITOS = [
-  ["u-1", "u-4"], ["u-1", "u-3"],
+  ["u-1", "u-4"], ["u-1", "u-3"], ["u-1", "u-6"],
   ["u-2", "u-1"], ["u-5", "u-1"], ["u-6", "u-1"],
   ["u-2", "u-4"], ["u-5", "u-4"], ["u-6", "u-4"],
   ["u-6", "u-3"],
@@ -102,16 +126,16 @@ const POSTULACIONES = [
 // Trabajos terminados (historial y base de las calificaciones reales).
 // id, título, categoría, ubicación, fecha, pago, método, publicador, trabajador, estado, ⭐ del cliente al trabajador, ⭐ del trabajador al cliente, comentario
 const TRABAJOS_CERRADOS = [
-  ["h-1", "Instalación de lámparas", "Electricidad", "San José, Escazú", "12 sept 2026", 15000, EFECTIVO, "u-2", "u-1", "Finalizado", 5, 5, "Muy puntual y ordenado."],
-  ["h-2", "Reparación de breaker", "Electricidad", "Alajuela, Río Segundo", "2 sept 2026", 9000, APP, "u-5", "u-1", "Finalizado", 5, 4, "Resolvió el problema rápido."],
-  ["h-3", "Cambio de tomacorrientes", "Electricidad", "Heredia Centro", "20 ago 2026", 12000, EFECTIVO, "u-6", "u-1", "Cancelado", null, null, ""],
-  ["h-4", "Corto circuito en la cocina", "Electricidad", "Alajuela Centro", "28 ago 2026", 20000, APP, "u-5", "u-4", "Finalizado", 5, 5, "Llegó en 15 minutos."],
-  ["h-5", "Instalación de ventiladores", "Electricidad", "Heredia Centro", "30 ago 2026", 16000, EFECTIVO, "u-6", "u-4", "Finalizado", 5, 3, "Excelente trabajo."],
-  ["h-6", "Cambio de panel eléctrico", "Electricidad", "San José, Escazú", "5 sept 2026", 40000, APP, "u-2", "u-4", "Finalizado", 4, 5, "Buen servicio, un poco caro."],
-  ["h-7", "Reparar tubería del baño", "Plomería", "Alajuela Centro", "1 sept 2026", 22000, APP, "u-5", "u-3", "Finalizado", 5, 4, "Muy profesional."],
-  ["h-8", "Cambio de chapa de puerta", "Cerrajería", "Heredia Centro", "8 sept 2026", 18000, EFECTIVO, "u-6", "u-3", "Finalizado", 4, 2, "Cumplió con lo acordado."],
-  ["h-9", "Limpieza de apartamento", "Limpieza", "Alajuela Centro", "10 sept 2026", 18000, EFECTIVO, "u-1", "u-2", "Finalizado", 4, 5, "Todo quedó limpio."],
-  ["h-10", "Fuga en el lavatorio", "Plomería", "Alajuela Centro", "15 sept 2026", 12000, EFECTIVO, "u-1", "u-5", "Finalizado", 3, 5, "Tardó un poco más de lo esperado."],
+  ["h-1", "Instalación de lámparas", "Electricidad", "San José, Escazú", "2026-09-12T10:00", 15000, EFECTIVO, "u-2", "u-1", "Finalizado", 5, 5, "Muy puntual y ordenado."],
+  ["h-2", "Reparación de breaker", "Electricidad", "Alajuela, Río Segundo", "2026-09-02T09:00", 9000, APP, "u-5", "u-1", "Finalizado", 5, 4, "Resolvió el problema rápido."],
+  ["h-3", "Cambio de tomacorrientes", "Electricidad", "Heredia Centro", "2026-08-20T15:00", 12000, EFECTIVO, "u-6", "u-1", "Cancelado", null, null, ""],
+  ["h-4", "Corto circuito en la cocina", "Electricidad", "Alajuela Centro", "2026-08-28T19:30", 20000, APP, "u-5", "u-4", "Finalizado", 5, 5, "Llegó en 15 minutos."],
+  ["h-5", "Instalación de ventiladores", "Electricidad", "Heredia Centro", "2026-08-30T10:00", 16000, EFECTIVO, "u-6", "u-4", "Finalizado", 5, 3, "Excelente trabajo."],
+  ["h-6", "Cambio de panel eléctrico", "Electricidad", "San José, Escazú", "2026-09-05T08:00", 40000, APP, "u-2", "u-4", "Finalizado", 4, 5, "Buen servicio, un poco caro."],
+  ["h-7", "Reparar tubería del baño", "Plomería", "Alajuela Centro", "2026-09-01T14:00", 22000, APP, "u-5", "u-3", "Finalizado", 5, 4, "Muy profesional."],
+  ["h-8", "Cambio de chapa de puerta", "Cerrajería", "Heredia Centro", "2026-09-08T11:00", 18000, EFECTIVO, "u-6", "u-3", "Finalizado", 4, 2, "Cumplió con lo acordado."],
+  ["h-9", "Limpieza de apartamento", "Limpieza", "Alajuela Centro", "2026-09-10T09:00", 18000, EFECTIVO, "u-1", "u-2", "Finalizado", 4, 5, "Todo quedó limpio."],
+  ["h-10", "Fuga en el lavatorio", "Plomería", "Alajuela Centro", "2026-09-15T16:00", 12000, EFECTIVO, "u-1", "u-5", "Finalizado", 3, 5, "Tardó un poco más de lo esperado."],
 ];
 
 const MENSAJES = [
@@ -177,6 +201,14 @@ function sembrar() {
   );
   for (const t of TRUEQUES) insertTrueque.run(...t);
 
+  const insertPropiedad = db.prepare(
+    "INSERT INTO propiedad (id, usuario_id, nombre, ubicacion, lat, lng, instrucciones) VALUES (?, ?, ?, ?, ?, ?, ?)",
+  );
+  for (const p of PROPIEDADES) insertPropiedad.run(...p);
+
+  const insertBloqueo = db.prepare("INSERT OR IGNORE INTO bloqueo (usuario_id, fecha) VALUES (?, ?)");
+  for (const [u, dias] of BLOQUEOS) insertBloqueo.run(u, enDias(dias, "00:00").slice(0, 10));
+
   const insertPostulacion = db.prepare("INSERT INTO postulacion (trabajo_id, usuario_id, propuesta) VALUES (?, ?, ?)");
   for (const [t, u] of POSTULACIONES) insertPostulacion.run(t, u, null);
   for (const p of POSTULACIONES_TRUEQUE) insertPostulacion.run(...p);
@@ -199,6 +231,8 @@ function sembrar() {
     const comision = metodo === APP ? Math.round((pago * CONFIG.COMISION_PCT) / 100) : 0;
     insertPago.run(`pg-${id}`, id, metodo, pago, comision, metodo === EFECTIVO ? pago : 0, pago + comision);
   }
+
+  sembrarSerie();
 
   const insertSuscripcion = db.prepare("INSERT INTO suscripcion (id, usuario_id, monto) VALUES (?, ?, ?)");
   for (const [id, , , , , , , , plan] of USUARIOS) {
@@ -235,4 +269,40 @@ function aplicarUsuariosLocales() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const sembrado = seedIfEmpty();
   console.log(sembrado ? "Base de datos sembrada en cira.db" : "Ya había datos, no se modificó nada.");
+}
+
+/** Servicio recurrente de la demo: una visita pasada (pagada y calificada) y las próximas. */
+function sembrarSerie() {
+  const s = SERIE_DEMO;
+  const prop = PROPIEDADES.find((p) => p[0] === s.propiedad);
+  const [, , , ubicacion, lat, lng] = prop;
+  db.prepare(
+    `INSERT INTO serie (id, publicador_id, trabajador_id, frecuencia, titulo, descripcion, categoria, ubicacion, lat, lng,
+                        pago, metodo_pago, propiedad_id, aceptada, creado_en)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, datetime('now', '-8 day'))`,
+  ).run(s.id, s.publicador, s.trabajador, s.frecuencia, s.titulo, s.descripcion, s.categoria, ubicacion, lat, lng, s.pago, s.metodo, s.propiedad);
+
+  // El viernes pasado (una semana antes del próximo viernes).
+  const viernesPasado = (() => {
+    const proximoViernes = proximo(5, s.hora);
+    const d = new Date(`${proximoViernes}:00Z`);
+    d.setUTCDate(d.getUTCDate() - 7);
+    return d.toISOString().slice(0, 16);
+  })();
+  db.prepare(
+    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodo_pago, publicador_id,
+                          trabajador_id, estado, etapa, pagado, serie_id, propiedad_id, creado_en, finalizado_en)
+     VALUES ('v-1', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Finalizado', 'Terminado', 1, ?, ?, datetime('now', '-8 day'), datetime('now', '-6 day'))`,
+  ).run(s.titulo, s.descripcion, s.categoria, ubicacion, lat, lng, viernesPasado, s.pago, s.metodo, s.publicador, s.trabajador, s.id, s.propiedad);
+  const comision = Math.round((s.pago * CONFIG.COMISION_PCT) / 100);
+  db.prepare(
+    "INSERT INTO pago (id, trabajo_id, metodo, monto, comision, tarifa_urgencia, propina, en_efectivo, total) VALUES ('pg-v-1', 'v-1', ?, ?, ?, 0, 0, 0, ?)",
+  ).run(s.metodo, s.pago, comision, s.pago + comision);
+  const calificar = db.prepare("INSERT INTO calificacion (id, trabajo_id, de_id, a_id, estrellas, comentario) VALUES (?, 'v-1', ?, ?, ?, ?)");
+  calificar.run("k-v-1-c", s.publicador, s.trabajador, 5, "Dejó el apartamento impecable para los huéspedes.");
+  calificar.run("k-v-1-t", s.trabajador, s.publicador, 5, "");
+
+  extenderSerie({ id: s.id, aceptada: 1, activa: 1, frecuencia: s.frecuencia, titulo: s.titulo, descripcion: s.descripcion,
+    categoria: s.categoria, ubicacion, lat, lng, pago: s.pago, metodo_pago: s.metodo, publicador_id: s.publicador,
+    trabajador_id: s.trabajador, propiedad_id: s.propiedad });
 }

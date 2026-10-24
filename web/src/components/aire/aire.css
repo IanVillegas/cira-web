@@ -875,6 +875,46 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 /* Mapa a pantalla completa: los controles de Leaflet (y la atribución de OSM) suben sobre la barra. */
 .ca-mapa-full .leaflet-bottom { margin-bottom: var(--aire-tabbar-space); }
 
+/* ── Píldora de día (disponibilidad al contratar) ──────── */
+.ca-daypill {
+  flex: none; display: grid; justify-items: center; gap: 1px; width: 52px; min-height: 66px; padding: 8px 0 6px;
+  border: 0; border-radius: var(--aire-radius-md); background: var(--aire-surface-2); color: var(--aire-ink);
+  box-shadow: inset 0 0 0 1px var(--aire-hairline); cursor: pointer; text-transform: capitalize;
+  transition: transform var(--ca-dur-base) var(--ca-ease-pop), background-color var(--ca-dur-fast) var(--ca-ease-standard);
+}
+.ca-daypill:active:not(:disabled) { transform: scale(var(--ca-press)); transition-duration: var(--ca-dur-instant); }
+.ca-daypill:focus-visible { outline: none; box-shadow: inset 0 0 0 1px var(--aire-hairline), 0 0 0 3px var(--aire-focus); }
+.ca-daypill__dot, .ca-daypill__legend { width: 6px; height: 6px; border-radius: var(--aire-radius-full); background: var(--aire-success); }
+.ca-daypill.is-busy { background: var(--aire-surface-3); color: var(--aire-ink-2); }
+.ca-daypill.is-busy .ca-daypill__dot, .ca-daypill__legend.is-busy { background: var(--aire-danger); }
+.ca-daypill.is-selected { background: var(--aire-accent); color: var(--aire-on-accent); box-shadow: var(--aire-shadow-accent); }
+.ca-daypill.is-selected .ca-daypill__dot { background: var(--aire-on-accent); }
+
+/* ── Calendario (Calendar) ─────────────────────────────── */
+.ca-cal { display: grid; gap: 8px; }
+.ca-cal__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ca-cal__title { font: 600 17px/22px var(--aire-font-sans); letter-spacing: -0.43px; }
+.ca-cal__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+.ca-cal__dow { text-align: center; font: 600 11px/24px var(--aire-font-sans); letter-spacing: 0.66px; color: var(--aire-ink-2); text-transform: uppercase; }
+.ca-cal__day {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: var(--ca-hit); padding: 0 0 6px; border: 0; border-radius: var(--aire-radius-sm);
+  background: transparent; color: var(--aire-ink); font: 400 16px/20px var(--aire-font-sans); cursor: pointer;
+  transition: transform var(--ca-dur-base) var(--ca-ease-pop), background-color var(--ca-dur-fast) var(--ca-ease-standard);
+}
+.ca-cal__day:active { transform: scale(0.92); transition-duration: var(--ca-dur-instant); }
+.ca-cal__day:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--aire-focus); }
+.ca-cal__day.is-today { color: var(--aire-accent-text); font-weight: 700; }
+.ca-cal__day.is-blocked { background: var(--aire-surface-3); color: var(--aire-ink-2); }
+.ca-cal__day.is-selected { background: var(--aire-accent); color: var(--aire-on-accent); font-weight: 600; }
+.ca-cal__dots { position: absolute; bottom: 5px; display: flex; gap: 3px; }
+.ca-cal__dot { width: 5px; height: 5px; border-radius: var(--aire-radius-full); }
+.ca-cal__dot--accent { background: var(--aire-accent); }
+.ca-cal__dot--success { background: var(--aire-success); }
+.ca-cal__dot--warning { background: var(--aire-warning); }
+.ca-cal__dot--neutral { background: var(--aire-ink-3); }
+.ca-cal__day.is-selected .ca-cal__dot { background: var(--aire-on-accent); }
+
 /* ── Movimiento reducido: sin desplazamientos, solo cambios de opacidad breves ── */
 @media (prefers-reduced-motion: reduce) {
   .ca-root *, .ca-root *::before, .ca-root *::after,

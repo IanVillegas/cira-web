@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Button, Icon, Loader, PageHeader, Stagger } from "@/components/aire";
 import { ExploreTabs } from "@/components/ExploreTabs";
 import { AcuerdoTrueque } from "@/components/AcuerdoTrueque";
+import { VisitaInfo } from "@/components/VisitaInfo";
 import { CardAction, JobStatusCard, type EstadoTono } from "@/components/JobStatusCard";
 import { RatingSheet } from "@/components/RatingSheet";
 import { SeguimientoTrabajo } from "@/components/SeguimientoTrabajo";
 import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
 import { ETAPAS } from "@/lib/etapas";
+import { fechaTrabajo, frecuenciaTexto } from "@/lib/fechas";
 import { formatoColones } from "@/lib/format";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
@@ -93,7 +95,7 @@ export function MisTrabajosPage() {
                   titulo={t.titulo}
                   categoria={t.categoria}
                   publicador={t.publicador}
-                  fecha={tr(t.fecha)}
+                  fecha={fechaTrabajo(t.fecha)}
                   estado={estadoDe(t)}
                   actions={
                     <>
@@ -101,14 +103,27 @@ export function MisTrabajosPage() {
                       {t.estado !== "Finalizado" && !t.invitacionParaMi && t.trueque?.etapa !== "primera" && (
                         <CardAction
                           icon="close"
-                          label={t.asignadoAMi ? tr("Cancelar trabajo") : tr("Retirar postulación")}
+                          label={
+                            t.asignadoAMi && t.serie && !t.reemplazo
+                              ? tr("No puedo ir a esta visita")
+                              : t.asignadoAMi
+                                ? tr("Cancelar trabajo")
+                                : tr("Retirar postulación")
+                          }
                           destructive
-                          onClick={() =>
+                          onClick={() => {
+                            const visita = t.asignadoAMi && t.serie && !t.reemplazo;
+                            if (visita && !window.confirm(tr("¿No puedes ir a esta visita? Le avisamos a {nombre} para que elija un reemplazo.", { nombre: t.publicador })))
+                              return;
                             ejecutar(
                               () => api.trabajos.cancelar(t.id),
-                              t.asignadoAMi ? tr("Cancelaste el trabajo") : tr("Retiraste tu postulación"),
-                            )
-                          }
+                              visita
+                                ? tr("Le avisamos a {nombre} para que elija un reemplazo", { nombre: t.publicador })
+                                : t.asignadoAMi
+                                  ? tr("Cancelaste el trabajo")
+                                  : tr("Retiraste tu postulación"),
+                            );
+                          }}
                         />
                       )}
                     </>
@@ -116,10 +131,28 @@ export function MisTrabajosPage() {
                   footer={
                     <>
                       {t.urgente && <p className="aire-text-eyebrow text-aire-danger-text">{tr("Urgencia")}</p>}
+                      <VisitaInfo trabajo={t} instrucciones={t.asignadoAMi || t.invitacionParaMi} />
+                      {t.reemplazo === "cubierto" && t.asignadoAMi && (
+                        <p className="aire-text-footnote text-aire-ink-2">
+                          {tr("Reemplazas a {nombre} en esta visita.", { nombre: t.serie?.trabajadorNombre ?? "" })}
+                        </p>
+                      )}
                       {t.invitacionParaMi && (
                         <>
                           <p className="aire-text-subhead text-aire-ink-2">
-                            {t.trueque
+                            {t.reemplazo === "invitado"
+                              ? tr("{nombre} te pide reemplazar a {otro} en esta visita, por {pago}.", {
+                                  nombre: t.publicador,
+                                  otro: t.serie?.trabajadorNombre ?? "",
+                                  pago: formatoColones.format(t.pago),
+                                })
+                              : t.serie && !t.serie.aceptada
+                                ? tr("{nombre} quiere contratarte {cada} por {pago}. Lo aceptas una vez y CIRA agenda las siguientes visitas.", {
+                                    nombre: t.publicador,
+                                    cada: frecuenciaTexto(t.serie.frecuencia, t.fecha).toLowerCase(),
+                                    pago: formatoColones.format(t.pago),
+                                  })
+                                : t.trueque
                               ? tr("{nombre} te propone un trueque: a cambio, {ofrece}. Solo tú puedes verlo.", {
                                   nombre: t.publicador,
                                   ofrece: t.trueque.ofrece,
@@ -197,6 +230,22 @@ export function MisTrabajosPage() {
                             {tr("Recibí su parte: finalizar trueque")}
                           </Button>
                         </>
+                      )}
+                      {t.serie?.activa && t.serie.aceptada && t.serie.trabajadorId === t.trabajadorId && t.asignadoAMi && t.estado !== "Finalizado" && (
+                        <Button
+                          variant="plain"
+                          icon="event_repeat"
+                          onClick={() => {
+                            if (!t.serie || !window.confirm(tr("¿Dejar este servicio recurrente? Se cancelan las próximas visitas."))) return;
+                            const serieId = t.serie.id;
+                            ejecutar(async () => {
+                              await api.agenda.terminarSerie(serieId);
+                              return t;
+                            }, tr("Dejaste el servicio recurrente"));
+                          }}
+                        >
+                          {tr("Dejar el servicio recurrente")}
+                        </Button>
                       )}
                       {t.estado === "Finalizado" && (
                         <Button icon="star" onClick={() => setACalificar(t)}>

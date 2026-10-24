@@ -115,6 +115,7 @@ Interletrado negativo en todo texto de 15px o más; ya viene en cada clase.
 | `Fab` | nuevo | `icon`, `label` (accesible, obligatoria), `onClick`; círculo de 56px para la acción principal de una lista |
 | `Reveal`, `Stagger` | nuevos | `effect` (`up`, `scale`, `fade`), `delay`, `step` |
 | `Icon` | `Icon` | `name` (Material Symbols Rounded), `filled`, `size` |
+| `Calendar` | nuevo | `year`, `month`, `value`, `onChange`, `onMonthChange`, `marks`, `blocked`, `today`, `locale`, `labels` |
 
 Con React Router:
 
@@ -180,6 +181,14 @@ Cuenta → Verificación (`/cuenta/verificacion`). Cada documento es una tarjeta
 - En `JobCard`, la píldora del precio dice «Trueque» (+ diferencial) y lo ofrecido va en un bloque `.ca-photocard__swap`. Postularse abre `PostularTruequeSheet` (aceptar lo ofrecido o proponer otra cosa).
 - `AcuerdoTrueque` muestra las dos partes del trato (quién hace qué y cuándo) con un check por parte cumplida; lo ven el publicador y el trabajador.
 - En `RatingSheet`, un trueque pide además «¿Cumplió su parte?»; en el perfil público el comentario lleva la insignia «Cumplió / No cumplió el trueque».
+
+### Agenda
+
+- `Calendar` (`components/aire/Calendar.tsx`, clases `.ca-cal*`): calendario mensual, semanas de lunes a domingo, días de 44px. Props: `year`, `month`, `value`, `onChange`, `onMonthChange`, `marks` (hasta tres puntos por día: `accent` trabajo propio, `success` servicio contratado, `warning` falta reemplazo, `neutral` hecho), `blocked` (días con fondo `surface-3`), `today`, `locale`, `labels`. El día elegido lleva `accent`.
+- `DisponibilidadStrip` (`components/`): las próximas tres semanas de otra persona como píldoras `.ca-daypill` (punto `success` libre, `danger` ocupado); nunca muestra qué ni con quién.
+- `VisitaInfo`: insignias de servicio recurrente («Cada viernes») y propiedad; con `instrucciones`, el bloque de instrucciones para quien hace el trabajo.
+- `ReemplazoVisita`: aviso en `warning-soft` y sugerencias de reemplazo (los «De confianza» primero) cuando el trabajador cancela una visita.
+- Fechas: siempre con `fechaTrabajo()` / `fechaDia()` / `diaLargo()` de `lib/fechas.ts` («Mañana, 9:00 a. m.»); nunca muestres la fecha ISO cruda.
 
 ## Voz y contenido
 

@@ -26,6 +26,8 @@ import { TarjetaPage } from "@/pages/TarjetaPage";
 import { ActividadPage } from "@/pages/ActividadPage";
 import { PlanPage } from "@/pages/PlanPage";
 import { IngresosPage } from "@/pages/IngresosPage";
+import { AgendaPage } from "@/pages/AgendaPage";
+import { PropiedadesPage } from "@/pages/PropiedadesPage";
 import { DeConfianzaPage } from "@/pages/DeConfianzaPage";
 import { VerificacionPage } from "@/pages/VerificacionPage";
 import { PerfilPublicoPage } from "@/pages/PerfilPublicoPage";
@@ -53,6 +55,8 @@ export default function App() {
             <Route path="/alertas" element={<AlertasPage />} />
             <Route path="/usuarios/:id" element={<PerfilPublicoPage />} />
             <Route path="/de-confianza" element={<DeConfianzaPage />} />
+            <Route path="/agenda" element={<AgendaPage />} />
+            <Route path="/cuenta/propiedades" element={<PropiedadesPage />} />
             <Route path="/mis-trabajos" element={<MisTrabajosPage />} />
             <Route path="/historial" element={<HistorialTrabajosPage />} />
             <Route path="/chats" element={<ChatsPage />} />

@@ -18,7 +18,7 @@ const TABS = [
     matches: ["/explorar", "/trabajadores", "/publicaciones", "/mis-trabajos", "/crear-trabajo", "/alertas", "/usuarios"],
   },
   { key: "/chats", label: "Chats", icon: "chat_bubble", matches: ["/chats"] },
-  { key: "/perfil", label: "Perfil", icon: "person", matches: ["/perfil", "/cuenta", "/historial"] },
+  { key: "/perfil", label: "Perfil", icon: "person", matches: ["/perfil", "/cuenta", "/historial", "/agenda", "/de-confianza"] },
 ];
 
 /** Pantallas autenticadas: contenido con scroll, barra inferior de vidrio flotando encima y avisos. */

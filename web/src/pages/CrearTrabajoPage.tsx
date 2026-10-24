@@ -1,27 +1,30 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Button, Card, Field, Icon, Input, Loader, PageHeader, SelectableCard, Switch, TextArea } from "@/components/aire";
+import { Button, Card, Field, FilterChip, Icon, Input, Loader, PageHeader, SelectableCard, Switch, TextArea } from "@/components/aire";
 import { SelectSheet } from "@/components/SelectSheet";
 import { PagoResumen } from "@/components/PagoResumen";
 import { LocationPicker } from "@/components/LocationPicker";
+import { DisponibilidadStrip } from "@/components/DisponibilidadStrip";
 import { CATEGORIAS } from "@/lib/mockData";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { mostrarToast } from "@/lib/toast";
 import { calcularResumen, useConfig } from "@/lib/useConfig";
-import type { MetodoPago, PerfilPublico } from "@/lib/types";
-import { localeActual, tr } from "@/lib/i18n";
+import { diaLargo, frecuenciaTexto, hoyDia } from "@/lib/fechas";
+import type { Frecuencia, MetodoPago, PerfilPublico, Propiedad } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 const METODOS: { value: MetodoPago; icon: string; label: string }[] = [
   { value: "Efectivo", icon: "payments", label: tr("Efectivo") },
   { value: "Tarjeta", icon: "credit_card", label: tr("Tarjeta") },
 ];
 
-function formatearFecha(fecha: string, hora: string) {
-  const d = new Date(`${fecha}T${hora || "00:00"}`);
-  if (Number.isNaN(d.getTime())) return `${fecha} ${hora}`.trim();
-  return d.toLocaleString(localeActual(), { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
-}
+const FRECUENCIAS: { value: Frecuencia; icon: string; label: string }[] = [
+  { value: "una_vez", icon: "event", label: tr("Una vez") },
+  { value: "semanal", icon: "event_repeat", label: tr("Semanal") },
+  { value: "quincenal", icon: "date_range", label: tr("Quincenal") },
+  { value: "mensual", icon: "calendar_month", label: tr("Mensual") },
+];
 
 /**
  * Réplica de CrearTrabajoPage.xaml: tres tarjetas (datos, ubicación y fecha, presupuesto y pago).
@@ -42,6 +45,11 @@ export function CrearTrabajoPage() {
   // Trueque: se paga con un servicio (`ofrece`) y, opcionalmente, un diferencial en dinero (`pago`).
   const [trueque, setTrueque] = useState(false);
   const [ofrece, setOfrece] = useState("");
+  // CIRA Agenda: frecuencia (solo al recontratar), propiedad elegida y días ocupados del invitado.
+  const [frecuencia, setFrecuencia] = useState<Frecuencia>("una_vez");
+  const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
+  const [propiedadId, setPropiedadId] = useState<string | null>(null);
+  const [ocupadosInvitado, setOcupadosInvitado] = useState<string[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -51,10 +59,24 @@ export function CrearTrabajoPage() {
     ubicacion: "",
     coords: null as { lat: number; lng: number } | null,
     fecha: "",
-    hora: "",
+    hora: "09:00",
     pago: "",
     metodoPago: "Tarjeta" as MetodoPago,
   });
+
+  useEffect(() => {
+    if (editando) return;
+    api.propiedades
+      .listar()
+      .then(setPropiedades)
+      .catch(() => setPropiedades([]));
+  }, [editando]);
+
+  const propiedad = propiedades.find((p) => p.id === propiedadId) ?? null;
+  const elegirPropiedad = (p: Propiedad | null) => {
+    setPropiedadId(p?.id ?? null);
+    if (p) setForm((f) => ({ ...f, ubicacion: p.ubicacion, coords: p.lat != null && p.lng != null ? { lat: p.lat, lng: p.lng } : null }));
+  };
 
   useEffect(() => {
     if (!paraId) return;
@@ -86,8 +108,8 @@ export function CrearTrabajoPage() {
           categoria: t.categoria,
           ubicacion: t.ubicacion,
           coords: t.lat != null && t.lng != null ? { lat: t.lat, lng: t.lng } : null,
-          fecha: t.fecha, // al editar la fecha se maneja como texto libre
-          hora: "",
+          fecha: t.fecha ? t.fecha.slice(0, 10) : "",
+          hora: t.fecha ? t.fecha.slice(11, 16) : "09:00",
           pago: t.trueque && t.pago === 0 ? "" : String(t.pago),
           metodoPago: t.metodoPago,
         });
@@ -97,6 +119,9 @@ export function CrearTrabajoPage() {
   }, [id]);
 
   const esUrgente = urgente && !paraId && !trueque;
+  const recurrente = !!paraId && frecuencia !== "una_vez" && !trueque;
+  const fechaHora = form.fecha && form.hora ? `${form.fecha}T${form.hora}` : "";
+  const diaOcupado = !!paraId && !!form.fecha && ocupadosInvitado.includes(form.fecha);
   const metodoEfectivo: MetodoPago = form.metodoPago;
   const monto = Number(form.pago) || 0;
   // Con tarjeta, o en una urgencia (la tarifa se cobra con tarjeta), hace falta una tarjeta registrada.
@@ -108,7 +133,7 @@ export function CrearTrabajoPage() {
 
   const pagoValido = trueque ? monto >= 0 && ofrece.trim().length > 0 && !sinCupoTrueque : monto > 0;
   const valido =
-    form.titulo.trim() && form.categoria && form.ubicacion && (esUrgente || form.fecha) && pagoValido && !faltaTarjeta && (!paraId || invitado);
+    form.titulo.trim() && form.categoria && form.ubicacion && (esUrgente || fechaHora) && pagoValido && !faltaTarjeta && !diaOcupado && (!paraId || invitado);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,13 +148,27 @@ export function CrearTrabajoPage() {
         ubicacion: form.ubicacion,
         lat: form.coords?.lat,
         lng: form.coords?.lng,
-        fecha: editando ? form.fecha : esUrgente ? "Lo antes posible" : formatearFecha(form.fecha, form.hora),
+        fecha: esUrgente ? undefined : fechaHora,
         pago: monto,
         metodoPago: metodoEfectivo,
       };
       if (id) await api.trabajos.editar(id, trueque ? { ...datos, ofrece: ofrece.trim() } : datos);
-      else await api.trabajos.crear({ ...datos, urgente: esUrgente, invitadoId: invitado?.id, ...(trueque ? { trueque: true, ofrece: ofrece.trim() } : {}) });
-      mostrarToast(editando ? tr("Cambios guardados") : trueque ? tr("Trueque publicado") : invitado ? tr("Oferta enviada a {nombre}", { nombre: invitado.nombre }) : esUrgente ? tr("Urgencia publicada: avisamos a los trabajadores cercanos") : tr("Trabajo publicado"));
+      else
+        await api.trabajos.crear({
+          ...datos,
+          urgente: esUrgente,
+          invitadoId: invitado?.id,
+          propiedadId: propiedad?.id,
+          ...(recurrente ? { frecuencia } : {}),
+          ...(trueque ? { trueque: true, ofrece: ofrece.trim() } : {}),
+        });
+      mostrarToast(
+        editando
+          ? tr("Cambios guardados")
+          : recurrente && invitado
+            ? tr("Oferta enviada a {nombre}: {cada}", { nombre: invitado.nombre, cada: frecuenciaTexto(frecuencia, fechaHora).toLowerCase() })
+            : trueque ? tr("Trueque publicado") : invitado ? tr("Oferta enviada a {nombre}", { nombre: invitado.nombre }) : esUrgente ? tr("Urgencia publicada: avisamos a los trabajadores cercanos") : tr("Trabajo publicado"),
+      );
       navigate("/publicaciones");
     } catch (e) {
       setError(e instanceof Error ? e.message : tr("No se pudo publicar el trabajo."));
@@ -158,9 +197,29 @@ export function CrearTrabajoPage() {
             <div className="flex-1">
               <p className="aire-text-headline text-aire-ink">{tr("Oferta directa para {nombre}", { nombre: invitado.nombre })}</p>
               <p className="aire-text-footnote text-aire-ink-2">
-                {tr("Solo esa persona verá este trabajo. Si no puede tomarlo, se publica para todos.")}
+                {recurrente
+                  ? tr("Lo acepta una sola vez y CIRA agenda las siguientes visitas. Si un día no puede, te proponemos un reemplazo.")
+                  : tr("Solo esa persona verá este trabajo. Si no puede tomarlo, se publica para todos.")}
               </p>
             </div>
+          </Card>
+        )}
+
+        {invitado && !trueque && (
+          <Card className="grid gap-3">
+            <Field label={tr("¿Cada cuánto?")}>
+              <div className="grid grid-cols-2 gap-2.5">
+                {FRECUENCIAS.map((f) => (
+                  <SelectableCard key={f.value} icon={f.icon} text={f.label} selected={frecuencia === f.value} onClick={() => setFrecuencia(f.value)} />
+                ))}
+              </div>
+            </Field>
+            {recurrente && fechaHora && (
+              <p className="aire-text-footnote flex items-center gap-2 text-aire-ink-2">
+                <Icon name="event_repeat" size={18} className="shrink-0 text-aire-accent-text" />
+                {tr("{cada}, desde el {dia}.", { cada: frecuenciaTexto(frecuencia, fechaHora), dia: diaLargo(form.fecha) })}
+              </p>
+            )}
           </Card>
         )}
 
@@ -205,24 +264,81 @@ export function CrearTrabajoPage() {
         )}
 
         <Card className="grid gap-3.5">
-          <LocationPicker
-            value={form.coords}
-            address={form.ubicacion}
-            onChange={(coords, direccion) => setForm({ ...form, coords, ubicacion: direccion })}
-          />
+          {!editando && propiedades.length > 0 && (
+            <Field label={tr("¿Dónde?")}>
+              <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+                {propiedades.map((p) => (
+                  <FilterChip key={p.id} label={p.nombre} active={propiedadId === p.id} onClick={() => elegirPropiedad(propiedadId === p.id ? null : p)} />
+                ))}
+                <FilterChip label={tr("Otra dirección")} active={!propiedadId} onClick={() => elegirPropiedad(null)} />
+              </div>
+            </Field>
+          )}
+
+          {propiedad ? (
+            <div className="grid gap-2 rounded-aire-md bg-aire-surface-2 p-3.5">
+              <p className="aire-text-headline flex items-center gap-2 text-aire-ink">
+                <Icon name="home_work" size={20} className="text-aire-accent-text" />
+                {propiedad.nombre}
+              </p>
+              <p className="aire-text-subhead text-aire-ink-2">{propiedad.ubicacion}</p>
+              {propiedad.instrucciones && (
+                <p className="aire-text-footnote text-aire-ink-2">
+                  <span className="font-semibold text-aire-ink">{tr("Instrucciones para el trabajador:")}</span> {propiedad.instrucciones}
+                </p>
+              )}
+            </div>
+          ) : (
+            <LocationPicker
+              value={form.coords}
+              address={form.ubicacion}
+              onChange={(coords, direccion) => setForm({ ...form, coords, ubicacion: direccion })}
+            />
+          )}
+
+          {!editando && (
+            <button
+              type="button"
+              onClick={() => navigate("/cuenta/propiedades")}
+              className="aire-text-footnote min-h-11 justify-self-start font-semibold text-aire-accent-text"
+            >
+              {propiedades.length > 0 ? tr("Administrar mis propiedades") : tr("Guarda tus propiedades para no escribir la dirección cada vez")}
+            </button>
+          )}
 
           {esUrgente ? (
             <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-danger-soft p-3 font-semibold text-aire-danger-text">
               <Icon name="schedule" size={20} />
               {tr("Se atiende lo antes posible")}
             </p>
-          ) : editando ? (
-            <Input label={tr("Fecha y hora")} value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
           ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <Input label={tr("Fecha")} type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
-              <Input label={tr("Hora")} type="time" value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} />
-            </div>
+            <>
+              {invitado && (
+                <DisponibilidadStrip
+                  usuarioId={invitado.id}
+                  nombre={invitado.nombre}
+                  value={form.fecha}
+                  onChange={(fecha) => setForm({ ...form, fecha })}
+                  onOcupados={setOcupadosInvitado}
+                />
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label={recurrente ? tr("Primera visita") : tr("Fecha")}
+                  type="date"
+                  min={editando ? undefined : hoyDia()}
+                  value={form.fecha}
+                  onChange={(e) => setForm({ ...form, fecha: e.target.value })}
+                />
+                <Input label={tr("Hora")} type="time" value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} />
+              </div>
+              {diaOcupado && invitado && (
+                <p className="aire-text-footnote flex items-start gap-2 rounded-aire-md bg-aire-warning-soft p-3 text-aire-warning-text">
+                  <Icon name="event_busy" size={18} className="mt-px shrink-0" />
+                  {tr("{nombre} no está disponible ese día. Elige un día libre.", { nombre: invitado.nombre })}
+                </p>
+              )}
+            </>
           )}
         </Card>
 
@@ -243,7 +359,15 @@ export function CrearTrabajoPage() {
                     }}
                   />
                 ))}
-                <SelectableCard icon="handshake" text={tr("Trueque")} selected={trueque} onClick={() => setTrueque(true)} />
+                <SelectableCard
+                  icon="handshake"
+                  text={tr("Trueque")}
+                  selected={trueque}
+                  onClick={() => {
+                    setTrueque(true);
+                    setFrecuencia("una_vez");
+                  }}
+                />
               </div>
             </Field>
           )}

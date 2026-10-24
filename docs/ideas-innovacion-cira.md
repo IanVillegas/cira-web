@@ -22,6 +22,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 | 8 | Compartir un trabajo por WhatsApp | ✅ Implementada | Baja |
 | 9 | Idioma español / inglés | ✅ Implementada | Baja |
 | 10 | Trueque de servicios ("Trueque de barrio") | ✅ Implementada (alcance recortado) | Media |
+| 11 | Agenda, servicios recurrentes y propiedades ("CIRA Agenda" + alquileres) | ✅ Implementada (alcance recortado) | Alta |
 
 **Monetización (freemium):** la app es gratis para todos y CIRA gana dinero con tres fuentes, todas simuladas en la demo:
 1. **Plan Plus**: suscripción mensual del trabajador (idea #6).
@@ -213,6 +214,40 @@ El **trueque** (idea #10) no mueve dinero, así que se monetiza por el Plan Plus
 
 ---
 
+## 11. Agenda, servicios recurrentes y propiedades
+
+> Dos ideas que llegaron juntas: **"CIRA Agenda"** (el trabajador convierte trabajos ocasionales en ingresos recurrentes) y **"CIRA para alquileres vacacionales"** (la propiedad lista antes del próximo huésped). Ian propuso unirlas en una agenda para trabajadores y clientes, enlazada con "Recontratar".
+
+**Problema que resuelve:**
+- El trabajador no tiene dónde ver qué días ya tiene trabajo ni cómo avisar qué días no puede.
+- El cliente que necesita el mismo servicio seguido (limpieza cada viernes, jardín cada mes) tiene que volver a contratarlo cada vez.
+- Quien administra varias propiedades (Airbnb, condominios, apartamentos) repite cada vez la dirección y las instrucciones (dónde está la llave, qué revisar).
+- Si el trabajador de siempre cancela, el cliente se queda sin servicio.
+
+**Propuestas originales:**
+- *CIRA Agenda:* contratar un servicio semanal, quincenal o mensual; CIRA organiza las visitas y, si el trabajador cancela, ofrece un reemplazo con autorización del cliente. Conserva instrucciones, frecuencia, presupuesto y un suplente. Cobro: herramientas para el trabajador, coordinación para empresas o comisión por servicio.
+- *Alquileres vacacionales:* el anfitrión registra propiedades y fechas de entrada; CIRA coordina limpieza, revisión y reparaciones, con una lista de verificación con fotos como evidencia. Si aparece una avería, se crea un trabajo relacionado. Cobro: mensualidad por propiedad.
+
+**Valoración:**
+- ✅ **Retención:** una contratación produce muchas transacciones futuras, y cada visita pagada con tarjeta genera comisión. Es la idea que más mueve el modelo de negocio por usuario.
+- ✅ **Se apoya en lo que existe:** "Recontratar" y las ofertas directas (idea de "De confianza"), el seguimiento, el pago y la calificación.
+- ✅ **Diferenciador:** la programación recurrente ya existe en productos como Jobber; lo que defendemos es la **combinación de recurrencia + reemplazos dentro de la comunidad local** (los trabajadores "De confianza" del cliente).
+- ⚠️ **Cambio técnico de fondo:** las fechas de los trabajos eran texto libre ("Sábado, 4:00 p.m.") y la disponibilidad solo era "sí/no". Hubo que pasar todas las fechas a fechas reales.
+- ⚠️ **La lista de verificación con fotos y el trabajo relacionado automático** tienen una dificultad alta y abren otro segmento (anfitriones con mensualidad por propiedad). Quedan en el **roadmap** como la siguiente fase de "Mis propiedades".
+
+**Cómo funciona (lo implementado):**
+- **Agenda** (Perfil → Mi agenda): calendario mensual con todo lo agendado, como trabajador y como cliente, filtrable por rol y por propiedad. El trabajador **bloquea días** que no puede trabajar.
+- **Disponibilidad al contratar:** al recontratar a alguien se ven sus próximos días ocupados o libres (nunca con quién ni qué trabajo).
+- **Frecuencia:** al recontratar se elige *Una vez, Semanal, Quincenal o Mensual*. La persona acepta la oferta una sola vez y CIRA genera las próximas visitas. Cada visita se hace, se paga y se califica por separado.
+- **Reemplazo:** si el trabajador cancela una visita, el cliente ve sugerencias de reemplazo (primero sus trabajadores "De confianza" del mismo oficio que estén libres ese día; luego otros cercanos y bien calificados). Al elegir uno, le llega como oferta directa solo para esa visita; la serie sigue con el trabajador de siempre. También puede publicarla para todos.
+- **Mis propiedades:** el cliente guarda direcciones con nombre e **instrucciones fijas**. Al publicar o recontratar elige la propiedad y se llenan la ubicación y las instrucciones. Las instrucciones solo las ven el cliente y el trabajador asignado.
+
+**Relación con el modelo de negocio:** más visitas por cliente = más comisiones, sin costo extra de adquisición. Refuerza "De confianza" (los reemplazos salen de ahí) y prepara el segmento de administradores de propiedades para una fase futura con mensualidad.
+
+**Viabilidad para la demo:** Alta para lo implementado. Ian ya tiene una limpieza semanal con Marisol en "Apartamento Escazú": se muestra la agenda, Marisol cancela un viernes y Ian elige a Jixi como reemplazo.
+
+---
+
 ## Decisiones de implementación (para el documento)
 
 - **Cobros (todos simulados):** el cliente paga el monto del trabajo **+ comisión de CIRA (10 %, solo si paga con tarjeta) + tarifa de urgencia (15 %, solo urgencias)**; el trabajador recibe el monto completo. Los porcentajes y el precio del Plus se cambian en `server/src/config.js`.
@@ -224,6 +259,7 @@ El **trueque** (idea #10) no mueve dinero, así que se monetiza por el Plan Plus
 - **Seguimiento:** aplica a cualquier trabajo asignado, no solo a urgencias. Al marcar "Terminado" el cliente paga y luego ambos califican.
 - **Insignias:** Plus (según el plan), cédula y hoja de delincuencia (campos de prueba), +50 trabajos (calculado) y "Responde urgencias" (se activa al aceptar una).
 - **Trueque (#10):** `pago` es el diferencial (puede ser 0) y `metodoPago`, cómo se paga. El límite del plan gratis está en `server/src/config.js` (`TRUEQUES_GRATIS_MES`). Un trueque no puede ser urgencia. Al elegir postulante, el publicador firma el acuerdo; sin que el trabajador lo acepte no arranca el seguimiento. "Terminado" en el seguimiento es la primera parte; el trueque termina cuando el trabajador marca que recibió la segunda, y si no hay diferencial queda pagado automáticamente.
+- **Fechas y agenda (#11):** las fechas de los trabajos son fecha y hora locales de Costa Rica (`2026-10-31T09:00`); `null` = lo antes posible (urgencias). Un servicio recurrente es una `serie` con las visitas como trabajos; CIRA mantiene 4 visitas futuras creadas y las completa al consultar. Si el trabajador cancela una visita, queda en reemplazo pendiente (no se publica para todos) hasta que el cliente elija. Las fechas de ejemplo se regeneran con `npm run reset` en `server/`.
 - **Idioma (#9):** selector en Cuenta (recarga la app). Los textos viven en el código en español y `web/src/lib/i18n/en.ts` trae la traducción al inglés (clave = texto en español; si falta, se muestra en español). Los errores del servidor también se traducen. El contenido escrito por los usuarios (títulos, descripciones, chats) no se traduce.
 
 ## Cambios técnicos pendientes (no son ideas nuevas)

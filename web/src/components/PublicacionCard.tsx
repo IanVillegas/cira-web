@@ -7,8 +7,11 @@ import { CategoriaThumb } from "./CategoriaThumb";
 import { Calificacion } from "./Estrellas";
 import { InsigniaChips } from "./InsigniaChips";
 import { PagoResumen } from "./PagoResumen";
+import { ReemplazoVisita } from "./ReemplazoVisita";
+import { VisitaInfo } from "./VisitaInfo";
 import { SeguimientoTrabajo } from "./SeguimientoTrabajo";
 import { api } from "@/lib/api";
+import { fechaTrabajo } from "@/lib/fechas";
 import { formatoColones } from "@/lib/format";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
@@ -64,7 +67,22 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
     navigate(`/chats/${conversacion.id}`);
   };
 
+  const terminarSerie = async () => {
+    if (!trabajo.serie || !window.confirm(tr("¿Terminar este servicio recurrente? Se cancelan las próximas visitas."))) return;
+    setOcupado(true);
+    try {
+      await api.agenda.terminarSerie(trabajo.serie.id);
+      mostrarToast(tr("Terminaste el servicio recurrente"), "info");
+      onChange({ ...trabajo, estado: "Cancelado" });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tr("No se pudo completar la acción."));
+    } finally {
+      setOcupado(false);
+    }
+  };
+
   const pendiente = trabajo.estado === "Pendiente";
+  const sinReemplazo = trabajo.reemplazo === "pendiente";
   // Oferta directa sin respuesta todavía: no recibe postulantes.
   const esperandoInvitado = pendiente && !!trabajo.invitadoId && !trabajo.invitacionRechazada;
   const enCurso = trabajo.estado === "Asignado" || trabajo.estado === "En progreso";
@@ -84,7 +102,7 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
           </p>
           <p className="aire-text-headline text-aire-ink">{trabajo.titulo}</p>
           <p className="aire-text-footnote text-aire-ink-2">
-            {tr(trabajo.fecha)} ·{" "}
+            {fechaTrabajo(trabajo.fecha)} ·{" "}
             {trabajo.trueque
               ? trabajo.pago > 0
                 ? tr("Trueque + {monto}", { monto: formatoColones.format(trabajo.pago) })
@@ -92,8 +110,14 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
               : formatoColones.format(trabajo.pago)}
           </p>
         </div>
-        <Badge tone={ESTADO_TONO[trabajo.estado] ?? "neutral"}>{tr(trabajo.estado)}</Badge>
+        <Badge tone={sinReemplazo ? "warning" : (ESTADO_TONO[trabajo.estado] ?? "neutral")}>
+          {sinReemplazo ? tr("Falta reemplazo") : tr(trabajo.estado)}
+        </Badge>
       </div>
+
+      <VisitaInfo trabajo={trabajo} />
+
+      {sinReemplazo && <ReemplazoVisita trabajo={trabajo} onChange={onChange} />}
 
       {pendiente && trabajo.trueque && (
         <p className="aire-text-subhead flex items-start gap-2 rounded-aire-md bg-aire-surface-2 p-3 text-aire-ink">
@@ -127,7 +151,7 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
 
       {pendiente && (
         <>
-          {!esperandoInvitado && (
+          {!esperandoInvitado && !sinReemplazo && (
             <button
               type="button"
               aria-expanded={verPostulantes}
@@ -146,7 +170,7 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
             </button>
           )}
 
-          {!esperandoInvitado && verPostulantes &&
+          {!esperandoInvitado && !sinReemplazo && verPostulantes &&
             (postulantes === null ? null : postulantes.length === 0 ? (
               <p className="aire-text-subhead text-center text-aire-ink-2">{tr("Aún no hay postulantes.")}</p>
             ) : (
@@ -200,7 +224,14 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
             className="aire-text-headline flex min-h-12 items-center gap-2 rounded-aire-md bg-aire-surface-2 px-4 text-left text-aire-ink transition-transform duration-[100ms] ease-aire-pop active:scale-[0.98]"
           >
             <Icon name="person" size={20} className="text-aire-accent-text" />
-            <span className="flex-1 truncate">{trabajo.trabajadorNombre}</span>
+            <span className="grid min-w-0 flex-1">
+              <span className="truncate">{trabajo.trabajadorNombre}</span>
+              {trabajo.reemplazo === "cubierto" && (
+                <span className="aire-text-caption font-normal text-aire-ink-2">
+                  {tr("Reemplaza a {nombre} en esta visita", { nombre: trabajo.serie?.trabajadorNombre ?? "" })}
+                </span>
+              )}
+            </span>
             <Icon name="chat_bubble" size={20} className="text-aire-accent-text" />
           </button>
           {trabajo.trueque && <AcuerdoTrueque trabajo={trabajo} rol="publicador" />}
@@ -231,6 +262,12 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
       {trabajo.estado === "Finalizado" && trabajo.pagado && !trabajo.calificadoPorMi && (
         <Button icon="star" onClick={() => onRate(trabajo)}>
           {tr("Calificar a {nombre}", { nombre: trabajo.trabajadorNombre ?? "" })}
+        </Button>
+      )}
+
+      {trabajo.serie?.activa && trabajo.serie.aceptada && trabajo.estado !== "Finalizado" && (
+        <Button variant="plain" icon="event_repeat" disabled={ocupado} onClick={terminarSerie}>
+          {tr("Terminar el servicio recurrente")}
         </Button>
       )}
 

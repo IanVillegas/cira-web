@@ -41,6 +41,8 @@ npm install        # solo la primera vez (y `npm install` en web/)
 npm run demo       # compila web/ y levanta todo en http://localhost:3001
 ```
 
+El día de la presentación, corre antes `npm run reset` en `server/`: las fechas de los trabajos de ejemplo (mañana, el próximo viernes…) se calculan desde el día en que se crea la base.
+
 La consola imprime la dirección para otros dispositivos, por ejemplo
 `http://192.168.x.x:3001`: ábrela desde el teléfono conectado a la **misma red
 WiFi** (si Windows pregunta por el firewall, permite Node.js en redes privadas).

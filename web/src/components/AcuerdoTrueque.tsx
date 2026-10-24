@@ -1,4 +1,5 @@
 import { Card, Icon } from "@/components/aire";
+import { fechaTrabajo } from "@/lib/fechas";
 import { formatoColones } from "@/lib/format";
 import { tr } from "@/lib/i18n";
 import type { Trabajo } from "@/lib/types";
@@ -21,7 +22,7 @@ export function AcuerdoTrueque({ trabajo, rol }: { trabajo: Trabajo; rol: "publi
         <Icon name="handshake" size={16} />
         {tr("Acuerdo de trueque")}
       </p>
-      <Parte hecha={primeraLista} quien={trabajador} que={trabajo.titulo} cuando={tr(trabajo.fecha)} />
+      <Parte hecha={primeraLista} quien={trabajador} que={trabajo.titulo} cuando={fechaTrabajo(trabajo.fecha)} />
       <Parte hecha={segundaLista} quien={publicador} que={t.acordado ?? t.ofrece} cuando={tr("A coordinar por el chat")} />
       {trabajo.pago > 0 && (
         <p className="aire-text-footnote flex items-center gap-2 text-aire-ink-2">

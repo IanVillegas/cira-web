@@ -19,5 +19,7 @@ export { Fab } from "./Fab";
 export { CreditCard } from "./CreditCard";
 export { Reveal, Stagger } from "./Reveal";
 export { Icon } from "./Icon";
+export { Calendar } from "./Calendar";
+export type { CalendarMark } from "./Calendar";
 export { cx } from "./cx";
 export { useInView, prefersReducedMotion } from "./motion";

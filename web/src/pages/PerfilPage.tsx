@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Card, Icon, Input, Loader, PageHeader, Reveal, Sheet, Switch } from "@/components/aire";
+import { Button, Card, Icon, Loader, PageHeader, Reveal, Sheet, Switch } from "@/components/aire";
 import { Calificacion } from "@/components/Estrellas";
 import { GuardadoPor } from "@/components/GuardadoPor";
 import { InsigniaChips } from "@/components/InsigniaChips";
@@ -25,7 +25,6 @@ export function PerfilPage() {
   const { usuario, refrescarUsuario } = useAuth();
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
-  const [usarRango, setUsarRango] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
   if (!usuario) return <Loader label={tr("Cargando perfil...")} />;
@@ -102,6 +101,17 @@ export function PerfilPage() {
           <Switch checked={usuario.disponible} onChange={onToggle} disabled={guardando} label={tr("Disponibilidad")} />
         </Card>
 
+        <Card interactive onClick={() => navigate("/agenda")} className="flex items-center gap-3.5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+            <Icon name="calendar_month" size={24} className="text-aire-accent-text" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="aire-text-headline text-aire-ink">{tr("Mi agenda")}</p>
+            <p className="aire-text-footnote text-aire-ink-2">{tr("Tus trabajos y servicios agendados, y los días que no puedes.")}</p>
+          </div>
+          <Icon name="chevron_forward" size={22} className="shrink-0 text-aire-ink-2" />
+        </Card>
+
         <Card interactive onClick={() => navigate("/de-confianza")} className="flex items-center gap-3.5">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
             <Icon name="favorite" filled size={24} className="text-aire-accent-text" />
@@ -162,30 +172,30 @@ export function PerfilPage() {
         </section>
       </div>
 
-      <Sheet open={modalOpen} onClose={() => setModalOpen(false)} title={tr("Activar disponibilidad")} subtitle={tr("Puedes activarla ahora o definir un rango opcional.")} contained>
+      <Sheet open={modalOpen} onClose={() => setModalOpen(false)} title={tr("Activar disponibilidad")} subtitle={tr("Volverás a recibir alertas y ofertas de trabajo.")} contained>
         <div className="grid gap-4">
-          <div className="flex items-center gap-3">
-            <span className="aire-text-body flex-1 text-aire-ink">{tr("Usar rango opcional")}</span>
-            <Switch checked={usarRango} onChange={setUsarRango} label={tr("Usar rango opcional")} />
-          </div>
-
-          {usarRango && (
-            <div className="grid grid-cols-2 gap-3">
-              <Input label={tr("Desde")} type="date" />
-              <Input label={tr("Hora")} type="time" />
-              <Input label={tr("Hasta")} type="date" />
-              <Input label={tr("Hora")} type="time" />
-            </div>
-          )}
-
+          <p className="aire-text-subhead flex items-start gap-2 rounded-aire-md bg-aire-surface-2 p-3 text-aire-ink-2">
+            <Icon name="event_busy" size={20} className="mt-px shrink-0 text-aire-accent-text" />
+            {tr("¿Hay días que no puedes? Márcalos en tu agenda y nadie te ofrecerá trabajo directo esos días.")}
+          </p>
           <Button
             onClick={async () => {
               setModalOpen(false);
-              setUsarRango(false);
               await guardarDisponibilidad(true);
             }}
           >
             {tr("Activar")}
+          </Button>
+          <Button
+            variant="secondary"
+            icon="calendar_month"
+            onClick={async () => {
+              setModalOpen(false);
+              await guardarDisponibilidad(true);
+              navigate("/agenda");
+            }}
+          >
+            {tr("Activar y abrir mi agenda")}
           </Button>
           <Button variant="plain" onClick={() => setModalOpen(false)}>
             {tr("Cancelar")}

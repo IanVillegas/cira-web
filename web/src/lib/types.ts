@@ -58,6 +58,38 @@ export interface Verificacion {
   };
 }
 
+export type Frecuencia = "una_vez" | "semanal" | "quincenal" | "mensual";
+
+export interface SerieInfo {
+  id: string;
+  frecuencia: Exclude<Frecuencia, "una_vez">;
+  activa: boolean;
+  aceptada: boolean;
+  trabajadorId: string;
+  trabajadorNombre?: string;
+}
+
+/** Mis propiedades: dirección guardada con instrucciones fijas. */
+export interface Propiedad {
+  id: string;
+  nombre: string;
+  ubicacion: string;
+  lat?: number;
+  lng?: number;
+  instrucciones: string;
+}
+
+export interface ItemAgenda {
+  rol: "cliente" | "trabajador";
+  trabajo: Trabajo;
+}
+
+export interface Agenda {
+  items: ItemAgenda[];
+  /** Días (YYYY-MM-DD) que bloqueé. */
+  bloqueos: string[];
+}
+
 export interface Trueque {
   /** Lo que el publicador ofreció a cambio. */
   ofrece: string;
@@ -87,7 +119,8 @@ export interface Trabajo {
   lat?: number;
   lng?: number;
   distanciaKm: number;
-  fecha: string;
+  /** Fecha y hora locales ("2026-10-31T09:00"); null = lo antes posible (urgencias). */
+  fecha: string | null;
   pago: number;
   metodoPago: MetodoPago;
   publicador: string;
@@ -107,6 +140,12 @@ export interface Trabajo {
   invitacionRechazada: boolean;
   /** Trueque: se paga con un servicio. `pago` es el diferencial en dinero (puede ser 0). */
   trueque: Trueque | null;
+  /** CIRA Agenda: visita de un servicio recurrente. */
+  serie: SerieInfo | null;
+  /** Visita que el trabajador canceló: pendiente (el cliente decide), invitado o cubierto. */
+  reemplazo: "pendiente" | "invitado" | "cubierto" | null;
+  /** Propiedad del cliente; las instrucciones solo llegan al cliente y a quien hace el trabajo. */
+  propiedad: { id: string; nombre: string; instrucciones?: string } | null;
   postulantes: number;
   yaPostulado: boolean;
   esMio: boolean;
@@ -245,7 +284,7 @@ export interface HistorialItem {
   id: string;
   titulo: string;
   categoria: string;
-  fecha: string;
+  fecha: string | null;
   pago: number;
   estado: EstadoTrabajo;
   contraparte: string;

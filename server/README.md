@@ -60,6 +60,9 @@ sobrescribe teléfono, nombre o correo por id en cada arranque.
 
 > Al cambiar el esquema (`VERSION_ESQUEMA` en `src/db.js`) la base local se
 > recrea y se vuelve a sembrar automáticamente: son solo datos de prueba.
+>
+> Las fechas de los trabajos de ejemplo se calculan desde el día en que se crea la base.
+> Para regenerarlas (por ejemplo, el día de la presentación): `npm run reset` y arranca de nuevo.
 
 ## Parámetros del modelo de negocio
 
@@ -88,7 +91,7 @@ Todos (salvo `auth` y `config`) requieren la cabecera `X-Cira-User`.
 | POST/PUT/DELETE | `/api/usuario/servicios[/:id]` | Servicios ofrecidos |
 | GET | `/api/usuarios/:id` | Perfil público: calificación, insignias, comentarios |
 | GET | `/api/trabajos` | Trabajos abiertos de otros; `?publicadas=true` o `?mios=true` |
-| POST | `/api/trabajos` | Publica (con `urgente: true` para el modo urgencia, `invitadoId` para una oferta directa, o `trueque: true` + `ofrece` para un trueque; ahí `pago` es el diferencial y puede ser 0. Plan gratis: `CIRA_TRUEQUES_GRATIS_MES` trueques al mes, 1 por defecto) |
+| POST | `/api/trabajos` | Publica (`fecha` como `"2026-10-31T09:00"`, hora de Costa Rica; sin fecha si es urgente. `urgente: true` para el modo urgencia, `invitadoId` para una oferta directa —con `frecuencia` `semanal`/`quincenal`/`mensual` es un servicio recurrente—, `propiedadId` para usar una propiedad, o `trueque: true` + `ofrece` para un trueque; ahí `pago` es el diferencial y puede ser 0. Plan gratis: `CIRA_TRUEQUES_GRATIS_MES` trueques al mes, 1 por defecto) |
 | PATCH | `/api/trabajos/:id` | Edita una publicación pendiente (solo su dueño) |
 | PATCH | `/api/trabajos/:id/postular` | Postula/retira postulación (en un trueque, `propuesta` es la contraoferta) |
 | GET/POST | `/api/trabajos/:id/postulantes`, `/asignar` | El publicador elige a un postulante |
@@ -99,6 +102,12 @@ Todos (salvo `auth` y `config`) requieren la cabecera `X-Cira-User`.
 | POST | `/api/trabajos/:id/cancelar`, `/pagar`, `/calificar` | Cancelar/retirarse, pago simulado (con `propina` opcional), calificación 1–5 |
 | POST | `/api/reportes` | Reportar a un usuario |
 | GET | `/api/alertas`, POST `/api/alertas/:trabajoId/descartar` | Alertas por oficio y zona (Plus primero) |
+| GET | `/api/agenda?desde&hasta` | Agenda de quien consulta: trabajos con fecha como cliente o trabajador (`rol`) y sus días bloqueados |
+| POST/DELETE | `/api/agenda/bloqueos[/:fecha]` | Marca o quita un día como no disponible (nadie le envía ofertas directas ese día) |
+| GET | `/api/usuarios/:id/ocupado?desde&hasta` | Días no disponibles de otra persona (bloqueados o con trabajo asignado), sin detalles |
+| GET/POST | `/api/trabajos/:id/reemplazos`, `/reemplazo`, `/publicar-abierto` | Visita de un servicio recurrente que el trabajador canceló: sugerencias, elegir reemplazo (oferta directa) o publicarla para todos |
+| POST | `/api/series/:id/cancelar` | Termina un servicio recurrente (cliente o trabajador) |
+| GET/POST/PUT/DELETE | `/api/propiedades[/:id]` | Mis propiedades: nombre, ubicación e instrucciones |
 | GET | `/api/trabajadores` | Personas que ofrecen servicios (con `deConfianza` y `guardadoPor`) |
 | GET/POST/DELETE | `/api/favoritos[/:id]` | "De confianza": lista, agrega o quita trabajadores guardados |
 | GET/POST | `/api/conversaciones[/:id]`, `/api/conversaciones/:id/mensajes` | Chats entre dos usuarios |

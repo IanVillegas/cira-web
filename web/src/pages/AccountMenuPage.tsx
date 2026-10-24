@@ -10,6 +10,8 @@ const OPCIONES = [
   { icon: "edit", label: "Editar perfil", to: "/perfil/editar" },
   { icon: "credit_card", label: "Mi tarjeta", to: "/cuenta/tarjeta" },
   { icon: "receipt_long", label: "Mi actividad", to: "/cuenta/actividad" },
+  { icon: "calendar_month", label: "Mi agenda", to: "/agenda" },
+  { icon: "home_work", label: "Mis propiedades", to: "/cuenta/propiedades" },
   { icon: "star", label: "Plan Plus", to: "/cuenta/plan" },
   { icon: "notifications", label: "Alertas", to: "/alertas" },
   { icon: "payments", label: "Ingresos de CIRA (demo)", to: "/cuenta/ingresos" },

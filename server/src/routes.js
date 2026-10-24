@@ -3,12 +3,23 @@ import { randomUUID } from "node:crypto";
 import { db } from "./db.js";
 import { CONFIG, ETAPAS, METODOS_PAGO } from "./config.js";
 import {
+  FRECUENCIAS,
+  diasOcupados,
+  estaBloqueado,
+  extenderSerie,
+  extenderSeriesDe,
+  obtenerSerie,
+  tieneTrabajoEseDia,
+} from "./agenda.js";
+import { RE_DIA, diaDe, fechaHoraValida, hoyIso } from "./fechas.js";
+import {
   calcularResumenPago,
   distanciaKm,
   mapConversacion,
   mapHistorial,
   mapMensaje,
   mapPerfilPublico,
+  mapPropiedad,
   mapTrabajador,
   mapTrabajo,
   mapUsuario,
@@ -302,16 +313,34 @@ router.delete("/usuario/servicios/:id", (req, res) => {
 
 // ── Trabajos ────────────────────────────────────────────────────────
 const ORDEN_RECIENTES = "ORDER BY creado_en DESC, rowid DESC";
+/** Mis publicaciones y Mis trabajos: lo más próximo primero (las urgencias, sin fecha, arriba). */
+const ORDEN_FECHA = "ORDER BY fecha IS NOT NULL, fecha ASC, rowid ASC";
+
+/**
+ * De cada servicio recurrente se muestra solo la próxima visita pendiente (el resto se ve en la
+ * Agenda); las visitas terminadas que aún piden pago o calificación, y las que esperan
+ * reemplazo, se muestran siempre.
+ */
+function soloProximaVisita(lista) {
+  const vistas = new Set();
+  return lista.filter((t) => {
+    if (!t.serie || t.estado === "Finalizado" || t.reemplazo) return true;
+    if (vistas.has(t.serie.id)) return false;
+    vistas.add(t.serie.id);
+    return true;
+  });
+}
 
 router.get("/trabajos", (req, res) => {
   const yo = req.usuarioId;
   const { publicadas, mios } = req.query;
   let rows;
+  if (publicadas === "true" || mios === "true") extenderSeriesDe(yo);
   if (publicadas === "true") {
-    rows = db.prepare(`SELECT * FROM trabajo WHERE publicador_id = ? AND estado != 'Cancelado' ${ORDEN_RECIENTES}`).all(yo);
+    rows = db.prepare(`SELECT * FROM trabajo WHERE publicador_id = ? AND estado != 'Cancelado' ${ORDEN_FECHA}`).all(yo);
     const lista = rows.map((r) => mapTrabajo(r, yo));
     // Un trabajo terminado sale de la lista cuando ya se pagó y se calificó.
-    return res.json(lista.filter((t) => t.estado !== "Finalizado" || !t.pagado || !t.calificadoPorMi));
+    return res.json(soloProximaVisita(lista.filter((t) => t.estado !== "Finalizado" || !t.pagado || !t.calificadoPorMi)));
   }
   if (mios === "true") {
     rows = db
@@ -320,17 +349,17 @@ router.get("/trabajos", (req, res) => {
           WHERE publicador_id != ? AND estado != 'Cancelado'
             AND (trabajador_id = ? OR id IN (SELECT trabajo_id FROM postulacion WHERE usuario_id = ?)
                  OR (invitado_id = ? AND invitacion_rechazada = 0))
-          ${ORDEN_RECIENTES}`,
+          ${ORDEN_FECHA}`,
       )
       .all(yo, yo, yo, yo);
     const lista = rows.map((r) => mapTrabajo(r, yo));
-    return res.json(lista.filter((t) => t.estado !== "Finalizado" || !t.calificadoPorMi));
+    return res.json(soloProximaVisita(lista.filter((t) => t.estado !== "Finalizado" || !t.calificadoPorMi)));
   }
   rows = db
     .prepare(
       `SELECT * FROM trabajo
         WHERE estado = 'Pendiente' AND trabajador_id IS NULL AND publicador_id != ?
-          AND NOT ${INVITACION_PENDIENTE} ${ORDEN_RECIENTES}`,
+          AND NOT ${INVITACION_PENDIENTE} AND reemplazo IS NULL ${ORDEN_RECIENTES}`,
     )
     .all(yo);
   res.json(rows.map((r) => mapTrabajo(r, yo)));
@@ -351,8 +380,32 @@ router.get("/trabajos/:id", (req, res) => {
 });
 
 router.post("/trabajos", (req, res) => {
-  const { titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodoPago, urgente, invitadoId, trueque, ofrece } = req.body;
+  const { titulo, descripcion, categoria, lat, lng, pago, metodoPago, urgente, invitadoId, trueque, ofrece, frecuencia, propiedadId } =
+    req.body;
+  let { ubicacion } = req.body;
   const esUrgente = !!urgente;
+  // Una urgencia se atiende "lo antes posible": no lleva fecha.
+  const fecha = esUrgente ? null : req.body.fecha;
+  if (!esUrgente && !fechaHoraValida(fecha)) return error(res, 400, "Indica la fecha y la hora del trabajo.");
+  if (!esUrgente && diaDe(fecha) < hoyIso()) return error(res, 400, "La fecha del trabajo ya pasó.");
+
+  // Mis propiedades: la dirección y las coordenadas salen de la propiedad elegida.
+  let propiedad = null;
+  if (propiedadId) {
+    propiedad = db.prepare("SELECT * FROM propiedad WHERE id = ? AND usuario_id = ?").get(propiedadId, req.usuarioId);
+    if (!propiedad) return error(res, 404, "Propiedad no encontrada.");
+    ubicacion = ubicacion || propiedad.ubicacion;
+  }
+  const latFinal = lat ?? propiedad?.lat ?? null;
+  const lngFinal = lng ?? propiedad?.lng ?? null;
+
+  // Servicio recurrente: solo como oferta directa (hace falta saber quién lo hará cada vez).
+  const recurrente = frecuencia && frecuencia !== "una_vez";
+  if (recurrente) {
+    if (!FRECUENCIAS.includes(frecuencia)) return error(res, 400, "Frecuencia no válida.");
+    if (!invitadoId) return error(res, 400, "Un servicio recurrente se ofrece a una persona: usa Recontratar.");
+    if (esUrgente || trueque) return error(res, 400, "Un servicio recurrente no puede ser urgencia ni trueque.");
+  }
   const esTrueque = !!trueque;
   if (esTrueque) {
     if (!String(ofrece ?? "").trim()) return error(res, 400, "Indica qué ofreces a cambio.");
@@ -366,10 +419,11 @@ router.post("/trabajos", (req, res) => {
     if (invitadoId === req.usuarioId) return error(res, 400, "No puedes contratarte a ti mismo.");
     if (!obtenerUsuario(invitadoId)) return error(res, 404, "Usuario no encontrado.");
     if (esUrgente) return error(res, 400, "Una oferta directa no puede ser urgencia.");
+    if (estaBloqueado(invitadoId, diaDe(fecha))) return error(res, 409, "Esa persona marcó ese día como no disponible.");
   }
   // En un trueque el pago es el diferencial en dinero: puede ser 0.
   const pagoValido = esTrueque ? Number(pago ?? 0) >= 0 : pago > 0;
-  if (!titulo || !categoria || !ubicacion || !pagoValido || (!fecha && !esUrgente)) {
+  if (!titulo || !categoria || !ubicacion || !pagoValido) {
     return error(res, 400, "Faltan campos obligatorios o el pago no es válido.");
   }
   const metodo = metodoPago;
@@ -379,14 +433,27 @@ router.post("/trabajos", (req, res) => {
   if (cobraTarjeta && !tarjetaOk(req.usuarioId, metodo, esUrgente)) return error(res, 400, MSG_SIN_TARJETA);
 
   const id = `t-${randomUUID()}`;
+  const monto = Math.round(Number(pago ?? 0));
+  let serieId = null;
+  if (recurrente) {
+    serieId = `se-${randomUUID()}`;
+    db.prepare(
+      `INSERT INTO serie (id, publicador_id, trabajador_id, frecuencia, titulo, descripcion, categoria, ubicacion, lat, lng,
+                          pago, metodo_pago, propiedad_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).run(
+      serieId, req.usuarioId, invitadoId, frecuencia, titulo, descripcion ?? "", categoria, ubicacion, latFinal, lngFinal,
+      monto, metodo, propiedad?.id ?? null,
+    );
+  }
   db.prepare(
     `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodo_pago, publicador_id, urgente, invitado_id,
-                          es_trueque, ofrece)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                          es_trueque, ofrece, serie_id, propiedad_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
-    id, titulo, descripcion ?? "", categoria, ubicacion, lat ?? null, lng ?? null,
-    fecha || "Lo antes posible", Math.round(Number(pago ?? 0)), metodo, req.usuarioId, esUrgente ? 1 : 0, invitadoId || null,
-    esTrueque ? 1 : 0, esTrueque ? String(ofrece).trim().slice(0, 300) : null,
+    id, titulo, descripcion ?? "", categoria, ubicacion, latFinal, lngFinal,
+    fecha, monto, metodo, req.usuarioId, esUrgente ? 1 : 0, invitadoId || null,
+    esTrueque ? 1 : 0, esTrueque ? String(ofrece).trim().slice(0, 300) : null, serieId, propiedad?.id ?? null,
   );
   responderTrabajo(req, res, id, 201);
 });
@@ -399,6 +466,7 @@ router.patch("/trabajos/:id", (req, res) => {
   if (row.estado !== "Pendiente") return error(res, 409, "Solo se pueden editar publicaciones pendientes.");
 
   const { titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodoPago, ofrece } = req.body;
+  if (fecha != null && !row.urgente && !fechaHoraValida(fecha)) return error(res, 400, "Indica la fecha y la hora del trabajo.");
   if (pago != null && !(row.es_trueque ? pago >= 0 : pago > 0)) return error(res, 400, "El pago no es válido.");
   if (row.es_trueque && ofrece != null && !String(ofrece).trim()) return error(res, 400, "Indica qué ofreces a cambio.");
   const metodo = metodoPago;
@@ -420,7 +488,7 @@ router.patch("/trabajos/:id", (req, res) => {
      WHERE id = ?`,
   ).run(
     titulo ?? null, descripcion ?? null, categoria ?? null, ubicacion ?? null,
-    lat ?? null, lng ?? null, fecha ?? null, pago ?? null, metodo ?? null,
+    lat ?? null, lng ?? null, row.urgente ? null : (fecha ?? null), pago ?? null, metodo ?? null,
     ofrece != null ? String(ofrece).trim().slice(0, 300) : null, row.id,
   );
   responderTrabajo(req, res, row.id);
@@ -491,10 +559,17 @@ router.post("/trabajos/:id/invitacion/aceptar", (req, res) => {
   if (!row) return;
   if (row.invitado_id !== req.usuarioId || !invitacionPendiente(row)) return error(res, 403, "Esta oferta no es para ti.");
   if (row.estado !== "Pendiente" || row.trabajador_id) return error(res, 409, "Esta oferta ya no está disponible.");
-  db.prepare("UPDATE trabajo SET trabajador_id = ?, estado = 'Asignado', etapa = 'Aceptado' WHERE id = ?").run(
-    req.usuarioId,
-    row.id,
-  );
+  db.prepare(
+    `UPDATE trabajo SET trabajador_id = ?, estado = 'Asignado', etapa = 'Aceptado',
+       reemplazo = CASE WHEN reemplazo = 'invitado' THEN 'cubierto' ELSE reemplazo END
+     WHERE id = ?`,
+  ).run(req.usuarioId, row.id);
+  // Primera visita de un servicio recurrente: aceptarla es aceptar la serie; CIRA agenda las siguientes.
+  const serie = obtenerSerie(row.serie_id);
+  if (serie && !serie.aceptada && serie.trabajador_id === req.usuarioId) {
+    db.prepare("UPDATE serie SET aceptada = 1 WHERE id = ?").run(serie.id);
+    extenderSerie({ ...serie, aceptada: 1 });
+  }
   // Aceptar una oferta directa de trueque es aceptar sus términos.
   if (row.es_trueque) db.prepare("UPDATE trabajo SET trueque_acordado = ofrece, acuerdo_aceptado = 1 WHERE id = ?").run(row.id);
   responderTrabajo(req, res, row.id);
@@ -505,6 +580,17 @@ router.post("/trabajos/:id/invitacion/rechazar", (req, res) => {
   const row = trabajoDe(req, res);
   if (!row) return;
   if (row.invitado_id !== req.usuarioId || !invitacionPendiente(row)) return error(res, 403, "Esta oferta no es para ti.");
+  if (row.reemplazo === "invitado") {
+    // El reemplazo no puede: la visita vuelve a esperar que el cliente elija a otra persona.
+    db.prepare("UPDATE trabajo SET invitado_id = NULL, reemplazo = 'pendiente' WHERE id = ?").run(row.id);
+    return responderTrabajo(req, res, row.id);
+  }
+  const serie = obtenerSerie(row.serie_id);
+  if (serie && !serie.aceptada) {
+    // No acepta el servicio recurrente: la serie se descarta y esta visita queda como un trabajo normal.
+    db.prepare("UPDATE serie SET activa = 0 WHERE id = ?").run(serie.id);
+    db.prepare("UPDATE trabajo SET serie_id = NULL WHERE id = ?").run(row.id);
+  }
   db.prepare("UPDATE trabajo SET invitacion_rechazada = 1, creado_en = datetime('now') WHERE id = ?").run(row.id);
   responderTrabajo(req, res, row.id);
 });
@@ -593,7 +679,12 @@ router.post("/trabajos/:id/cancelar", (req, res) => {
     db.prepare("UPDATE trabajo SET estado = 'Cancelado' WHERE id = ?").run(row.id);
   } else {
     db.prepare("DELETE FROM postulacion WHERE trabajo_id = ? AND usuario_id = ?").run(row.id, req.usuarioId);
-    if (row.trabajador_id === req.usuarioId) {
+    if (row.trabajador_id === req.usuarioId && row.serie_id) {
+      // Visita de un servicio recurrente: no se publica para todos; el cliente elige un reemplazo.
+      db.prepare(
+        "UPDATE trabajo SET trabajador_id = NULL, estado = 'Pendiente', etapa = NULL, invitado_id = NULL, reemplazo = 'pendiente' WHERE id = ?",
+      ).run(row.id);
+    } else if (row.trabajador_id === req.usuarioId) {
       db.prepare(
         `UPDATE trabajo SET trabajador_id = NULL, estado = 'Pendiente', etapa = NULL,
            trueque_acordado = NULL, acuerdo_aceptado = 0, trueque_etapa = NULL
@@ -653,6 +744,188 @@ router.post("/trabajos/:id/calificar", (req, res) => {
     row.es_trueque && typeof req.body.cumplio === "boolean" ? (req.body.cumplio ? 1 : 0) : null,
   );
   responderTrabajo(req, res, row.id);
+});
+
+// ── CIRA Agenda: reemplazos y series ────────────────────────────────
+/** Visita que espera reemplazo, vista por su cliente. */
+function visitaSinTrabajador(req, res) {
+  const row = trabajoDe(req, res);
+  if (!row) return null;
+  if (row.publicador_id !== req.usuarioId) {
+    error(res, 403, "Solo el cliente decide el reemplazo.");
+    return null;
+  }
+  if (row.reemplazo !== "pendiente") {
+    error(res, 409, "Esta visita no está esperando un reemplazo.");
+    return null;
+  }
+  return row;
+}
+
+/**
+ * Sugerencias de reemplazo: personas del mismo oficio, disponibles y libres ese día. Primero los
+ * "De confianza" del cliente; luego los mejor calificados y más cercanos.
+ */
+router.get("/trabajos/:id/reemplazos", (req, res) => {
+  const row = visitaSinTrabajador(req, res);
+  if (!row) return;
+  const yo = obtenerUsuario(req.usuarioId);
+  const dia = row.fecha ? diaDe(row.fecha) : hoyIso();
+  const serie = obtenerSerie(row.serie_id);
+  const candidatos = db
+    .prepare("SELECT * FROM usuario WHERE id != ? AND id != ? AND disponible = 1")
+    .all(req.usuarioId, serie?.trabajador_id ?? "")
+    .filter((u) => ofreceCategoria(u.id, row.categoria) && !estaBloqueado(u.id, dia) && !tieneTrabajoEseDia(u.id, dia, row.id))
+    .map((u) => mapTrabajador(u, yo))
+    .sort(
+      (a, b) =>
+        Number(b.deConfianza) - Number(a.deConfianza) ||
+        (b.calificacion ?? 0) - (a.calificacion ?? 0) ||
+        a.distanciaKm - b.distanciaKm,
+    )
+    .slice(0, 5);
+  res.json(candidatos);
+});
+
+/** El cliente elige un reemplazo: le llega como oferta directa solo para esta visita. */
+router.post("/trabajos/:id/reemplazo", (req, res) => {
+  const row = visitaSinTrabajador(req, res);
+  if (!row) return;
+  const { trabajadorId } = req.body;
+  const u = obtenerUsuario(trabajadorId);
+  if (!u || trabajadorId === req.usuarioId) return error(res, 404, "Usuario no encontrado.");
+  if (!ofreceCategoria(u.id, row.categoria)) return error(res, 400, "Esa persona no ofrece este servicio.");
+  if (row.fecha && estaBloqueado(u.id, diaDe(row.fecha))) return error(res, 409, "Esa persona marcó ese día como no disponible.");
+  db.prepare("UPDATE trabajo SET invitado_id = ?, invitacion_rechazada = 0, reemplazo = 'invitado' WHERE id = ?").run(u.id, row.id);
+  responderTrabajo(req, res, row.id);
+});
+
+/** En vez de un reemplazo elegido, la visita se publica para que cualquiera se postule. */
+router.post("/trabajos/:id/publicar-abierto", (req, res) => {
+  const row = visitaSinTrabajador(req, res);
+  if (!row) return;
+  db.prepare("UPDATE trabajo SET reemplazo = NULL, creado_en = datetime('now') WHERE id = ?").run(row.id);
+  responderTrabajo(req, res, row.id);
+});
+
+/** Terminar un servicio recurrente (cliente o trabajador): se cancelan las visitas que no han empezado. */
+router.post("/series/:id/cancelar", (req, res) => {
+  const serie = obtenerSerie(req.params.id);
+  if (!serie) return error(res, 404, "Servicio recurrente no encontrado.");
+  if (serie.publicador_id !== req.usuarioId && serie.trabajador_id !== req.usuarioId) {
+    return error(res, 403, "No participas en este servicio recurrente.");
+  }
+  db.prepare("UPDATE serie SET activa = 0 WHERE id = ?").run(serie.id);
+  db.prepare(
+    `UPDATE trabajo SET estado = 'Cancelado'
+      WHERE serie_id = ? AND estado IN ('Pendiente', 'Asignado') AND (etapa IS NULL OR etapa = 'Aceptado')`,
+  ).run(serie.id);
+  res.status(204).end();
+});
+
+// ── CIRA Agenda: calendario y días bloqueados ───────────────────────
+function rangoDe(req, res) {
+  const { desde, hasta } = req.query;
+  if (!RE_DIA.test(String(desde ?? "")) || !RE_DIA.test(String(hasta ?? "")) || desde > hasta) {
+    error(res, 400, "El rango de fechas no es válido.");
+    return null;
+  }
+  return { desde, hasta };
+}
+
+/**
+ * Todo lo agendado de quien consulta: como cliente (sus publicaciones con fecha) y como
+ * trabajador (lo asignado y las ofertas directas que esperan su respuesta), más sus días bloqueados.
+ */
+router.get("/agenda", (req, res) => {
+  const rango = rangoDe(req, res);
+  if (!rango) return;
+  const yo = req.usuarioId;
+  extenderSeriesDe(yo);
+  const rows = db
+    .prepare(
+      `SELECT * FROM trabajo
+        WHERE estado != 'Cancelado' AND fecha IS NOT NULL AND substr(fecha, 1, 10) BETWEEN ? AND ?
+          AND (publicador_id = ? OR trabajador_id = ? OR (invitado_id = ? AND invitacion_rechazada = 0 AND trabajador_id IS NULL))
+        ORDER BY fecha, rowid`,
+    )
+    .all(rango.desde, rango.hasta, yo, yo, yo);
+  const bloqueos = db
+    .prepare("SELECT fecha FROM bloqueo WHERE usuario_id = ? AND fecha BETWEEN ? AND ? ORDER BY fecha")
+    .all(yo, rango.desde, rango.hasta)
+    .map((b) => b.fecha);
+  res.json({
+    items: rows.map((r) => ({ rol: r.publicador_id === yo ? "cliente" : "trabajador", trabajo: mapTrabajo(r, yo) })),
+    bloqueos,
+  });
+});
+
+router.post("/agenda/bloqueos", (req, res) => {
+  const { fecha } = req.body;
+  if (!RE_DIA.test(String(fecha ?? ""))) return error(res, 400, "La fecha no es válida.");
+  if (fecha < hoyIso()) return error(res, 400, "No puedes bloquear un día que ya pasó.");
+  db.prepare("INSERT OR IGNORE INTO bloqueo (usuario_id, fecha) VALUES (?, ?)").run(req.usuarioId, fecha);
+  res.status(201).json({ fecha });
+});
+
+router.delete("/agenda/bloqueos/:fecha", (req, res) => {
+  db.prepare("DELETE FROM bloqueo WHERE usuario_id = ? AND fecha = ?").run(req.usuarioId, req.params.fecha);
+  res.status(204).end();
+});
+
+/** Días no disponibles de otra persona (para elegir fecha al recontratar): solo "ocupado", nunca qué ni con quién. */
+router.get("/usuarios/:id/ocupado", (req, res) => {
+  const rango = rangoDe(req, res);
+  if (!rango) return;
+  if (!obtenerUsuario(req.params.id)) return error(res, 404, "Usuario no encontrado.");
+  res.json({ ocupados: diasOcupados(req.params.id, rango.desde, rango.hasta) });
+});
+
+// ── Mis propiedades ─────────────────────────────────────────────────
+function datosPropiedad(req, res) {
+  const nombre = String(req.body.nombre ?? "").trim().slice(0, 60);
+  const ubicacion = String(req.body.ubicacion ?? "").trim().slice(0, 200);
+  if (!nombre) return error(res, 400, "Ponle un nombre a la propiedad."), null;
+  if (!ubicacion) return error(res, 400, "Indica la ubicación de la propiedad."), null;
+  const lat = Number.isFinite(req.body.lat) ? req.body.lat : null;
+  const lng = Number.isFinite(req.body.lng) ? req.body.lng : null;
+  return { nombre, ubicacion, lat, lng, instrucciones: String(req.body.instrucciones ?? "").trim().slice(0, 500) };
+}
+
+router.get("/propiedades", (req, res) => {
+  const rows = db.prepare("SELECT * FROM propiedad WHERE usuario_id = ? ORDER BY creado_en, rowid").all(req.usuarioId);
+  res.json(rows.map(mapPropiedad));
+});
+
+router.post("/propiedades", (req, res) => {
+  const d = datosPropiedad(req, res);
+  if (!d) return;
+  const id = `pr-${randomUUID()}`;
+  db.prepare("INSERT INTO propiedad (id, usuario_id, nombre, ubicacion, lat, lng, instrucciones) VALUES (?, ?, ?, ?, ?, ?, ?)").run(
+    id, req.usuarioId, d.nombre, d.ubicacion, d.lat, d.lng, d.instrucciones,
+  );
+  res.status(201).json(mapPropiedad(db.prepare("SELECT * FROM propiedad WHERE id = ?").get(id)));
+});
+
+router.put("/propiedades/:id", (req, res) => {
+  const row = db.prepare("SELECT * FROM propiedad WHERE id = ? AND usuario_id = ?").get(req.params.id, req.usuarioId);
+  if (!row) return error(res, 404, "Propiedad no encontrada.");
+  const d = datosPropiedad(req, res);
+  if (!d) return;
+  db.prepare("UPDATE propiedad SET nombre = ?, ubicacion = ?, lat = ?, lng = ?, instrucciones = ? WHERE id = ?").run(
+    d.nombre, d.ubicacion, d.lat, d.lng, d.instrucciones, row.id,
+  );
+  res.json(mapPropiedad(db.prepare("SELECT * FROM propiedad WHERE id = ?").get(row.id)));
+});
+
+router.delete("/propiedades/:id", (req, res) => {
+  const row = db.prepare("SELECT * FROM propiedad WHERE id = ? AND usuario_id = ?").get(req.params.id, req.usuarioId);
+  if (!row) return error(res, 404, "Propiedad no encontrada.");
+  // Los trabajos y servicios recurrentes conservan su dirección; solo pierden el enlace a la propiedad.
+  db.prepare("UPDATE trabajo SET propiedad_id = NULL WHERE propiedad_id = ?").run(row.id);
+  db.prepare("UPDATE serie SET propiedad_id = NULL WHERE propiedad_id = ?").run(row.id);
+  db.prepare("DELETE FROM propiedad WHERE id = ?").run(row.id);
+  res.status(204).end();
 });
 
 // ── Trabajadores y perfiles ─────────────────────────────────────────
@@ -735,7 +1008,7 @@ function calcularAlertas(usuarioId) {
     .prepare(
       `SELECT * FROM trabajo
         WHERE estado = 'Pendiente' AND trabajador_id IS NULL AND publicador_id != ?
-          AND NOT ${INVITACION_PENDIENTE}
+          AND NOT ${INVITACION_PENDIENTE} AND reemplazo IS NULL
           AND id NOT IN (SELECT trabajo_id FROM alerta_descartada WHERE usuario_id = ?)
         ${ORDEN_RECIENTES}`,
     )
@@ -867,7 +1140,7 @@ router.get("/historial", (req, res) => {
     .prepare(
       `SELECT * FROM trabajo
         WHERE (publicador_id = ? OR trabajador_id = ?) AND estado IN ('Finalizado', 'Cancelado')
-        ORDER BY COALESCE(finalizado_en, creado_en) DESC, rowid DESC`,
+        ORDER BY COALESCE(fecha, replace(finalizado_en, ' ', 'T'), replace(creado_en, ' ', 'T')) DESC, rowid DESC`,
     )
     .all(req.usuarioId, req.usuarioId);
   res.json(rows.map((r) => mapHistorial(r, req.usuarioId)));

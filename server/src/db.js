@@ -9,9 +9,12 @@ export const db = new DatabaseSync(DB_PATH);
 
 // Versión del esquema. Al subirla, la base local (solo datos de prueba) se recrea
 // y se vuelve a sembrar: el modelo pasó de un usuario fijo a varios usuarios reales.
-const VERSION_ESQUEMA = 8;
+const VERSION_ESQUEMA = 9;
 
 const TABLAS = [
+  "bloqueo",
+  "propiedad",
+  "serie",
   "favorito",
   "alerta_descartada",
   "suscripcion",
@@ -82,7 +85,8 @@ db.exec(`
     ubicacion TEXT NOT NULL,
     lat REAL,
     lng REAL,
-    fecha TEXT NOT NULL,
+    -- Fecha y hora locales de Costa Rica ("2026-10-31T09:00"); NULL = lo antes posible (urgencias).
+    fecha TEXT,
     pago INTEGER NOT NULL,
     metodo_pago TEXT NOT NULL,
     publicador_id TEXT NOT NULL REFERENCES usuario(id),
@@ -102,6 +106,12 @@ db.exec(`
     acuerdo_aceptado INTEGER NOT NULL DEFAULT 0,
     -- null → en curso; 'primera' → el trabajador entregó su parte; 'finalizado'.
     trueque_etapa TEXT,
+    -- Visita de un servicio recurrente (CIRA Agenda) y propiedad del cliente donde se hace.
+    serie_id TEXT REFERENCES serie(id),
+    propiedad_id TEXT REFERENCES propiedad(id),
+    -- Visita de una serie que el trabajador canceló: 'pendiente' (el cliente decide), 'invitado'
+    -- (se le ofreció a un reemplazo) o 'cubierto' (el reemplazo aceptó).
+    reemplazo TEXT,
     pagado INTEGER NOT NULL DEFAULT 0,
     creado_en TEXT NOT NULL DEFAULT (datetime('now')),
     finalizado_en TEXT
@@ -172,6 +182,46 @@ db.exec(`
     id TEXT PRIMARY KEY,
     usuario_id TEXT NOT NULL REFERENCES usuario(id),
     monto INTEGER NOT NULL,
+    creado_en TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- Agenda: días que un trabajador marcó como no disponibles.
+  CREATE TABLE IF NOT EXISTS bloqueo (
+    usuario_id TEXT NOT NULL REFERENCES usuario(id),
+    fecha TEXT NOT NULL,
+    PRIMARY KEY (usuario_id, fecha)
+  );
+
+  -- Mis propiedades: direcciones guardadas con instrucciones fijas (llave, qué revisar…).
+  CREATE TABLE IF NOT EXISTS propiedad (
+    id TEXT PRIMARY KEY,
+    usuario_id TEXT NOT NULL REFERENCES usuario(id),
+    nombre TEXT NOT NULL,
+    ubicacion TEXT NOT NULL,
+    lat REAL,
+    lng REAL,
+    instrucciones TEXT NOT NULL DEFAULT '',
+    creado_en TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- Servicio recurrente: plantilla de las visitas (cada visita es un trabajo con serie_id).
+  CREATE TABLE IF NOT EXISTS serie (
+    id TEXT PRIMARY KEY,
+    publicador_id TEXT NOT NULL REFERENCES usuario(id),
+    trabajador_id TEXT NOT NULL REFERENCES usuario(id),
+    frecuencia TEXT NOT NULL,
+    titulo TEXT NOT NULL,
+    descripcion TEXT NOT NULL DEFAULT '',
+    categoria TEXT NOT NULL,
+    ubicacion TEXT NOT NULL,
+    lat REAL,
+    lng REAL,
+    pago INTEGER NOT NULL,
+    metodo_pago TEXT NOT NULL,
+    propiedad_id TEXT REFERENCES propiedad(id),
+    -- El trabajador aceptó la primera visita: desde ahí CIRA genera las siguientes.
+    aceptada INTEGER NOT NULL DEFAULT 0,
+    activa INTEGER NOT NULL DEFAULT 1,
     creado_en TEXT NOT NULL DEFAULT (datetime('now'))
   );
 

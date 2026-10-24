@@ -261,6 +261,10 @@ export function mapTrabajo(row, viewerId) {
   const esPublicador = row.publicador_id === viewerId;
   const contraparte = esPublicador ? trabajador : publicador;
   const invitado = row.invitado_id ? obtenerUsuario(row.invitado_id) : null;
+  const serie = row.serie_id ? db.prepare("SELECT * FROM serie WHERE id = ?").get(row.serie_id) : null;
+  const propiedad = row.propiedad_id ? db.prepare("SELECT * FROM propiedad WHERE id = ?").get(row.propiedad_id) : null;
+  // Las instrucciones de la propiedad (dónde está la llave…) solo las ven el cliente y quien hará el trabajo.
+  const veInstrucciones = esPublicadorDe(row, viewerId) || row.trabajador_id === viewerId || row.invitado_id === viewerId;
   const miPropuesta = row.es_trueque
     ? db.prepare("SELECT propuesta FROM postulacion WHERE trabajo_id = ? AND usuario_id = ?").get(row.id, viewerId)?.propuesta
     : null;
@@ -291,6 +295,21 @@ export function mapTrabajo(row, viewerId) {
     invitacionParaMi:
       row.invitado_id === viewerId && !row.invitacion_rechazada && row.estado === "Pendiente" && !row.trabajador_id,
     invitacionRechazada: !!row.invitacion_rechazada,
+    // CIRA Agenda: visita de un servicio recurrente.
+    serie: serie
+      ? {
+          id: serie.id,
+          frecuencia: serie.frecuencia,
+          activa: !!serie.activa,
+          aceptada: !!serie.aceptada,
+          trabajadorId: serie.trabajador_id,
+          trabajadorNombre: obtenerUsuario(serie.trabajador_id)?.nombre,
+        }
+      : null,
+    reemplazo: row.reemplazo ?? null,
+    propiedad: propiedad
+      ? { id: propiedad.id, nombre: propiedad.nombre, instrucciones: veInstrucciones ? propiedad.instrucciones : undefined }
+      : null,
     // Trueque: `pago` es el diferencial en dinero (puede ser 0) y `metodoPago`, cómo se paga.
     trueque: row.es_trueque
       ? {
@@ -348,6 +367,20 @@ export function mapConversacion(row, viewerId) {
   };
 }
 
+const esPublicadorDe = (row, viewerId) => row.publicador_id === viewerId;
+
+// ── Mis propiedades ─────────────────────────────────────────────────
+export function mapPropiedad(row) {
+  return {
+    id: row.id,
+    nombre: row.nombre,
+    ubicacion: row.ubicacion,
+    lat: row.lat ?? undefined,
+    lng: row.lng ?? undefined,
+    instrucciones: row.instrucciones,
+  };
+}
+
 // ── Historial ───────────────────────────────────────────────────────
 export function mapHistorial(row, viewerId) {
   const otroId = row.publicador_id === viewerId ? row.trabajador_id : row.publicador_id;
@@ -356,7 +389,8 @@ export function mapHistorial(row, viewerId) {
     id: row.id,
     titulo: row.titulo,
     categoria: row.categoria,
-    fecha: row.fecha,
+    // Fecha del trabajo (o, si se atendió "lo antes posible", cuándo terminó).
+    fecha: row.fecha ?? (row.finalizado_en ? row.finalizado_en.replace(" ", "T").slice(0, 16) : null),
     pago: row.pago,
     estado: row.estado,
     contraparte: otro?.nombre ?? "Sin asignar",
