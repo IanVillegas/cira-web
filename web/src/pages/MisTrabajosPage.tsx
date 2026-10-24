@@ -10,7 +10,7 @@ import { SeguimientoTrabajo } from "@/components/SeguimientoTrabajo";
 import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
 import { ETAPAS } from "@/lib/etapas";
-import { fechaTrabajo, frecuenciaTexto } from "@/lib/fechas";
+import { fechaTrabajo, frecuenciaTexto, limiteTexto } from "@/lib/fechas";
 import { formatoColones } from "@/lib/format";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
@@ -18,6 +18,7 @@ import { usePolling } from "@/lib/usePolling";
 import type { Trabajo } from "@/lib/types";
 
 function estadoDe(t: Trabajo): { text: string; tone: EstadoTono } {
+  if (t.invitacionParaMi && t.turno) return { text: tr("Por responder"), tone: "warning" };
   if (t.invitacionParaMi) return { text: tr("Te quieren recontratar"), tone: "accent" };
   if (t.trueque && t.asignadoAMi && t.estado !== "Finalizado") {
     if (!t.trueque.acuerdoAceptado) return { text: tr("Acepta el acuerdo"), tone: "accent" };
@@ -140,7 +141,13 @@ export function MisTrabajosPage() {
                       {t.invitacionParaMi && (
                         <>
                           <p className="aire-text-subhead text-aire-ink-2">
-                            {t.reemplazo === "invitado"
+                            {t.turno
+                              ? tr("{nombre} necesita la limpieza entre huéspedes de {lugar} ({cuando}). Si no respondes pronto, se ofrece a otros trabajadores.", {
+                                  nombre: t.publicador,
+                                  lugar: t.propiedad?.nombre ?? t.ubicacion,
+                                  cuando: `${fechaTrabajo(t.fecha)}${t.limite ? ` · ${limiteTexto(t.limite, t.fecha).toLowerCase()}` : ""}`,
+                                })
+                              : t.reemplazo === "invitado"
                               ? tr("{nombre} te pide reemplazar a {otro} en esta visita, por {pago}.", {
                                   nombre: t.publicador,
                                   otro: t.serie?.trabajadorNombre ?? "",

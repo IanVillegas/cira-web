@@ -279,6 +279,8 @@ export function mapTrabajo(row, viewerId) {
     lng: row.lng ?? undefined,
     distanciaKm: distanciaMostrada(viewer, row),
     fecha: row.fecha,
+    // "Listo antes de" (opcional).
+    limite: row.limite ?? null,
     pago: row.pago,
     metodoPago: row.metodo_pago,
     publicador: publicador.nombre,
@@ -307,6 +309,13 @@ export function mapTrabajo(row, viewerId) {
         }
       : null,
     reemplazo: row.reemplazo ?? null,
+    // Limpieza entre huéspedes: cuánto le queda al limpiador habitual antes de que pase a urgencia.
+    turno: row.turno
+      ? {
+          escalado: !!row.escalado,
+          escalaEnSeg: row.escalar_en ? Math.max(0, Math.round((parseFechaSql(row.escalar_en) - Date.now()) / 1000)) : null,
+        }
+      : null,
     propiedad: propiedad
       ? { id: propiedad.id, nombre: propiedad.nombre, instrucciones: veInstrucciones ? propiedad.instrucciones : undefined }
       : null,
@@ -378,6 +387,8 @@ export function mapPropiedad(row) {
     lat: row.lat ?? undefined,
     lng: row.lng ?? undefined,
     instrucciones: row.instrucciones,
+    limpiadorId: row.limpiador_id ?? undefined,
+    limpiadorNombre: row.limpiador_id ? obtenerUsuario(row.limpiador_id)?.nombre : undefined,
   };
 }
 

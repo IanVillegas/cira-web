@@ -5,6 +5,7 @@ import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { formatoColones } from "@/lib/format";
+import { limiteTexto } from "@/lib/fechas";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
 import { useAlertas } from "@/lib/useAlertas";
@@ -80,6 +81,7 @@ export function AlertasPage() {
                   <p className="aire-text-headline text-aire-ink">{trabajo.titulo}</p>
                   <p className="aire-text-subhead text-aire-ink-2">
                     {trabajo.ubicacion} · {trabajo.distanciaKm} km · {formatoColones.format(trabajo.pago)}
+            {trabajo.limite && ` · ${limiteTexto(trabajo.limite, trabajo.fecha)}`}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5">

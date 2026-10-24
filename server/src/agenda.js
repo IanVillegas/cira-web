@@ -1,6 +1,7 @@
 // CIRA Agenda: visitas de los servicios recurrentes, días bloqueados y días ocupados.
 import { randomUUID } from "node:crypto";
 import { db } from "./db.js";
+import { CONFIG } from "./config.js";
 import { ahoraIso, diaDe, siguienteVisita } from "./fechas.js";
 
 /** Visitas futuras que CIRA mantiene creadas por serie (se completan al consultar). */
@@ -83,5 +84,34 @@ export function diasOcupados(usuarioId, desde, hasta) {
     .map((r) => r.dia);
   return [...new Set([...bloqueados, ...conTrabajo])].sort();
 }
+
+/**
+ * Limpieza entre huéspedes que el limpiador habitual no respondió (o rechazó): pasa a urgencia y
+ * se avisa a los trabajadores cercanos. La tarifa de urgencia se cobra con tarjeta; si el cliente
+ * no tiene una registrada, queda publicada para todos sin ser urgencia.
+ */
+export function escalarTurno(row) {
+  const cliente = db.prepare("SELECT tarjeta_ultimos4 FROM usuario WHERE id = ?").get(row.publicador_id);
+  db.prepare(
+    `UPDATE trabajo SET invitado_id = NULL, invitacion_rechazada = 0, escalado = 1, escalar_en = NULL,
+       urgente = ?, creado_en = datetime('now')
+     WHERE id = ?`,
+  ).run(cliente?.tarjeta_ultimos4 ? 1 : 0, row.id);
+}
+
+/** Escala las limpiezas entre huéspedes cuyo plazo para el limpiador habitual ya venció. */
+export function escalarTurnosVencidos() {
+  const vencidos = db
+    .prepare(
+      `SELECT * FROM trabajo
+        WHERE turno = 1 AND escalado = 0 AND estado = 'Pendiente' AND trabajador_id IS NULL
+          AND escalar_en IS NOT NULL AND escalar_en <= datetime('now')`,
+    )
+    .all();
+  for (const row of vencidos) escalarTurno(row);
+}
+
+/** Minutos que tiene el limpiador habitual para responder. */
+export const minutosParaEscalar = () => CONFIG.ESCALAR_TURNO_MIN;
 
 export { diaDe };

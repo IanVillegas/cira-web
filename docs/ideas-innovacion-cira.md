@@ -23,6 +23,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 | 9 | Idioma español / inglés | ✅ Implementada | Baja |
 | 10 | Trueque de servicios ("Trueque de barrio") | ✅ Implementada (alcance recortado) | Media |
 | 11 | Agenda, servicios recurrentes y propiedades ("CIRA Agenda" + alquileres) | ✅ Implementada (alcance recortado) | Alta |
+| 12 | Limpieza entre huéspedes y trabajos con hora límite | ✅ Implementada | Alta |
 
 **Monetización (freemium):** la app es gratis para todos y CIRA gana dinero con tres fuentes, todas simuladas en la demo:
 1. **Plan Plus**: suscripción mensual del trabajador (idea #6).
@@ -248,6 +249,33 @@ El **trueque** (idea #10) no mueve dinero, así que se monetiza por el Plan Plus
 
 ---
 
+## 12. Limpieza entre huéspedes y trabajos con hora límite
+
+> Observación de Ian sobre la idea #11: un Airbnb no limpia "cada viernes". Limpia cuando sale un huésped, y tiene que estar listo antes de que entre el siguiente; muchas veces con poco aviso.
+
+**Problema que resuelve:**
+- La recurrencia fija sirve para casas y oficinas, pero no para alquileres de corta estancia, donde las limpiezas dependen de las reservas.
+- Una urgencia era "lo antes posible", sin hora. No había forma de decir *"el huésped sale a las 11 y el próximo entra a las 3: tiene que estar listo antes"*.
+
+**Valoración:**
+- ✅ Completa la idea #11 para su segmento más exigente (anfitriones) sin cambiar lo que ya funciona.
+- ✅ **Reusa el Modo Urgencia:** si el limpiador de siempre no responde, el trabajo se vuelve urgencia y se avisa a los cercanos. La tarifa de urgencia se cobra justo donde más valor tiene.
+- ✅ La **hora límite** sirve para cualquier trabajo, no solo para limpiezas.
+- ⚠️ En producción, las reservas se leerían solas del calendario de Airbnb o Booking (exportan iCal). En la demo se registran a mano: queda en el **roadmap**.
+
+**Cómo funciona (lo implementado):**
+- **Hora límite ("Listo antes de")** opcional al publicar cualquier trabajo, también en las urgencias. Se ve en las tarjetas, en *Mis trabajos*, *Mis publicaciones* y la agenda: *"Desde 11:00 a. m. · listo antes de 3:00 p. m."*.
+- **Limpiador habitual** de cada propiedad (en *Mis propiedades*), elegido entre los trabajadores "De confianza" que ofrecen Limpieza.
+- **Registrar salida de huésped** en la propiedad: hora de salida, hora de entrada del próximo y monto. CIRA crea la limpieza con esa ventana y se la ofrece primero al limpiador habitual.
+- Si no responde en **10 minutos** (configurable) o dice que no, **pasa sola a urgencia**: se avisa a los trabajadores cercanos de Limpieza (Plus primero) y se cobra la tarifa de urgencia. El anfitrión también puede pasarla a urgencia al instante. Sin limpiador habitual, es urgencia desde el inicio.
+- Las urgencias exigen tarjeta registrada (por la tarifa) y que quien acepta tenga la cédula verificada, como siempre.
+
+**Relación con el modelo de negocio:** cada salida de huésped es una transacción; las que se vuelven urgentes pagan la tarifa de urgencia. Prepara la mensualidad por propiedad para anfitriones del roadmap.
+
+**Viabilidad para la demo:** Alta. Ian registra que el huésped del Apartamento Escazú sale y el próximo entra en unas horas; le llega a Marisol, Ian la pasa a urgencia y Jixi la acepta.
+
+---
+
 ## Decisiones de implementación (para el documento)
 
 - **Cobros (todos simulados):** el cliente paga el monto del trabajo **+ comisión de CIRA (10 %, solo si paga con tarjeta) + tarifa de urgencia (15 %, solo urgencias)**; el trabajador recibe el monto completo. Los porcentajes y el precio del Plus se cambian en `server/src/config.js`.
@@ -260,6 +288,7 @@ El **trueque** (idea #10) no mueve dinero, así que se monetiza por el Plan Plus
 - **Insignias:** Plus (según el plan), cédula y hoja de delincuencia (campos de prueba), +50 trabajos (calculado) y "Responde urgencias" (se activa al aceptar una).
 - **Trueque (#10):** `pago` es el diferencial (puede ser 0) y `metodoPago`, cómo se paga. El límite del plan gratis está en `server/src/config.js` (`TRUEQUES_GRATIS_MES`). Un trueque no puede ser urgencia. Al elegir postulante, el publicador firma el acuerdo; sin que el trabajador lo acepte no arranca el seguimiento. "Terminado" en el seguimiento es la primera parte; el trueque termina cuando el trabajador marca que recibió la segunda, y si no hay diferencial queda pagado automáticamente.
 - **Fechas y agenda (#11):** las fechas de los trabajos son fecha y hora locales de Costa Rica (`2026-10-31T09:00`); `null` = lo antes posible (urgencias). Un servicio recurrente es una `serie` con las visitas como trabajos; CIRA mantiene 4 visitas futuras creadas y las completa al consultar. Si el trabajador cancela una visita, queda en reemplazo pendiente (no se publica para todos) hasta que el cliente elija. Las fechas de ejemplo se regeneran con `npm run reset` en `server/`.
+- **Limpieza entre huéspedes (#12):** la limpieza es un trabajo con `turno`, `fecha` = salida y `limite` = entrada del próximo. Se le ofrece al limpiador habitual de la propiedad; el escalado a urgencia se revisa en cada petición al servidor (no hay tarea programada). Sin tarjeta registrada, el escalado la publica para todos sin tarifa de urgencia.
 - **Idioma (#9):** selector en Cuenta (recarga la app). Los textos viven en el código en español y `web/src/lib/i18n/en.ts` trae la traducción al inglés (clave = texto en español; si falta, se muestra en español). Los errores del servidor también se traducen. El contenido escrito por los usuarios (títulos, descripciones, chats) no se traduce.
 
 ## Cambios técnicos pendientes (no son ideas nuevas)

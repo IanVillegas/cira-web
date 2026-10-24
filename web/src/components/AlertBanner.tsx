@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Badge, Button, Icon } from "@/components/aire";
 import { api } from "@/lib/api";
 import { formatoColones } from "@/lib/format";
+import { limiteTexto } from "@/lib/fechas";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
 import { useAlertas } from "@/lib/useAlertas";
@@ -58,6 +59,7 @@ export function AlertBanner() {
           <p className="aire-text-headline truncate text-aire-ink">{trabajo.titulo}</p>
           <p className="aire-text-footnote truncate text-aire-ink-2">
             {trabajo.ubicacion} · {trabajo.distanciaKm} km · {formatoColones.format(trabajo.pago)}
+            {trabajo.limite && ` · ${limiteTexto(trabajo.limite, trabajo.fecha)}`}
           </p>
         </div>
         <button type="button" className="ca-iconbtn ca-iconbtn--sm" aria-label={tr("Descartar alerta")} onClick={() => descartar(trabajo.id)}>

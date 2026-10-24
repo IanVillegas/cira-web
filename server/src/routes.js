@@ -5,13 +5,15 @@ import { CONFIG, ETAPAS, METODOS_PAGO } from "./config.js";
 import {
   FRECUENCIAS,
   diasOcupados,
+  escalarTurno,
+  escalarTurnosVencidos,
   estaBloqueado,
   extenderSerie,
   extenderSeriesDe,
   obtenerSerie,
   tieneTrabajoEseDia,
 } from "./agenda.js";
-import { RE_DIA, diaDe, fechaHoraValida, hoyIso } from "./fechas.js";
+import { RE_DIA, ahoraIso, diaDe, fechaHoraValida, hoyIso } from "./fechas.js";
 import {
   calcularResumenPago,
   distanciaKm,
@@ -116,6 +118,7 @@ router.get("/config", (_req, res) => {
     plusPrecio: CONFIG.PLUS_PRECIO,
     retrasoGratisSeg: CONFIG.RETRASO_GRATIS_SEG,
     truequesGratisMes: CONFIG.TRUEQUES_GRATIS_MES,
+    escalarTurnoMin: CONFIG.ESCALAR_TURNO_MIN,
   });
 });
 
@@ -123,6 +126,8 @@ router.use((req, res, next) => {
   const id = req.get("x-cira-user");
   if (!id || !obtenerUsuario(id)) return error(res, 401, "Inicia sesión para continuar.");
   req.usuarioId = id;
+  // Limpiezas entre huéspedes que el limpiador habitual no respondió a tiempo: pasan a urgencia.
+  escalarTurnosVencidos();
   next();
 });
 
@@ -388,6 +393,10 @@ router.post("/trabajos", (req, res) => {
   const fecha = esUrgente ? null : req.body.fecha;
   if (!esUrgente && !fechaHoraValida(fecha)) return error(res, 400, "Indica la fecha y la hora del trabajo.");
   if (!esUrgente && diaDe(fecha) < hoyIso()) return error(res, 400, "La fecha del trabajo ya pasó.");
+  // Hora límite opcional ("listo antes de"): después del inicio, o de ahora si es urgencia.
+  const limite = req.body.limite || null;
+  if (limite && !fechaHoraValida(limite)) return error(res, 400, "La hora límite no es válida.");
+  if (limite && limite <= (fecha ?? ahoraIso())) return error(res, 400, "La hora límite debe ser después del inicio.");
 
   // Mis propiedades: la dirección y las coordenadas salen de la propiedad elegida.
   let propiedad = null;
@@ -448,12 +457,12 @@ router.post("/trabajos", (req, res) => {
   }
   db.prepare(
     `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodo_pago, publicador_id, urgente, invitado_id,
-                          es_trueque, ofrece, serie_id, propiedad_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                          es_trueque, ofrece, serie_id, propiedad_id, limite)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
     id, titulo, descripcion ?? "", categoria, ubicacion, latFinal, lngFinal,
     fecha, monto, metodo, req.usuarioId, esUrgente ? 1 : 0, invitadoId || null,
-    esTrueque ? 1 : 0, esTrueque ? String(ofrece).trim().slice(0, 300) : null, serieId, propiedad?.id ?? null,
+    esTrueque ? 1 : 0, esTrueque ? String(ofrece).trim().slice(0, 300) : null, serieId, propiedad?.id ?? null, limite,
   );
   responderTrabajo(req, res, id, 201);
 });
@@ -467,6 +476,13 @@ router.patch("/trabajos/:id", (req, res) => {
 
   const { titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodoPago, ofrece } = req.body;
   if (fecha != null && !row.urgente && !fechaHoraValida(fecha)) return error(res, 400, "Indica la fecha y la hora del trabajo.");
+  // limite: string = nueva hora límite; "" o null = sin hora límite; ausente = no cambia.
+  const cambiaLimite = Object.prototype.hasOwnProperty.call(req.body, "limite");
+  const limite = cambiaLimite ? req.body.limite || null : row.limite;
+  if (limite && !fechaHoraValida(limite)) return error(res, 400, "La hora límite no es válida.");
+  if (limite && limite <= (row.urgente ? (row.fecha ?? "") : (fecha ?? row.fecha ?? ""))) {
+    return error(res, 400, "La hora límite debe ser después del inicio.");
+  }
   if (pago != null && !(row.es_trueque ? pago >= 0 : pago > 0)) return error(res, 400, "El pago no es válido.");
   if (row.es_trueque && ofrece != null && !String(ofrece).trim()) return error(res, 400, "Indica qué ofreces a cambio.");
   const metodo = metodoPago;
@@ -484,12 +500,13 @@ router.patch("/trabajos/:id", (req, res) => {
        fecha = COALESCE(?, fecha),
        pago = COALESCE(?, pago),
        metodo_pago = COALESCE(?, metodo_pago),
-       ofrece = CASE WHEN es_trueque = 1 THEN COALESCE(?, ofrece) ELSE ofrece END
+       ofrece = CASE WHEN es_trueque = 1 THEN COALESCE(?, ofrece) ELSE ofrece END,
+       limite = ?
      WHERE id = ?`,
   ).run(
     titulo ?? null, descripcion ?? null, categoria ?? null, ubicacion ?? null,
     lat ?? null, lng ?? null, row.urgente ? null : (fecha ?? null), pago ?? null, metodo ?? null,
-    ofrece != null ? String(ofrece).trim().slice(0, 300) : null, row.id,
+    ofrece != null ? String(ofrece).trim().slice(0, 300) : null, limite, row.id,
   );
   responderTrabajo(req, res, row.id);
 });
@@ -580,6 +597,11 @@ router.post("/trabajos/:id/invitacion/rechazar", (req, res) => {
   const row = trabajoDe(req, res);
   if (!row) return;
   if (row.invitado_id !== req.usuarioId || !invitacionPendiente(row)) return error(res, 403, "Esta oferta no es para ti.");
+  if (row.turno && !row.escalado) {
+    // El limpiador habitual no puede: la limpieza entre huéspedes pasa a urgencia de una vez.
+    escalarTurno(row);
+    return responderTrabajo(req, res, row.id);
+  }
   if (row.reemplazo === "invitado") {
     // El reemplazo no puede: la visita vuelve a esperar que el cliente elija a otra persona.
     db.prepare("UPDATE trabajo SET invitado_id = NULL, reemplazo = 'pendiente' WHERE id = ?").run(row.id);
@@ -808,6 +830,18 @@ router.post("/trabajos/:id/publicar-abierto", (req, res) => {
   responderTrabajo(req, res, row.id);
 });
 
+/** El anfitrión no quiere esperar al limpiador habitual: la limpieza entre huéspedes pasa a urgencia ya. */
+router.post("/trabajos/:id/escalar", (req, res) => {
+  const row = trabajoDe(req, res);
+  if (!row) return;
+  if (row.publicador_id !== req.usuarioId) return error(res, 403, "Solo quien publicó puede pasarla a urgencia.");
+  if (!row.turno || row.escalado) return error(res, 409, "Este trabajo ya no está esperando al limpiador habitual.");
+  if (row.estado !== "Pendiente" || row.trabajador_id) return error(res, 409, "Este trabajo ya fue asignado.");
+  if (!obtenerUsuario(req.usuarioId).tarjeta_ultimos4) return error(res, 400, MSG_SIN_TARJETA);
+  escalarTurno(row);
+  responderTrabajo(req, res, row.id);
+});
+
 /** Terminar un servicio recurrente (cliente o trabajador): se cancelan las visitas que no han empezado. */
 router.post("/series/:id/cancelar", (req, res) => {
   const serie = obtenerSerie(req.params.id);
@@ -882,6 +916,12 @@ router.get("/usuarios/:id/ocupado", (req, res) => {
 });
 
 // ── Mis propiedades ─────────────────────────────────────────────────
+/** Limpiador habitual: alguien que ofrece Limpieza (o nadie). */
+function limpiadorValido(id) {
+  if (!id) return true;
+  return !!obtenerUsuario(id) && ofreceCategoria(id, "Limpieza");
+}
+
 function datosPropiedad(req, res) {
   const nombre = String(req.body.nombre ?? "").trim().slice(0, 60);
   const ubicacion = String(req.body.ubicacion ?? "").trim().slice(0, 200);
@@ -889,7 +929,9 @@ function datosPropiedad(req, res) {
   if (!ubicacion) return error(res, 400, "Indica la ubicación de la propiedad."), null;
   const lat = Number.isFinite(req.body.lat) ? req.body.lat : null;
   const lng = Number.isFinite(req.body.lng) ? req.body.lng : null;
-  return { nombre, ubicacion, lat, lng, instrucciones: String(req.body.instrucciones ?? "").trim().slice(0, 500) };
+  const limpiadorId = req.body.limpiadorId || null;
+  if (limpiadorId === req.usuarioId || !limpiadorValido(limpiadorId)) return error(res, 400, "Esa persona no ofrece Limpieza."), null;
+  return { nombre, ubicacion, lat, lng, instrucciones: String(req.body.instrucciones ?? "").trim().slice(0, 500), limpiadorId };
 }
 
 router.get("/propiedades", (req, res) => {
@@ -901,9 +943,9 @@ router.post("/propiedades", (req, res) => {
   const d = datosPropiedad(req, res);
   if (!d) return;
   const id = `pr-${randomUUID()}`;
-  db.prepare("INSERT INTO propiedad (id, usuario_id, nombre, ubicacion, lat, lng, instrucciones) VALUES (?, ?, ?, ?, ?, ?, ?)").run(
-    id, req.usuarioId, d.nombre, d.ubicacion, d.lat, d.lng, d.instrucciones,
-  );
+  db.prepare(
+    "INSERT INTO propiedad (id, usuario_id, nombre, ubicacion, lat, lng, instrucciones, limpiador_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+  ).run(id, req.usuarioId, d.nombre, d.ubicacion, d.lat, d.lng, d.instrucciones, d.limpiadorId);
   res.status(201).json(mapPropiedad(db.prepare("SELECT * FROM propiedad WHERE id = ?").get(id)));
 });
 
@@ -912,10 +954,46 @@ router.put("/propiedades/:id", (req, res) => {
   if (!row) return error(res, 404, "Propiedad no encontrada.");
   const d = datosPropiedad(req, res);
   if (!d) return;
-  db.prepare("UPDATE propiedad SET nombre = ?, ubicacion = ?, lat = ?, lng = ?, instrucciones = ? WHERE id = ?").run(
-    d.nombre, d.ubicacion, d.lat, d.lng, d.instrucciones, row.id,
+  db.prepare("UPDATE propiedad SET nombre = ?, ubicacion = ?, lat = ?, lng = ?, instrucciones = ?, limpiador_id = ? WHERE id = ?").run(
+    d.nombre, d.ubicacion, d.lat, d.lng, d.instrucciones, d.limpiadorId, row.id,
   );
   res.json(mapPropiedad(db.prepare("SELECT * FROM propiedad WHERE id = ?").get(row.id)));
+});
+
+/**
+ * Limpieza entre huéspedes: el anfitrión indica cuándo sale el huésped y cuándo entra el próximo.
+ * Se ofrece primero al limpiador habitual; si no responde en ESCALAR_TURNO_MIN minutos (o no hay
+ * limpiador, o está bloqueado ese día), es urgencia.
+ */
+router.post("/propiedades/:id/entre-huespedes", (req, res) => {
+  const prop = db.prepare("SELECT * FROM propiedad WHERE id = ? AND usuario_id = ?").get(req.params.id, req.usuarioId);
+  if (!prop) return error(res, 404, "Propiedad no encontrada.");
+  const { salida, entrada, pago, metodoPago, notas } = req.body;
+  if (!fechaHoraValida(salida) || !fechaHoraValida(entrada)) return error(res, 400, "Indica la salida y la entrada de los huéspedes.");
+  if (entrada <= salida) return error(res, 400, "La entrada del próximo huésped debe ser después de la salida.");
+  if (diaDe(entrada) < hoyIso()) return error(res, 400, "Esa entrada ya pasó.");
+  const monto = Math.round(Number(pago));
+  if (!(monto > 0)) return error(res, 400, "Faltan campos obligatorios o el pago no es válido.");
+  if (!METODOS_PAGO.includes(metodoPago)) return error(res, 400, "Método de pago no válido.");
+
+  const limpiador = prop.limpiador_id && !estaBloqueado(prop.limpiador_id, diaDe(salida)) ? prop.limpiador_id : null;
+  const urgenteYa = !limpiador;
+  if (!tarjetaOk(req.usuarioId, metodoPago, urgenteYa)) return error(res, 400, MSG_SIN_TARJETA);
+
+  const id = `t-${randomUUID()}`;
+  db.prepare(
+    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, fecha, limite, pago, metodo_pago, publicador_id,
+                          urgente, invitado_id, propiedad_id, turno, escalado, escalar_en)
+     VALUES (?, ?, ?, 'Limpieza', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, CASE WHEN ? THEN datetime('now', ?) END)`,
+  ).run(
+    id,
+    `Limpieza entre huéspedes · ${prop.nombre}`,
+    String(notas ?? "").trim().slice(0, 500) || "Dejar la propiedad lista para el próximo huésped: baño, cocina, pisos y cambio de ropa de cama.",
+    prop.ubicacion, prop.lat, prop.lng, salida, entrada, monto, metodoPago, req.usuarioId,
+    urgenteYa ? 1 : 0, limpiador, prop.id, urgenteYa ? 1 : 0,
+    limpiador ? 1 : 0, `+${CONFIG.ESCALAR_TURNO_MIN} minutes`,
+  );
+  responderTrabajo(req, res, id, 201);
 });
 
 router.delete("/propiedades/:id", (req, res) => {

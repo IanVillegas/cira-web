@@ -91,7 +91,7 @@ Todos (salvo `auth` y `config`) requieren la cabecera `X-Cira-User`.
 | POST/PUT/DELETE | `/api/usuario/servicios[/:id]` | Servicios ofrecidos |
 | GET | `/api/usuarios/:id` | Perfil público: calificación, insignias, comentarios |
 | GET | `/api/trabajos` | Trabajos abiertos de otros; `?publicadas=true` o `?mios=true` |
-| POST | `/api/trabajos` | Publica (`fecha` como `"2026-10-31T09:00"`, hora de Costa Rica; sin fecha si es urgente. `urgente: true` para el modo urgencia, `invitadoId` para una oferta directa —con `frecuencia` `semanal`/`quincenal`/`mensual` es un servicio recurrente—, `propiedadId` para usar una propiedad, o `trueque: true` + `ofrece` para un trueque; ahí `pago` es el diferencial y puede ser 0. Plan gratis: `CIRA_TRUEQUES_GRATIS_MES` trueques al mes, 1 por defecto) |
+| POST | `/api/trabajos` | Publica (`fecha` como `"2026-10-31T09:00"`, hora de Costa Rica; sin fecha si es urgente. `urgente: true` para el modo urgencia, `invitadoId` para una oferta directa —con `frecuencia` `semanal`/`quincenal`/`mensual` es un servicio recurrente—, `propiedadId` para usar una propiedad, `limite` como hora límite ("listo antes de"), o `trueque: true` + `ofrece` para un trueque; ahí `pago` es el diferencial y puede ser 0. Plan gratis: `CIRA_TRUEQUES_GRATIS_MES` trueques al mes, 1 por defecto) |
 | PATCH | `/api/trabajos/:id` | Edita una publicación pendiente (solo su dueño) |
 | PATCH | `/api/trabajos/:id/postular` | Postula/retira postulación (en un trueque, `propuesta` es la contraoferta) |
 | GET/POST | `/api/trabajos/:id/postulantes`, `/asignar` | El publicador elige a un postulante |
@@ -107,7 +107,9 @@ Todos (salvo `auth` y `config`) requieren la cabecera `X-Cira-User`.
 | GET | `/api/usuarios/:id/ocupado?desde&hasta` | Días no disponibles de otra persona (bloqueados o con trabajo asignado), sin detalles |
 | GET/POST | `/api/trabajos/:id/reemplazos`, `/reemplazo`, `/publicar-abierto` | Visita de un servicio recurrente que el trabajador canceló: sugerencias, elegir reemplazo (oferta directa) o publicarla para todos |
 | POST | `/api/series/:id/cancelar` | Termina un servicio recurrente (cliente o trabajador) |
-| GET/POST/PUT/DELETE | `/api/propiedades[/:id]` | Mis propiedades: nombre, ubicación e instrucciones |
+| GET/POST/PUT/DELETE | `/api/propiedades[/:id]` | Mis propiedades: nombre, ubicación, instrucciones y limpiador habitual (`limpiadorId`) |
+| POST | `/api/propiedades/:id/entre-huespedes` | Limpieza entre huéspedes (`salida`, `entrada`, `pago`, `metodoPago`): se ofrece al limpiador habitual y pasa a urgencia si no responde en `CIRA_ESCALAR_TURNO_MIN` minutos (10 por defecto) o la rechaza |
+| POST | `/api/trabajos/:id/escalar` | El anfitrión pasa ya a urgencia una limpieza entre huéspedes |
 | GET | `/api/trabajadores` | Personas que ofrecen servicios (con `deConfianza` y `guardadoPor`) |
 | GET/POST/DELETE | `/api/favoritos[/:id]` | "De confianza": lista, agrega o quita trabajadores guardados |
 | GET/POST | `/api/conversaciones[/:id]`, `/api/conversaciones/:id/mensajes` | Chats entre dos usuarios |

@@ -81,12 +81,12 @@ const POSTULACIONES_TRUEQUE = [
   ["p-2", "u-3", "Cambiar 2 tomacorrientes de su taller"],
 ];
 
-// Mis propiedades (de Ian): id, dueño, nombre, ubicación, lat, lng, instrucciones.
+// Mis propiedades (de Ian): id, dueño, nombre, ubicación, lat, lng, instrucciones, limpiador habitual.
 const PROPIEDADES = [
   ["pr-1", "u-1", "Apartamento Escazú", "San José, Escazú", 9.9189, -84.1394,
-    "Lo alquilo por Airbnb. La llave está con el guarda de la entrada. Los productos de limpieza están bajo el fregadero; cambiar las sábanas y dejar toallas limpias."],
+    "Lo alquilo por Airbnb. La llave está con el guarda de la entrada. Los productos de limpieza están bajo el fregadero; cambiar las sábanas y dejar toallas limpias.", "u-2"],
   ["pr-2", "u-1", "Casa Alajuela", "Alajuela Centro", 10.0163, -84.2113,
-    "Tocar el timbre del portón negro. Hay un perro amigable en el patio."],
+    "Tocar el timbre del portón negro. Hay un perro amigable en el patio.", null],
 ];
 
 // CIRA Agenda: Ian contrata a Marisol para limpiar el Apartamento Escazú cada viernes.
@@ -169,6 +169,11 @@ function sembrar() {
     );
   }
 
+  // Ian ya tiene su tarjeta simulada: puede publicar urgencias y limpiezas entre huéspedes en la demo.
+  db.prepare(
+    "UPDATE usuario SET tarjeta_marca = 'Visa', tarjeta_ultimos4 = '4242', tarjeta_titular = 'IAN VILLEGAS', tarjeta_vence = '12/28' WHERE id = 'u-1'",
+  ).run();
+
   const insertServicio = db.prepare(
     "INSERT INTO servicio (id, usuario_id, categoria, descripcion, precio_aproximado) VALUES (?, ?, ?, ?, ?)",
   );
@@ -202,9 +207,19 @@ function sembrar() {
   for (const t of TRUEQUES) insertTrueque.run(...t);
 
   const insertPropiedad = db.prepare(
-    "INSERT INTO propiedad (id, usuario_id, nombre, ubicacion, lat, lng, instrucciones) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO propiedad (id, usuario_id, nombre, ubicacion, lat, lng, instrucciones, limpiador_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
   );
   for (const p of PROPIEDADES) insertPropiedad.run(...p);
+
+  // Limpieza entre huéspedes ya aceptada por Marisol (el próximo martes, de 11:00 a 15:00).
+  db.prepare(
+    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, fecha, limite, pago, metodo_pago, publicador_id,
+                          trabajador_id, estado, etapa, propiedad_id, turno, escalado, creado_en)
+     VALUES ('eh-1', 'Limpieza entre huéspedes · Apartamento Escazú',
+             'Dejar la propiedad lista para el próximo huésped: baño, cocina, pisos y cambio de ropa de cama.',
+             'Limpieza', 'San José, Escazú', 9.9189, -84.1394, ?, ?, 18000, ?, 'u-1', 'u-2', 'Asignado', 'Aceptado', 'pr-1', 1, 0,
+             datetime('now', '-1 day'))`,
+  ).run(proximo(2, "11:00"), proximo(2, "15:00"), APP);
 
   const insertBloqueo = db.prepare("INSERT OR IGNORE INTO bloqueo (usuario_id, fecha) VALUES (?, ?)");
   for (const [u, dias] of BLOQUEOS) insertBloqueo.run(u, enDias(dias, "00:00").slice(0, 10));

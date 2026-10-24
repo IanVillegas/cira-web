@@ -26,6 +26,8 @@ export const CONFIG = {
   /** Meses que se considera vigente la hoja de delincuencia desde su emisión (regla de CIRA). */
   VIGENCIA_ANTECEDENTES_MESES: 3,
   /** Trueques que puede publicar al mes el plan gratis (Plus: ilimitados). */
+  /** Limpieza entre huéspedes: minutos que tiene el limpiador habitual para responder antes de que pase a urgencia. */
+  ESCALAR_TURNO_MIN: num(process.env.CIRA_ESCALAR_TURNO_MIN, 10),
   TRUEQUES_GRATIS_MES: num(process.env.CIRA_TRUEQUES_GRATIS_MES, 1),
 };
 

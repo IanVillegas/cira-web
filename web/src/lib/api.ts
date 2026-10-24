@@ -151,6 +151,8 @@ export const api = {
     reemplazos: (id: string) => request<Trabajador[]>(`/trabajos/${id}/reemplazos`),
     elegirReemplazo: (id: string, trabajadorId: string) => post<Trabajo>(`/trabajos/${id}/reemplazo`, { trabajadorId }),
     publicarAbierto: (id: string) => post<Trabajo>(`/trabajos/${id}/publicar-abierto`),
+    /** Limpieza entre huéspedes: no esperar al limpiador habitual, pasarla a urgencia ya. */
+    escalar: (id: string) => post<Trabajo>(`/trabajos/${id}/escalar`),
     aceptarTrueque: (id: string) => post<Trabajo>(`/trabajos/${id}/trueque/aceptar`),
     finalizarTrueque: (id: string) => post<Trabajo>(`/trabajos/${id}/trueque/finalizar`),
     postulantes: (id: string) => request<Trabajador[]>(`/trabajos/${id}/postulantes`),
@@ -182,10 +184,13 @@ export const api = {
 
   propiedades: {
     listar: () => request<Propiedad[]>("/propiedades"),
-    crear: (datos: Omit<Propiedad, "id">) => post<Propiedad>("/propiedades", datos),
-    editar: (id: string, datos: Omit<Propiedad, "id">) =>
+    crear: (datos: Omit<Propiedad, "id" | "limpiadorNombre">) => post<Propiedad>("/propiedades", datos),
+    editar: (id: string, datos: Omit<Propiedad, "id" | "limpiadorNombre">) =>
       request<Propiedad>(`/propiedades/${id}`, { method: "PUT", body: JSON.stringify(datos) }),
     eliminar: (id: string) => request<void>(`/propiedades/${id}`, { method: "DELETE" }),
+    /** Registrar la salida de un huésped: crea la limpieza con la ventana hasta la entrada del próximo. */
+    entreHuespedes: (id: string, datos: { salida: string; entrada: string; pago: number; metodoPago: MetodoPago; notas?: string }) =>
+      post<Trabajo>(`/propiedades/${id}/entre-huespedes`, datos),
   },
 
   /** "De confianza": trabajadores guardados para volver a contratar. */
@@ -232,6 +237,8 @@ export interface DatosTrabajo {
   lng?: number;
   /** "2026-10-31T09:00"; se omite en las urgencias (lo antes posible). */
   fecha?: string;
+  /** Hora límite ("listo antes de"); null la quita al editar. */
+  limite?: string | null;
   pago: number;
   metodoPago: MetodoPago;
 }

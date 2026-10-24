@@ -10,7 +10,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { mostrarToast } from "@/lib/toast";
 import { calcularResumen, useConfig } from "@/lib/useConfig";
-import { diaLargo, frecuenciaTexto, hoyDia } from "@/lib/fechas";
+import { diaLargo, frecuenciaTexto, hoyDia, sumarDias } from "@/lib/fechas";
 import type { Frecuencia, MetodoPago, PerfilPublico, Propiedad } from "@/lib/types";
 import { tr } from "@/lib/i18n";
 
@@ -60,6 +60,8 @@ export function CrearTrabajoPage() {
     coords: null as { lat: number; lng: number } | null,
     fecha: "",
     hora: "09:00",
+    /** "Listo antes de" (HH:MM, opcional). */
+    limiteHora: "",
     pago: "",
     metodoPago: "Tarjeta" as MetodoPago,
   });
@@ -110,6 +112,7 @@ export function CrearTrabajoPage() {
           coords: t.lat != null && t.lng != null ? { lat: t.lat, lng: t.lng } : null,
           fecha: t.fecha ? t.fecha.slice(0, 10) : "",
           hora: t.fecha ? t.fecha.slice(11, 16) : "09:00",
+          limiteHora: t.limite ? t.limite.slice(11, 16) : "",
           pago: t.trueque && t.pago === 0 ? "" : String(t.pago),
           metodoPago: t.metodoPago,
         });
@@ -121,6 +124,14 @@ export function CrearTrabajoPage() {
   const esUrgente = urgente && !paraId && !trueque;
   const recurrente = !!paraId && frecuencia !== "una_vez" && !trueque;
   const fechaHora = form.fecha && form.hora ? `${form.fecha}T${form.hora}` : "";
+  // Hora límite: el mismo día del inicio (o de hoy en una urgencia); si es más temprano que el inicio, al día siguiente.
+  const limite = (() => {
+    if (!form.limiteHora) return null;
+    const base = esUrgente ? hoyDia() : form.fecha;
+    const desde = esUrgente ? new Date().toTimeString().slice(0, 5) : form.hora;
+    if (!base) return null;
+    return `${form.limiteHora <= desde ? sumarDias(base, 1) : base}T${form.limiteHora}`;
+  })();
   const diaOcupado = !!paraId && !!form.fecha && ocupadosInvitado.includes(form.fecha);
   const metodoEfectivo: MetodoPago = form.metodoPago;
   const monto = Number(form.pago) || 0;
@@ -149,6 +160,7 @@ export function CrearTrabajoPage() {
         lat: form.coords?.lat,
         lng: form.coords?.lng,
         fecha: esUrgente ? undefined : fechaHora,
+        limite: editando ? limite : (limite ?? undefined),
         pago: monto,
         metodoPago: metodoEfectivo,
       };
@@ -307,10 +319,19 @@ export function CrearTrabajoPage() {
           )}
 
           {esUrgente ? (
-            <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-danger-soft p-3 font-semibold text-aire-danger-text">
-              <Icon name="schedule" size={20} />
-              {tr("Se atiende lo antes posible")}
-            </p>
+            <>
+              <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-danger-soft p-3 font-semibold text-aire-danger-text">
+                <Icon name="schedule" size={20} />
+                {tr("Se atiende lo antes posible")}
+              </p>
+              <Input
+                label={tr("Listo antes de (opcional)")}
+                type="time"
+                hint={tr("Por ejemplo, la hora en que entra el próximo huésped.")}
+                value={form.limiteHora}
+                onChange={(e) => setForm({ ...form, limiteHora: e.target.value })}
+              />
+            </>
           ) : (
             <>
               {invitado && (
@@ -332,6 +353,17 @@ export function CrearTrabajoPage() {
                 />
                 <Input label={tr("Hora")} type="time" value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} />
               </div>
+              <Input
+                label={tr("Listo antes de (opcional)")}
+                type="time"
+                hint={
+                  limite && fechaHora && limite.slice(0, 10) !== fechaHora.slice(0, 10)
+                    ? tr("Al día siguiente del inicio.")
+                    : tr("Si el trabajo tiene que estar terminado a una hora.")
+                }
+                value={form.limiteHora}
+                onChange={(e) => setForm({ ...form, limiteHora: e.target.value })}
+              />
               {diaOcupado && invitado && (
                 <p className="aire-text-footnote flex items-start gap-2 rounded-aire-md bg-aire-warning-soft p-3 text-aire-warning-text">
                   <Icon name="event_busy" size={18} className="mt-px shrink-0" />

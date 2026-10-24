@@ -186,7 +186,9 @@ Cuenta → Verificación (`/cuenta/verificacion`). Cada documento es una tarjeta
 
 - `Calendar` (`components/aire/Calendar.tsx`, clases `.ca-cal*`): calendario mensual, semanas de lunes a domingo, días de 44px. Props: `year`, `month`, `value`, `onChange`, `onMonthChange`, `marks` (hasta tres puntos por día: `accent` trabajo propio, `success` servicio contratado, `warning` falta reemplazo, `neutral` hecho), `blocked` (días con fondo `surface-3`), `today`, `locale`, `labels`. El día elegido lleva `accent`.
 - `DisponibilidadStrip` (`components/`): las próximas tres semanas de otra persona como píldoras `.ca-daypill` (punto `success` libre, `danger` ocupado); nunca muestra qué ni con quién.
-- `VisitaInfo`: insignias de servicio recurrente («Cada viernes») y propiedad; con `instrucciones`, el bloque de instrucciones para quien hace el trabajo.
+- `VisitaInfo`: insignias de hora límite (`warning`, «Listo antes de 3:00 p. m.»), limpieza entre huéspedes, servicio recurrente («Cada viernes») y propiedad; con `instrucciones`, el bloque de instrucciones para quien hace el trabajo.
+- `SalidaHuespedSheet`: registrar la salida de un huésped (salida, entrada del próximo, monto y método) desde *Mis propiedades*.
+- La hora límite se muestra siempre con `limiteTexto()` de `lib/fechas.ts`.
 - `ReemplazoVisita`: aviso en `warning-soft` y sugerencias de reemplazo (los «De confianza» primero) cuando el trabajador cancela una visita.
 - Fechas: siempre con `fechaTrabajo()` / `fechaDia()` / `diaLargo()` de `lib/fechas.ts` («Mañana, 9:00 a. m.»); nunca muestres la fecha ISO cruda.
 

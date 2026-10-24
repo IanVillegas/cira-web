@@ -9,6 +9,7 @@ const POR_DEFECTO: ConfigNegocio = {
   plusPrecio: 2500,
   retrasoGratisSeg: 120,
   truequesGratisMes: 1,
+  escalarTurnoMin: 10,
 };
 
 let cache: ConfigNegocio | null = null;

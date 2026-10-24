@@ -135,7 +135,34 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
         </p>
       )}
 
-      {esperandoInvitado && (
+      {esperandoInvitado && trabajo.turno && !trabajo.turno.escalado && (
+        <div className="grid gap-2.5 rounded-aire-md bg-aire-accent-soft p-3">
+          <p className="aire-text-subhead flex items-start gap-2 text-aire-accent-text">
+            <Icon name="hourglass_top" size={20} className="mt-px shrink-0" />
+            {trabajo.turno.escalaEnSeg
+              ? tr("Se la ofrecimos a {nombre}, tu limpiador habitual. Si no responde en {min} min, pasa a urgencia.", {
+                  nombre: trabajo.invitadoNombre ?? "",
+                  min: Math.max(1, Math.ceil(trabajo.turno.escalaEnSeg / 60)),
+                })
+              : tr("Pasando a urgencia…")}
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="bolt"
+            disabled={ocupado}
+            onClick={() => ejecutar(() => api.trabajos.escalar(trabajo.id), tr("Ahora es urgencia: avisamos a los trabajadores cercanos"))}
+          >
+            {tr("Pasar a urgencia ahora")}
+          </Button>
+        </div>
+      )}
+
+      {pendiente && trabajo.turno?.escalado && trabajo.urgente && (
+        <p className="aire-text-footnote text-aire-ink-2">{tr("Ahora es urgencia: ya no espera a tu limpiador habitual.")}</p>
+      )}
+
+      {esperandoInvitado && !trabajo.turno && (
         <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-accent-soft p-3 text-aire-accent-text">
           <Icon name="favorite" filled size={20} />
           {tr("Oferta directa para {nombre}. Esperando su respuesta…", { nombre: trabajo.invitadoNombre ?? "" })}

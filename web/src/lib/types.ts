@@ -77,6 +77,9 @@ export interface Propiedad {
   lat?: number;
   lng?: number;
   instrucciones: string;
+  /** Limpiador habitual: recibe primero las limpiezas entre huéspedes. */
+  limpiadorId?: string;
+  limpiadorNombre?: string;
 }
 
 export interface ItemAgenda {
@@ -121,6 +124,8 @@ export interface Trabajo {
   distanciaKm: number;
   /** Fecha y hora locales ("2026-10-31T09:00"); null = lo antes posible (urgencias). */
   fecha: string | null;
+  /** Hora límite, "listo antes de" (misma forma que fecha). */
+  limite: string | null;
   pago: number;
   metodoPago: MetodoPago;
   publicador: string;
@@ -142,6 +147,8 @@ export interface Trabajo {
   trueque: Trueque | null;
   /** CIRA Agenda: visita de un servicio recurrente. */
   serie: SerieInfo | null;
+  /** Limpieza entre huéspedes: se ofrece al limpiador habitual y, si no responde, pasa a urgencia. */
+  turno: { escalado: boolean; escalaEnSeg: number | null } | null;
   /** Visita que el trabajador canceló: pendiente (el cliente decide), invitado o cubierto. */
   reemplazo: "pendiente" | "invitado" | "cubierto" | null;
   /** Propiedad del cliente; las instrucciones solo llegan al cliente y a quien hace el trabajo. */
@@ -254,6 +261,7 @@ export interface ConfigNegocio {
   plusPrecio: number;
   retrasoGratisSeg: number;
   truequesGratisMes: number;
+  escalarTurnoMin: number;
 }
 
 export interface Ingresos {

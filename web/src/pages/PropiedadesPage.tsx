@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Card, Dialog, Icon, Input, Loader, PageHeader, Reveal, Stagger, TextArea } from "@/components/aire";
+import { Button, Card, Dialog, Field, FilterChip, Icon, Input, Loader, PageHeader, Reveal, Stagger, TextArea } from "@/components/aire";
 import { LocationPicker } from "@/components/LocationPicker";
+import { SalidaHuespedSheet } from "@/components/SalidaHuespedSheet";
 import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
 import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
-import type { Propiedad } from "@/lib/types";
+import { useConfig } from "@/lib/useConfig";
+import type { Propiedad, Trabajador } from "@/lib/types";
 
-const VACIA = { nombre: "", ubicacion: "", coords: null as { lat: number; lng: number } | null, instrucciones: "" };
+const VACIA = {
+  nombre: "",
+  ubicacion: "",
+  coords: null as { lat: number; lng: number } | null,
+  instrucciones: "",
+  limpiadorId: null as string | null,
+};
 
 /**
  * Mis propiedades: direcciones con nombre e instrucciones fijas (dónde está la llave, qué revisar).
@@ -22,12 +30,20 @@ export function PropiedadesPage() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aEliminar, setAEliminar] = useState<Propiedad | null>(null);
+  const [salidaDe, setSalidaDe] = useState<Propiedad | null>(null);
+  // Posibles limpiadores habituales: tus trabajadores "De confianza" que ofrecen Limpieza.
+  const [limpiadores, setLimpiadores] = useState<Trabajador[]>([]);
+  const config = useConfig();
 
   useEffect(() => {
     api.propiedades
       .listar()
       .then(setLista)
       .catch(() => setLista([]));
+    api.favoritos
+      .listar()
+      .then((f) => setLimpiadores(f.filter((t) => t.servicios.includes("Limpieza"))))
+      .catch(() => setLimpiadores([]));
   }, []);
 
   const abrir = (p: Propiedad | "nueva") => {
@@ -36,7 +52,13 @@ export function PropiedadesPage() {
     setForm(
       p === "nueva"
         ? VACIA
-        : { nombre: p.nombre, ubicacion: p.ubicacion, coords: p.lat != null && p.lng != null ? { lat: p.lat, lng: p.lng } : null, instrucciones: p.instrucciones },
+        : {
+            nombre: p.nombre,
+            ubicacion: p.ubicacion,
+            coords: p.lat != null && p.lng != null ? { lat: p.lat, lng: p.lng } : null,
+            instrucciones: p.instrucciones,
+            limpiadorId: p.limpiadorId ?? null,
+          },
     );
   };
 
@@ -49,6 +71,7 @@ export function PropiedadesPage() {
       lat: form.coords?.lat,
       lng: form.coords?.lng,
       instrucciones: form.instrucciones.trim(),
+      limpiadorId: form.limpiadorId ?? undefined,
     };
     try {
       if (editando === "nueva") {
@@ -110,6 +133,23 @@ export function PropiedadesPage() {
                 value={form.instrucciones}
                 onChange={(e) => setForm({ ...form, instrucciones: e.target.value })}
               />
+              <Field label={tr("Limpiador habitual")}>
+                {limpiadores.length === 0 ? (
+                  <p className="aire-text-footnote text-aire-ink-2">
+                    {tr("Guarda en \"De confianza\" a alguien que ofrezca Limpieza para elegirlo aquí.")}
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    <FilterChip label={tr("Nadie")} active={!form.limpiadorId} onClick={() => setForm({ ...form, limpiadorId: null })} />
+                    {limpiadores.map((l) => (
+                      <FilterChip key={l.id} label={l.nombre} active={form.limpiadorId === l.id} onClick={() => setForm({ ...form, limpiadorId: l.id })} />
+                    ))}
+                  </div>
+                )}
+                <p className="aire-text-caption mt-1.5 text-aire-ink-2">
+                  {tr("Recibe primero las limpiezas entre huéspedes. Si no responde en {min} min, pasan a urgencia.", { min: config.escalarTurnoMin })}
+                </p>
+              </Field>
               {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
               <Button icon="check" loading={guardando} disabled={!form.nombre.trim() || !form.ubicacion} onClick={guardar}>
                 {tr("Guardar propiedad")}
@@ -144,6 +184,13 @@ export function PropiedadesPage() {
                     {p.instrucciones && (
                       <p className="aire-text-footnote rounded-aire-md bg-aire-surface-2 p-3 text-aire-ink-2">{p.instrucciones}</p>
                     )}
+                    <p className="aire-text-footnote flex items-center gap-1.5 text-aire-ink-2">
+                      <Icon name="cleaning_services" size={16} className="text-aire-accent-text" />
+                      {p.limpiadorNombre ? tr("Limpia: {nombre}", { nombre: p.limpiadorNombre }) : tr("Sin limpiador habitual")}
+                    </p>
+                    <Button icon="luggage" onClick={() => setSalidaDe(p)}>
+                      {tr("Registrar salida de huésped")}
+                    </Button>
                     <div className="grid grid-cols-3 gap-2">
                       <Button variant="secondary" size="sm" onClick={() => navigate("/agenda")}>
                         {tr("Agenda")}
@@ -165,6 +212,20 @@ export function PropiedadesPage() {
           </>
         )}
       </div>
+
+      <SalidaHuespedSheet
+        propiedad={salidaDe}
+        onClose={() => setSalidaDe(null)}
+        onCreada={(t) => {
+          setSalidaDe(null);
+          mostrarToast(
+            t.urgente
+              ? tr("Limpieza publicada como urgencia: avisamos a los trabajadores cercanos")
+              : tr("Le avisamos a {nombre}; si no responde, pasa a urgencia", { nombre: t.invitadoNombre ?? "" }),
+          );
+          navigate("/publicaciones");
+        }}
+      />
 
       <Dialog
         open={aEliminar !== null}

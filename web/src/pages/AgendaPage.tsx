@@ -4,7 +4,7 @@ import { Badge, Button, Calendar, Card, FilterChip, Icon, PageHeader, SegmentedC
 import { CategoriaThumb } from "@/components/CategoriaThumb";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { aDate, diaLargo, frecuenciaTexto, hoyDia, horaDe } from "@/lib/fechas";
+import { aDate, diaLargo, fechaTrabajo, frecuenciaTexto, hoyDia, horaDe } from "@/lib/fechas";
 import { localeActual, tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
 import type { Agenda, ItemAgenda, Propiedad } from "@/lib/types";
@@ -223,7 +223,9 @@ function ItemDia({ item, onOpen }: { item: ItemAgenda; onOpen: () => void }) {
       <CategoriaThumb categoria={t.categoria} apagado={t.estado === "Finalizado"} />
       <div className="grid min-w-0 flex-1 gap-1">
         <p className="aire-text-footnote font-semibold text-aire-ink-2">
-          {horaDe(t.fecha!)} · {item.rol === "trabajador" ? tr("Trabajas") : tr("Contrataste")}
+          {horaDe(t.fecha!)}
+          {t.limite && ` – ${t.limite.slice(0, 10) === t.fecha!.slice(0, 10) ? horaDe(t.limite) : fechaTrabajo(t.limite)}`} ·{" "}
+          {item.rol === "trabajador" ? tr("Trabajas") : tr("Contrataste")}
         </p>
         <p className="aire-text-headline truncate text-aire-ink">{t.titulo}</p>
         <p className={`aire-text-footnote ${t.reemplazo === "pendiente" ? "font-semibold text-aire-warning-text" : "text-aire-ink-2"}`}>{conQuien}</p>
@@ -232,6 +234,12 @@ function ItemDia({ item, onOpen }: { item: ItemAgenda; onOpen: () => void }) {
             <Badge tone="accent">
               <Icon name="event_repeat" size={14} />
               {frecuenciaTexto(t.serie.frecuencia, t.fecha)}
+            </Badge>
+          )}
+          {t.turno && (
+            <Badge tone="accent">
+              <Icon name="luggage" size={14} />
+              {tr("Entre huéspedes")}
             </Badge>
           )}
           {t.propiedad && (

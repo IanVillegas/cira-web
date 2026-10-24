@@ -9,7 +9,7 @@ export const db = new DatabaseSync(DB_PATH);
 
 // Versión del esquema. Al subirla, la base local (solo datos de prueba) se recrea
 // y se vuelve a sembrar: el modelo pasó de un usuario fijo a varios usuarios reales.
-const VERSION_ESQUEMA = 9;
+const VERSION_ESQUEMA = 10;
 
 const TABLAS = [
   "bloqueo",
@@ -87,6 +87,13 @@ db.exec(`
     lng REAL,
     -- Fecha y hora locales de Costa Rica ("2026-10-31T09:00"); NULL = lo antes posible (urgencias).
     fecha TEXT,
+    -- Hora límite: "listo antes de" (misma forma que fecha). En una limpieza entre huéspedes, la entrada del próximo.
+    limite TEXT,
+    -- Limpieza entre huéspedes: se ofrece al limpiador habitual y, si no responde antes de escalar_en
+    -- (UTC, como creado_en), pasa sola a urgencia.
+    turno INTEGER NOT NULL DEFAULT 0,
+    escalar_en TEXT,
+    escalado INTEGER NOT NULL DEFAULT 0,
     pago INTEGER NOT NULL,
     metodo_pago TEXT NOT NULL,
     publicador_id TEXT NOT NULL REFERENCES usuario(id),
@@ -201,6 +208,8 @@ db.exec(`
     lat REAL,
     lng REAL,
     instrucciones TEXT NOT NULL DEFAULT '',
+    -- Quien limpia normalmente la propiedad: recibe primero las limpiezas entre huéspedes.
+    limpiador_id TEXT REFERENCES usuario(id),
     creado_en TEXT NOT NULL DEFAULT (datetime('now'))
   );
 

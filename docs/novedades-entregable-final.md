@@ -35,9 +35,9 @@ En esta etapa CIRA pasó de un **mockup interactivo de un solo usuario** a una *
 | **Experiencia** | Sistema de diseño CIRA Aire, tarjetas con foto por categoría, barra flotante, modo oscuro, español/inglés | La app se ve y se siente como un producto real, no como un prototipo |
 | **Confianza** | Calificaciones en ambas direcciones, reportes, verificación de cédula y hoja de delincuencia, "De confianza" | Contratar a un desconocido es el mayor freno del mercado informal |
 | **Monetización** | Comisión por pago con tarjeta, tarifa de urgencia, Plan Plus, propina, "Ingresos de CIRA" | El profesor pidió que el modelo de negocio **se vea funcionando**, no solo en el Canvas |
-| **Operación** | Multiusuario, Modo Urgencia con alertas, seguimiento tipo Uber, ofertas directas, trueque, **agenda con servicios recurrentes, reemplazos y propiedades** | Cubre el ciclo completo: necesidad → contacto → trabajo → pago → reputación → **siguiente visita** |
+| **Operación** | Multiusuario, Modo Urgencia con alertas, seguimiento tipo Uber, ofertas directas, trueque, **agenda con servicios recurrentes, reemplazos, propiedades y limpieza entre huéspedes** | Cubre el ciclo completo: necesidad → contacto → trabajo → pago → reputación → **siguiente visita** |
 
-**En números:** 23 commits, ~150 archivos cambiados, ~12 400 líneas nuevas, 31 pantallas, ~840 textos traducidos al inglés.
+**En números:** 26 commits, ~155 archivos cambiados, ~13 000 líneas nuevas, 31 pantallas, ~880 textos traducidos al inglés.
 
 **Mensaje central para la exposición:**
 > CIRA conecta a personas que necesitan un servicio con trabajadores independientes de su zona, y resuelve lo que más frena ese mercado: **la desconfianza**. Gana dinero solo cuando aporta valor: cuando el pago pasa por la app, cuando hay una urgencia y cuando un trabajador quiere enterarse primero.
@@ -387,6 +387,37 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 
 ---
 
+### 7.7 Limpieza entre huéspedes y trabajos con hora límite
+
+> Surgió al revisar la agenda: un Airbnb no limpia "cada viernes". Limpia cuando sale un huésped, y tiene que quedar listo antes de que entre el siguiente, muchas veces con poco aviso. Valoración en [`ideas-innovacion-cira.md`](ideas-innovacion-cira.md#12-limpieza-entre-huéspedes-y-trabajos-con-hora-límite).
+
+**Qué es:** dos cosas que se complementan:
+- **Hora límite ("Listo antes de")** para cualquier trabajo, también para las urgencias.
+- **Limpieza entre huéspedes:** el anfitrión registra cuándo sale el huésped y cuándo entra el próximo. CIRA se la ofrece primero a su **limpiador habitual** y, si no responde a tiempo, la **pasa sola a urgencia**.
+
+**Problema que resuelve:**
+- La recurrencia fija ([§7.6](#76-cira-agenda-servicios-recurrentes-reemplazos-y-propiedades)) no sirve para alquileres de corta estancia, donde las limpiezas dependen de las reservas.
+- Una urgencia era "lo antes posible", sin hora. No había forma de decir *"el huésped sale a las 11 y el próximo entra a las 3: tiene que estar listo antes"*.
+
+**Cómo funciona:**
+1. Al publicar cualquier trabajo hay un campo opcional **"Listo antes de"**. Si la hora es antes del inicio, se entiende que es al día siguiente. Se ve en las tarjetas de Explorar, en las alertas, en *Mis trabajos*, *Mis publicaciones* y en la agenda, donde el trabajo aparece como un rango (*11:00 a. m. – 3:00 p. m.*).
+2. En **Mis propiedades** se elige el **limpiador habitual** de cada propiedad entre los trabajadores "De confianza" que ofrecen Limpieza.
+3. **Registrar salida de huésped** (en la propiedad): cuándo sale, cuándo entra el próximo, el monto y cómo se paga.
+4. CIRA crea la limpieza con esa ventana y le llega al limpiador habitual como oferta directa, con las instrucciones de la propiedad.
+5. Si no responde en **10 minutos** (configurable con `CIRA_ESCALAR_TURNO_MIN`) o dice que no, **pasa sola a urgencia**: se avisa a los trabajadores cercanos de Limpieza (Plus primero) y se cobra la tarifa de urgencia. El anfitrión ve cuánto falta y puede tocar **"Pasar a urgencia ahora"**. Sin limpiador habitual (o si lo tiene bloqueado ese día), es urgencia desde el inicio.
+
+**Por qué así:**
+- **Reusa el Modo Urgencia** en vez de crear otro sistema: el mismo radio, la prioridad Plus, la exigencia de cédula verificada y la tarifa de urgencia.
+- **Primero la relación de confianza, después la red:** el limpiador de siempre conoce la propiedad; la urgencia es el respaldo para que el próximo huésped nunca encuentre la casa sucia.
+- **La tarifa de urgencia se cobra donde más valor tiene:** un anfitrión prefiere pagar un 15 % más que recibir una mala reseña.
+- **Lo que queda para el roadmap:** leer las reservas solas del calendario de Airbnb o Booking (ambos exportan iCal). En la demo se registran a mano, y conviene decirlo así.
+
+**Qué decir:** *"El anfitrión no necesita coordinar a nadie: registra que el huésped sale, y CIRA se asegura de que la propiedad esté lista antes de que llegue el siguiente."*
+
+**Dónde está:** `SalidaHuespedSheet.tsx`, `PropiedadesPage.tsx`, `PublicacionCard.tsx`, `VisitaInfo.tsx`; en el servidor `POST /api/propiedades/:id/entre-huespedes` y el escalado en `agenda.js` · Commit: *ver Registro de cambios*
+
+---
+
 ## 8. Conexión con el Business Model Canvas
 
 | Bloque del Canvas | Qué lo respalda en la app |
@@ -418,6 +449,8 @@ Para el punto de "métricas de lanzamiento y operación". Todas salen de datos q
 | Servicios recurrentes activos y visitas por cliente | Ingresos recurrentes y lealtad | Agenda (series y sus visitas) |
 | % de visitas cubiertas por un reemplazo | Si la red de confianza sostiene el servicio | Visitas con reemplazo |
 | Días bloqueados por trabajador | Capacidad real de la oferta | Agenda |
+| Limpiezas entre huéspedes cubiertas a tiempo (antes de la hora límite) | Si CIRA cumple su promesa al anfitrión | Fecha de cierre vs. hora límite |
+| % que acepta el limpiador habitual vs. % que pasa a urgencia | Fuerza de la relación de confianza y uso de la tarifa de urgencia | Limpiezas entre huéspedes |
 | "Guardado por" promedio | Lealtad hacia los trabajadores | De confianza |
 | Calificación promedio y reportes por cada 100 trabajos | Calidad del servicio | Calificaciones y reportes |
 | Trueques que terminan cumplidos | Salud del trueque | Calificaciones con "¿Cumplió su parte?" |
@@ -437,6 +470,7 @@ Conviene decirlo con claridad en la exposición: el profesor pidió un mockup in
 | Mapa real con geocodificación (OpenStreetMap) | Verificación de documentos: la "lectura" de la cédula y la revisión son automáticas |
 | Cálculo de comisiones, tarifas, propinas e ingresos | Alertas: se consultan cada pocos segundos, sin notificaciones push |
 | Agenda, fechas, servicios recurrentes, reemplazos y propiedades (validados en el servidor) | Las visitas de los servicios recurrentes se crean al consultar la app, no con una tarea programada |
+| Escalado a urgencia de las limpiezas entre huéspedes (por tiempo o por rechazo) | Las reservas se registran a mano (en producción se leerían del calendario de Airbnb o Booking) |
 | Reglas de negocio (límites del plan, vigencia de la hoja, acuerdo del trueque) validadas en el servidor | Los archivos de verificación no se guardan |
 
 ---
@@ -460,6 +494,8 @@ Unos 8 minutos. Cada integrante con su teléfono conectado (`npm run demo` en `s
 | 11 | Marisol | En *Mis trabajos* ve la visita del viernes con las instrucciones de la llave y toca **"No puedo ir a esta visita"** | 7.6 |
 | 12 | Ian | En *Mis publicaciones* aparece "Falta reemplazo": elige a **Jixi** (De confianza, libre ese día); Jixi acepta desde su teléfono | 7.6 |
 | 13 | Ian | Recontrata a Eduardo **cada mes** en "Casa Alajuela": la disponibilidad muestra sus días ocupados; Eduardo acepta una vez y su agenda se llena sola | 7.6 |
+| 14 | Ian | *Mis propiedades* → Apartamento Escazú → **Registrar salida de huésped** (sale hoy, entra otro esta noche): se la ofrece a Marisol, su limpiadora habitual | 7.7 |
+| 15 | Ian / Jixi | Ian toca **"Pasar a urgencia ahora"**; a Jixi le llega como urgencia con "Listo antes de…" y la acepta | 7.7, 7.2 |
 
 > Para no esperar los 2 minutos del plan gratis en las alertas, se puede arrancar el servidor con `CIRA_RETRASO_ALERTAS_SEG=10`.
 >
@@ -480,6 +516,7 @@ Unos 8 minutos. Cada integrante con su teléfono conectado (`npm run demo` en `s
 | Sanciones automáticas del trueque | Como política futura | Requieren un panel de administración y generan preguntas de privacidad |
 | Lista de verificación con fotos para propiedades y trabajo relacionado automático | Siguiente fase de "Mis propiedades" | Dificultad alta y abre otro segmento (anfitriones con mensualidad por propiedad) |
 | Publicar para todos la visita que el trabajador cancela | Primero se ofrecen reemplazos | El cliente ya confía en alguien; su red "De confianza" es la mejor fuente de suplentes |
+| Sincronizar el calendario de Airbnb o Booking | Roadmap | En la demo las salidas se registran a mano; en producción se leerían del iCal de cada plataforma |
 | Créditos o monedas internas para el trueque | No | La propuesta original los descartaba; lo resolvimos con el diferencial en dinero |
 
 ### Preguntas que nos pueden hacer
@@ -489,6 +526,7 @@ Unos 8 minutos. Cada integrante con su teléfono conectado (`npm run demo` en `s
 - **"¿Por qué alguien pagaría Plus si igual recibe las alertas?"** → En urgencias, llegar primero es quedarse con el trabajo; y entre los Plus gana el mejor calificado ([§6.3](#63-plan-plus-para-trabajadores)).
 - **"¿Cómo verifican de verdad la cédula?"** → En la demo es simulado; en producción se integraría con un servicio de verificación de identidad y la consulta de la hoja del Poder Judicial. El flujo y los estados ya están diseñados para eso ([§5.2](#52-verificación-de-cédula-y-hoja-de-delincuencia)).
 - **"¿En qué se diferencia de una app de agenda como Jobber?"** → Jobber organiza la agenda de un negocio; CIRA conecta a un cliente con trabajadores de su comunidad y, si el de siempre no puede, propone un reemplazo de su propia red de confianza ([§7.6](#76-cira-agenda-servicios-recurrentes-reemplazos-y-propiedades)).
+- **"¿Y si el Airbnb no limpia en días fijos?"** → Para eso es la limpieza entre huéspedes: se registra la salida y la entrada, se le ofrece al limpiador habitual y, si no responde, pasa a urgencia con hora límite ([§7.7](#77-limpieza-entre-huéspedes-y-trabajos-con-hora-límite)).
 - **"¿Qué pasa si el trabajador se va a la competencia con el cliente recurrente?"** → La agenda, los reemplazos, el pago protegido y la reputación solo existen dentro de CIRA; salir de la app es perder todo eso.
 - **"¿Dónde está la IA o la nube?"** → Usamos IA (Claude Code) para desarrollar la app y su sistema de diseño; la app corre como servicio web y se puede publicar en la nube.
 - **"¿Qué pasa si un trabajador no cumple?"** → Reportes, calificación de cumplimiento en el trueque y la verificación vinculada a la cédula.
@@ -501,6 +539,8 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| *(este commit)* | Limpieza entre huéspedes y trabajos con hora límite (idea #12) | 7.7 |
+| `3790bba` | Registro del commit de la agenda en esta guía | — |
 | `173f953` | CIRA Agenda: fechas reales, servicios recurrentes, reemplazos y propiedades (idea #11) | 7.6 |
 | `bb585b5` | Esta guía de novedades | — |
 | `360d721` | Trueque de servicios (idea #10) | 7.5, 6.3 |

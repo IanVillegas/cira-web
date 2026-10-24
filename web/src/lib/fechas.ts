@@ -67,6 +67,16 @@ export function diaLargo(dia: string): string {
 /** Solo la hora de una fecha de trabajo: "9:00 a. m.". */
 export const horaDe = (iso: string) => hora(aDate(iso));
 
+/**
+ * Hora límite: "Listo antes de 3:00 p. m." si es el mismo día del inicio (o de hoy, en una
+ * urgencia); si no, con el día: "Listo antes de mañana, 9:00 a. m.".
+ */
+export function limiteTexto(limite: string, fecha?: string | null): string {
+  const mismoDia = limite.slice(0, 10) === (fecha ? fecha.slice(0, 10) : hoyDia());
+  const cuando = mismoDia ? horaDe(limite) : fechaTrabajo(limite);
+  return tr("Listo antes de {cuando}", { cuando: mismoDia ? cuando : cuando.charAt(0).toLowerCase() + cuando.slice(1) });
+}
+
 /** "semanal" → "Cada viernes"; "quincenal" → "Cada 2 semanas"; "mensual" → "Cada mes, el día 31". */
 export function frecuenciaTexto(frecuencia: string, iso?: string | null): string {
   const d = iso ? aDate(iso) : null;

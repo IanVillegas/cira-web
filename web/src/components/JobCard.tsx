@@ -4,7 +4,7 @@ import { Badge, Button, Icon } from "@/components/aire";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { visualDeCategoria } from "@/lib/categorias";
-import { fechaTrabajo } from "@/lib/fechas";
+import { fechaTrabajo, limiteTexto } from "@/lib/fechas";
 import { formatoColones as formatoPago } from "@/lib/format";
 import { tr } from "@/lib/i18n";
 import type { Trabajo } from "@/lib/types";
@@ -153,6 +153,12 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
             <Icon name="calendar_month" size={14} />
             {fechaTrabajo(trabajo.fecha)}
           </span>
+          {trabajo.limite && (
+            <span className="ca-photocard__tag">
+              <Icon name="timer" size={14} />
+              {limiteTexto(trabajo.limite, trabajo.fecha)}
+            </span>
+          )}
           {(!trabajo.trueque || trabajo.pago > 0) && (
             <span className="ca-photocard__tag">
               <Icon name="payments" size={14} />
