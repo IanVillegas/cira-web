@@ -383,7 +383,7 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 
 **Qué decir:** *"CIRA no solo ayuda a conseguir trabajo: ayuda a construir una cartera de clientes. Y si un día el trabajador no puede, tu propia red de confianza lo cubre."*
 
-**Dónde está:** `AgendaPage.tsx`, `PropiedadesPage.tsx`, `components/aire/Calendar.tsx`, `DisponibilidadStrip.tsx`, `ReemplazoVisita.tsx`, `lib/fechas.ts`; en el servidor `agenda.js` y `fechas.js` · Commit: *ver Registro de cambios*
+**Dónde está:** `AgendaPage.tsx`, `PropiedadesPage.tsx`, `components/aire/Calendar.tsx`, `DisponibilidadStrip.tsx`, `ReemplazoVisita.tsx`, `lib/fechas.ts`; en el servidor `agenda.js` y `fechas.js` · Commit `173f953`
 
 ---
 
@@ -501,7 +501,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| *(este commit)* | CIRA Agenda: fechas reales, servicios recurrentes, reemplazos y propiedades (idea #11) | 7.6 |
+| `173f953` | CIRA Agenda: fechas reales, servicios recurrentes, reemplazos y propiedades (idea #11) | 7.6 |
 | `bb585b5` | Esta guía de novedades | — |
 | `360d721` | Trueque de servicios (idea #10) | 7.5, 6.3 |
 | `07e3d10` | Verificación de cédula y hoja de delincuencia | 5.2 |
