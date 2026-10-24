@@ -27,7 +27,9 @@ export function useInView<T extends Element>(options: { once?: boolean; rootMarg
           } else if (!once) setInView(false);
         }
       },
-      { rootMargin, threshold: 0.12 },
+      // threshold 0: basta con que asome. Con un porcentaje, una lista más alta que la pantalla
+      // (p. ej. varias tarjetas con foto en un teléfono pequeño) nunca llegaba a aparecer.
+      { rootMargin, threshold: 0 },
     );
     io.observe(el);
     return () => io.disconnect();
