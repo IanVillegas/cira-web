@@ -414,7 +414,7 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 
 **Qué decir:** *"El anfitrión no necesita coordinar a nadie: registra que el huésped sale, y CIRA se asegura de que la propiedad esté lista antes de que llegue el siguiente."*
 
-**Dónde está:** `SalidaHuespedSheet.tsx`, `PropiedadesPage.tsx`, `PublicacionCard.tsx`, `VisitaInfo.tsx`; en el servidor `POST /api/propiedades/:id/entre-huespedes` y el escalado en `agenda.js` · Commit: *ver Registro de cambios*
+**Dónde está:** `SalidaHuespedSheet.tsx`, `PropiedadesPage.tsx`, `PublicacionCard.tsx`, `VisitaInfo.tsx`; en el servidor `POST /api/propiedades/:id/entre-huespedes` y el escalado en `agenda.js` · Commit `68ca7db`
 
 ---
 
@@ -539,7 +539,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| *(este commit)* | Limpieza entre huéspedes y trabajos con hora límite (idea #12) | 7.7 |
+| `68ca7db` | Limpieza entre huéspedes y trabajos con hora límite (idea #12) | 7.7 |
 | `3790bba` | Registro del commit de la agenda en esta guía | — |
 | `173f953` | CIRA Agenda: fechas reales, servicios recurrentes, reemplazos y propiedades (idea #11) | 7.6 |
 | `bb585b5` | Esta guía de novedades | — |
