@@ -26,3 +26,7 @@ Toda interfaz nueva o rediseñada sigue **`DESIGN.md`**. Léelo antes de tocar c
 Todas las pantallas de `web/` están hechas con Aire y ya no existen `components/ui/` ni los tokens `cira-*`. Las pantallas viven en `web/src/pages/` y los componentes con lógica de CIRA (tarjetas, hojas de pago/calificación, `SelectSheet`, `Vacio`…) en `web/src/components/`; están listados en `DESIGN.md`. Los avisos se disparan con `mostrarToast` (`@/lib/toast`) y los textos pasan por `tr()` (`@/lib/i18n`, traducciones en `lib/i18n/en.ts`).
 
 Backend (`server/`): login por teléfono o correo con PIN `1234`; el detalle de usuarios, endpoints y parámetros del modelo de negocio está en `server/README.md`.
+
+## Documento de novedades
+
+`docs/novedades-entregable-final.md` es la guía de la exposición final con todo lo que se incorporó desde el commit `9379bfb`. **Cada vez que agregues o cambies una funcionalidad, actualízalo en el mismo commit:** su sección (qué es, problema, cómo funciona, por qué así, qué decir en la exposición y dónde está en el código), las tablas que la mencionen (resumen, Canvas, métricas, real vs. simulado, guion) y una fila nueva en el Registro de cambios. Si el cambio solo se valoró y no está en la app, va en `docs/ideas-innovacion-cira.md`.

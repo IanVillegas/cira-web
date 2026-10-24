@@ -2,7 +2,7 @@
 
 Backlog de funcionalidades para CIRA (curso Aplicaciones Informáticas Globales). Cada idea incluye su propósito, cómo funciona, su relación con el modelo de negocio y qué tan viable es para la demo del entregable final.
 
-Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"**.
+Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"**. Lo que ya está en la app, explicado para la exposición, está en [`novedades-entregable-final.md`](novedades-entregable-final.md).
 
 **Estados:** 💡 Propuesta · ✔️ Aprobada · 🛠️ En desarrollo · ✅ Implementada · ❌ Descartada · 🗺️ Roadmap (fase futura)
 

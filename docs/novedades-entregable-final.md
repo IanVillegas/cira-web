@@ -1,0 +1,474 @@
+# CIRA — Novedades para el entregable final
+
+Guía de lo que incorporamos a CIRA desde el commit `9379bfb` (cuando empezamos el backlog de ideas y el nuevo diseño) hasta hoy. Sirve para **preparar la exposición**: cada funcionalidad trae el problema que resuelve, cómo se muestra en la demo, por qué la hicimos así y cómo se conecta con el modelo de negocio.
+
+> **Regla del documento:** cada vez que se agregue o cambie una funcionalidad, se actualiza su sección (o se crea una) y se anota en el [Registro de cambios](#13-registro-de-cambios). Las ideas se valoran primero en [`ideas-innovacion-cira.md`](ideas-innovacion-cira.md); aquí solo entra lo que ya está en la app.
+
+**Rama:** `cambios` · **Curso:** Aplicaciones Informáticas Globales (UNA) · **Equipo:** Ian, Marisol, Bayron, Eduardo, José y Jixi
+
+---
+
+## Contenido
+
+1. [Resumen en una página](#1-resumen-en-una-página)
+2. [De dónde partimos](#2-de-dónde-partimos)
+3. [Hilo de la exposición](#3-hilo-de-la-exposición)
+4. [Experiencia y diseño](#4-experiencia-y-diseño)
+5. [Confianza entre desconocidos](#5-confianza-entre-desconocidos)
+6. [Cómo gana dinero CIRA](#6-cómo-gana-dinero-cira)
+7. [Operación del servicio](#7-operación-del-servicio)
+8. [Conexión con el Business Model Canvas](#8-conexión-con-el-business-model-canvas)
+9. [Métricas que la app permite medir](#9-métricas-que-la-app-permite-medir)
+10. [Qué es real y qué es simulado](#10-qué-es-real-y-qué-es-simulado)
+11. [Guion de la demo](#11-guion-de-la-demo)
+12. [Decisiones descartadas y preguntas probables](#12-decisiones-descartadas-y-preguntas-probables)
+13. [Registro de cambios](#13-registro-de-cambios)
+
+---
+
+## 1. Resumen en una página
+
+En esta etapa CIRA pasó de un **mockup interactivo de un solo usuario** a una **app multiusuario con el modelo de negocio funcionando**: varias personas usan la demo a la vez, publican, se postulan, chatean, pagan (simulado), se califican y se verifican. Todo con un sistema de diseño propio.
+
+| Bloque | Qué incorporamos | Por qué importa en la exposición |
+|---|---|---|
+| **Experiencia** | Sistema de diseño CIRA Aire, tarjetas con foto por categoría, barra flotante, modo oscuro, español/inglés | La app se ve y se siente como un producto real, no como un prototipo |
+| **Confianza** | Calificaciones en ambas direcciones, reportes, verificación de cédula y hoja de delincuencia, "De confianza" | Contratar a un desconocido es el mayor freno del mercado informal |
+| **Monetización** | Comisión por pago con tarjeta, tarifa de urgencia, Plan Plus, propina, "Ingresos de CIRA" | El profesor pidió que el modelo de negocio **se vea funcionando**, no solo en el Canvas |
+| **Operación** | Multiusuario, Modo Urgencia con alertas, seguimiento tipo Uber, ofertas directas, trueque | Cubre el ciclo completo: necesidad → contacto → trabajo → pago → reputación |
+
+**En números:** 21 commits, 139 archivos cambiados, ~9 900 líneas nuevas, 29 pantallas, ~730 textos traducidos al inglés.
+
+**Mensaje central para la exposición:**
+> CIRA conecta a personas que necesitan un servicio con trabajadores independientes de su zona, y resuelve lo que más frena ese mercado: **la desconfianza**. Gana dinero solo cuando aporta valor: cuando el pago pasa por la app, cuando hay una urgencia y cuando un trabajador quiere enterarse primero.
+
+---
+
+## 2. De dónde partimos
+
+**Lo que teníamos al iniciar esta etapa** (Entregable 1 + migración a web):
+
+- La app de Móviles (.NET MAUI) migrada a **React + TypeScript + Tailwind**, con un backend **Express + SQLite** y un **mapa real** (Leaflet + OpenStreetMap, sin costo).
+- **Un solo usuario fijo** en el backend: no se podía mostrar la interacción entre cliente y trabajador.
+- Métodos de pago SINPE, Transferencia y Efectivo, sin que CIRA participara en el pago.
+- Calificaciones y verificaciones **escritas a mano** en los datos de prueba.
+- Un diseño heredado de MAUI, con poco control visual.
+
+**Lo que pedía el curso para el entregable final:** demo con el flujo esencial funcionando, uso de cloud o IA, validación con 3 usuarios externos, métricas, **monetización coherente con el Canvas** y roadmap. El profesor aclaró que basta con un mockup interactivo, pero que lo que se muestre tiene que ser coherente con el modelo de negocio (si se cobra comisión, se tiene que ver).
+
+Esa última condición guió casi todas las decisiones de este documento.
+
+---
+
+## 3. Hilo de la exposición
+
+Orden sugerido. Cada paso responde a una pregunta del público:
+
+1. **¿Qué problema hay?** Contratar servicios del hogar a alguien que no conoces da miedo, y el trabajador independiente no tiene cómo demostrar que es confiable.
+2. **¿Cómo lo resuelve CIRA?** Explorar trabajos y trabajadores cerca ([§4.2](#42-tarjetas-con-la-foto-de-cada-categoría)), con reputación y verificación visibles ([§5](#5-confianza-entre-desconocidos)).
+3. **¿Y si es una emergencia?** Modo Urgencia + seguimiento tipo Uber ([§7.2](#72-modo-urgencia-y-alertas), [§7.3](#73-seguimiento-del-trabajo-tipo-uber)).
+4. **¿Cómo gana dinero?** Comisión, urgencia y Plan Plus, mostrados en vivo ([§6](#6-cómo-gana-dinero-cira)).
+5. **¿Por qué la gente vuelve?** "De confianza" y recontratar ([§5.3](#53-de-confianza-y-recontratar)).
+6. **¿Qué nos diferencia?** Trueque de servicios para la comunidad ([§7.5](#75-trueque-de-servicios)).
+7. **¿Cómo lo medimos?** Métricas ([§9](#9-métricas-que-la-app-permite-medir)).
+8. **Honestidad técnica:** qué es real y qué simulado ([§10](#10-qué-es-real-y-qué-es-simulado)).
+
+---
+
+## 4. Experiencia y diseño
+
+### 4.1 Sistema de diseño CIRA Aire
+
+**Qué es:** un sistema de diseño propio (colores, tipografía, espacios, movimiento y 20+ componentes) con la claridad de las apps de Apple aplicada a la marca de CIRA. Toda la app está hecha con él.
+
+**Problema que resuelve:** en MAUI teníamos poco control visual y cada pantalla se veía distinta. Para que la demo pareciera un producto, necesitábamos consistencia.
+
+**Cómo funciona:**
+- Un solo color de acción (el azul de CIRA) marca lo que se puede tocar. El resto es tinta sobre fondo gris perla.
+- Todo lo que se presiona responde con una animación corta, y las listas aparecen en cascada.
+- Accesibilidad: controles de al menos 44 px, texto principal de 17 px y contraste de 4.5:1. Si el teléfono pide "reducir movimiento", se respeta.
+- Componentes listos: botones, tarjetas, campos, hojas inferiores, avisos, barra de pestañas, etc.
+
+**Por qué así:**
+- Un sistema de diseño hace que cualquier persona del equipo (o Claude Code) construya pantallas nuevas que se ven igual. Por eso las funcionalidades de las secciones siguientes se pudieron hacer rápido.
+- Los colores son *tokens* (`--aire-*`): cambiar uno cambia toda la app. Gracias a eso el modo oscuro ([§4.4](#44-modo-oscuro)) salió casi gratis.
+
+**Qué decir en la exposición:** "Creamos nuestro propio sistema de diseño para que la experiencia sea consistente y accesible; todas las pantallas usan los mismos componentes."
+
+**Dónde está:** `DESIGN.md` (guía), `web/src/components/aire/` · Commits `9743b42`, `e3c414a`, `70dd88b`
+
+---
+
+### 4.2 Tarjetas con la foto de cada categoría
+
+**Qué es:** en Explorar, cada trabajo se muestra con una foto de su categoría (limpieza, plomería, electricidad, jardinería, mudanzas, transporte, mascotas, reparaciones) que se funde en un degradado del color de la foto, con el texto encima.
+
+**Problema que resuelve:** una lista de textos iguales no invita a explorar. La foto permite reconocer el tipo de trabajo de un vistazo, sin leer.
+
+**Cómo funciona:**
+- La foto ocupa la parte de arriba; el degradado la funde con un tono oscuro de la misma foto para que el texto se lea.
+- Arriba van la categoría y el pago; abajo, título, ubicación, quién publica y su calificación, descripción y fecha.
+- Una sola acción principal (Postularme o Aceptar urgencia) y tres secundarias: chat, compartir y mapa.
+
+**Por qué así:**
+- **Solo en Explorar.** Es donde hay que "vender" el trabajo. En las pantallas de gestión (*Mis publicaciones*, *Mis trabajos*, *Historial*) lo importante es ver mucho de un vistazo, así que ahí la foto es una **miniatura de 48 px**. En *Historial* va en gris para indicar que es un trabajo cerrado.
+- **En Trabajadores no hay foto grande**, porque ahí lo protagonista es la persona: avatar con iniciales y los servicios como chips con mini foto.
+- Fotos libres de derechos, comprimidas a WebP (~45 KB cada una).
+
+**Qué decir:** "Diseño expresivo donde el usuario descubre, diseño funcional donde gestiona."
+
+**Dónde está:** `web/src/components/JobCard.tsx`, `CategoriaThumb.tsx`, `lib/categorias.ts` · Commits `55feda1`, `29fd091`
+
+---
+
+### 4.3 Barra de navegación flotante
+
+**Qué es:** la barra inferior es una cápsula de vidrio que flota sobre el contenido; las tarjetas pasan por detrás y se ven a través del vidrio.
+
+**Por qué así:** es el patrón de las apps móviles actuales y le da profundidad a la interfaz. Cada pantalla reserva al final el alto de la barra para que nada quede tapado, y el mapa llega hasta el borde inferior.
+
+**Decisión relacionada:** no agregamos un quinto botón a la barra (por ejemplo, para "De confianza"). La barra es para lo que se usa todos los días (Mapa, Explorar, Chats, Perfil); lo ocasional va dentro de esas pantallas.
+
+**Dónde está:** `web/src/layouts/AppShell.tsx` · Commits `ed68772`, `5655f7e`
+
+---
+
+### 4.4 Modo oscuro
+
+**Qué es:** en **Cuenta → Apariencia** se elige *Automático* (igual que el teléfono), *Claro* u *Oscuro*. La app recuerda la elección.
+
+**Cómo funciona:**
+- Como todos los colores son tokens del sistema de diseño, al cambiar de tema cambia toda la app.
+- El tema se aplica antes de cargar la página para que no haya un destello blanco.
+- El mapa invierte sus colores y el fondo del inicio de sesión se atenúa para no encandilar.
+
+**Por qué importa:** es una expectativa básica de cualquier app hoy, ahorra batería en pantallas OLED y demuestra que el sistema de diseño está bien hecho (no hubo que tocar pantalla por pantalla).
+
+**Dónde está:** `web/src/lib/tema.ts`, `index.html` · Commit `09c4cbf`
+
+---
+
+### 4.5 Español e inglés
+
+**Qué es:** selector de idioma en Cuenta. Toda la interfaz, los estados, las categorías y los errores del servidor se traducen; fechas y números siguen el idioma.
+
+**Por qué importa:** es lo que más se conecta con el enfoque de **aplicaciones globales** del curso y con la expansión a Latinoamérica del roadmap. El contenido que escriben los usuarios (títulos, chats) no se traduce.
+
+**Dónde está:** `web/src/lib/i18n.ts`, `web/src/lib/i18n/en.ts` · Commit `27c5b68`
+
+---
+
+## 5. Confianza entre desconocidos
+
+> El problema central del mercado de servicios informales es que **no sabes si puedes confiar** en la otra persona. Esta sección es el corazón de la propuesta de valor.
+
+### 5.1 Calificaciones en ambas direcciones y reportes
+
+**Qué es:** al terminar un trabajo, **ambas partes** se califican de 1 a 5 estrellas con un comentario: el cliente al trabajador y el trabajador al cliente. Cualquiera puede **reportar** a otro usuario con un motivo.
+
+**Problema que resuelve:** el cliente no sabe si el trabajador es bueno, y el trabajador tampoco sabe si el cliente paga a tiempo o trata bien.
+
+**Por qué así:**
+- Calificar en las dos direcciones protege también al trabajador, que es nuestro usuario más vulnerable.
+- El promedio se calcula con las calificaciones reales, no con un número fijo.
+
+**Dónde está:** `RatingSheet.tsx`, `ReportSheet.tsx` · Commit `69e0de2`
+
+---
+
+### 5.2 Verificación de cédula y hoja de delincuencia
+
+**Qué es:** en **Cuenta → Verificación**, cada persona verifica su identidad y sube su hoja de delincuencia. Las insignias "Cédula verificada" y "Hoja de delincuencia al día" ahora se **ganan** con este proceso; antes estaban escritas a mano.
+
+**Cómo funciona:**
+- **Cédula:** se toma foto del frente y del reverso (en el teléfono se abre la cámara). La app "lee" la cédula, muestra nombre y número para confirmar, y el documento pasa unos segundos *En revisión* antes de quedar *Verificado*.
+- **Hoja de delincuencia:** se adjunta el PDF o una foto con su fecha de emisión. Vale **3 meses**; al vencer, la insignia desaparece y la app pide renovarla.
+- **Estados visibles:** Sin enviar → En revisión → Verificada (o Vencida).
+- **Recordatorio** en el Perfil si la hoja venció o falta la cédula.
+- **Sin cédula verificada no se pueden aceptar urgencias.** El servidor también lo valida.
+- Si alguien cambia el número de cédula en su perfil, tiene que volver a verificarla.
+
+**Por qué así:**
+- **Privacidad:** las fotos nunca salen del teléfono; los demás usuarios solo ven la insignia. En la demo ni siquiera se guardan los archivos.
+- **Vigencia:** una insignia que se gana una vez y dura para siempre no da confianza. La hoja de delincuencia del Poder Judicial tiene fecha, y pedir que esté al día la hace creíble.
+- **Incentivo:** pedir la cédula para las urgencias da una razón concreta para verificarse, justo donde el cliente corre más riesgo (alguien que entra a su casa con poco aviso).
+
+**Qué decir:** "La verificación no es decorativa: tiene estados, vence, y desbloquea las urgencias."
+
+**Dónde está:** `web/src/pages/VerificacionPage.tsx` · Commit `07e3d10`
+
+---
+
+### 5.3 "De confianza" y recontratar
+
+**Qué es:** cada cliente puede guardar a sus trabajadores favoritos (con un corazón) en **"De confianza"**, para volver a contratarlos, chatear con ellos o recomendarlos.
+
+**Cómo funciona:**
+- Corazón en cada tarjeta de Trabajadores y en el perfil; filtro "De confianza" en Trabajadores y acceso desde el Perfil.
+- **Recontratar:** abre el formulario de publicación como **oferta directa** para esa persona. Solo ella la ve, en *Mis trabajos*, con **Aceptar** o **No puedo**. Si no puede, la publicación queda abierta para todos automáticamente.
+- **Recomendar:** abre el menú de compartir del teléfono (WhatsApp, Telegram, copiar link) con el link al perfil dentro de CIRA.
+- **"Guardado por N clientes"** en el perfil: solo el número, nunca quiénes.
+
+**Por qué así:**
+- **Retención:** en servicios del hogar la gente quiere volver a llamar a la misma persona. Sin esta función, la segunda vez la contactaría por fuera de la app.
+- **Evitar que el trato salga de la app:** recontratar *dentro* de CIRA es más fácil que hacerlo por WhatsApp, y el pago, el seguimiento y la calificación siguen registrados. Por eso el link de recomendar lleva al perfil y **nunca muestra el teléfono**.
+- **"Guardado por N"** es una señal de reputación más creíble que las estrellas: alguien que te guarda planea volver a contratarte.
+- Le cambiamos el nombre de "wishlist" (que suena a tienda en línea) a "De confianza".
+
+**Qué decir:** "Las estrellas dicen si alguien es bueno; 'De confianza' dice que la gente vuelve a contratarlo."
+
+**Dónde está:** `ConfianzaButton.tsx`, `DeConfianzaPage.tsx`, `lib/compartir.ts` · Commit `fcd565a`
+
+---
+
+## 6. Cómo gana dinero CIRA
+
+> Modelo **freemium**: la app es gratis para todos y CIRA cobra solo cuando aporta valor. Todos los cobros son **simulados** en la demo, pero se ven funcionando de principio a fin.
+
+### 6.1 Las fuentes de ingreso
+
+| Fuente | Cuánto | Quién paga | Cuándo se ve en la demo |
+|---|---|---|---|
+| **Comisión por pago con tarjeta** | 10 % del monto | El cliente, solo si paga con tarjeta | Resumen del pago al publicar y al pagar |
+| **Tarifa de urgencia** | 15 % del monto | El cliente, solo en urgencias | Al publicar una urgencia y al pagarla |
+| **Plan Plus** | ₡2 500 al mes | El trabajador, opcional | Cuenta → Plan Plus |
+
+El trabajador siempre recibe el **monto completo** del trabajo, más la propina. Los porcentajes y el precio se cambian en `server/src/config.js`.
+
+### 6.2 Pago con tarjeta (simulado)
+
+**Qué es:** quedan dos métodos: **Efectivo** y **Tarjeta** (se quitaron SINPE y Transferencia). Con tarjeta, el resumen muestra el monto, la comisión de CIRA y, si aplica, la tarifa de urgencia.
+
+**Cómo funciona:**
+- La tarjeta se registra en **Cuenta → Mi tarjeta**: una tarjeta realista con chip y marca que gira al escribir el CVV. Solo se guardan la marca, los últimos 4 dígitos, el titular y el vencimiento.
+- Es obligatoria para pagar con tarjeta y para publicar urgencias. Una urgencia sí puede pagarse en efectivo: el monto va en mano y la tarifa se cobra a la tarjeta.
+- **Propina** opcional al pagar (₡500, ₡1 000, ₡2 000 u otro monto): va completa al trabajador y no genera comisión.
+
+**Por qué así:** la comisión solo existe si el pago pasa por la app. Para que la gente prefiera pagar con tarjeta, el valor para el cliente es la protección del pago y el registro de lo que pagó.
+
+**Dónde está:** `TarjetaPage.tsx`, `PagarSheet.tsx`, `PagoResumen.tsx` · Commits `69e0de2`, `d20f690`, `70dd88b`
+
+### 6.3 Plan Plus para trabajadores
+
+**Qué es:** suscripción mensual opcional para trabajadores.
+
+| | Gratis | Plus |
+|---|---|---|
+| Perfil, postularse, chat, explorar | ✅ | ✅ |
+| Alertas de trabajos de su oficio en su zona | 2 minutos después | **Primero** |
+| Alertas de urgencias | 2 minutos después | **Primero** |
+| Insignia Plus en el perfil | — | ✅ |
+| Trueques al mes ([§7.5](#75-trueque-de-servicios)) | 1 | Ilimitados |
+
+**Por qué así:**
+- **Ventaja de minutos, no exclusividad:** si solo los que pagan recibieran alertas, el cliente podría quedarse sin respuesta y los trabajadores gratis dejarían de usar la app.
+- **Entre los Plus, primero los mejor calificados.** La prioridad no depende solo de pagar: también de hacer buen trabajo.
+- Precio bajo, porque el público son trabajadores independientes.
+
+**Dónde está:** `PlanPage.tsx`, alertas en `server/src/routes.js` · Commit `69e0de2`
+
+### 6.4 Transparencia: Mi actividad e Ingresos de CIRA
+
+- **Mi actividad** (Cuenta): cada usuario ve lo que pagó y lo que ganó.
+- **Ingresos de CIRA (demo)**: pantalla que suma en vivo lo que CIRA ganó por Plan Plus, tarifas de urgencia y comisiones. **Sirve para mostrar el modelo de negocio funcionando durante la exposición.**
+
+**Dónde está:** `ActividadPage.tsx`, `IngresosPage.tsx` · Commit `d20f690`
+
+---
+
+## 7. Operación del servicio
+
+### 7.1 Multiusuario: el equipo usa la demo a la vez
+
+**Qué es:** login por teléfono o correo con PIN `1234` y seis usuarios sembrados (los integrantes del equipo), con distintos planes y servicios. Cada pestaña o teléfono puede tener su propia sesión.
+
+**Por qué importa:** antes había un usuario fijo y no se podía mostrar lo más importante, que es la **interacción**: uno publica, otro se postula, chatean, se paga y se califican. Ahora cada integrante puede tener su teléfono durante la presentación.
+
+**Usuarios de la demo:** Ian (Plus), Marisol (gratis), Bayron (Plus), Eduardo (Plus), José (gratis) y Jixi (gratis). Detalle en `server/README.md`.
+
+**Commits:** `69e0de2`, `7527420`, `80baa17`
+
+---
+
+### 7.2 Modo Urgencia y alertas
+
+**Qué es:** al publicar se puede marcar **"Es urgente"** (tubo quebrado, corto eléctrico, quedarse afuera sin llaves). Se avisa a los trabajadores disponibles de ese oficio más cercanos, y **el primero que acepta se queda con el trabajo**.
+
+**Cómo funciona:**
+- Disponible para cualquier categoría; al principio solo eran plomería, electricidad y cerrajería, y lo abrimos tras la primera revisión.
+- Alerta dentro de la app (banner y pantalla de Alertas), con un radio de 15 km. Primero a los Plus (los mejor calificados antes) y 2 minutos después al resto.
+- La tarifa de urgencia (15 %) se muestra en el resumen. Las urgencias aparecen siempre arriba en Explorar.
+- Para aceptar una urgencia hay que tener la **cédula verificada** ([§5.2](#52-verificación-de-cédula-y-hoja-de-delincuencia)).
+
+**Por qué así:** la urgencia es donde el cliente más valora la rapidez y donde más dispuesto está a pagar. Por eso concentra una fuente de ingreso y la exigencia de verificación.
+
+**Commits:** `69e0de2`, `cfb1ac2`
+
+---
+
+### 7.3 Seguimiento del trabajo tipo Uber
+
+**Qué es:** después de asignar un trabajo, el cliente ve avanzar el estado: **Aceptado → En camino → Llegó → Terminado**. El trabajador lo actualiza desde *Mis trabajos* y el cliente lo ve en vivo.
+
+**Por qué importa:** en una urgencia, la mayor angustia es no saber si el trabajador viene. Además cierra el flujo de la demo, porque "Terminado" lleva a pagar y calificar.
+
+**Commit:** `69e0de2`
+
+---
+
+### 7.4 Gestión de publicaciones, chat y compartir
+
+- **Mis publicaciones:** editar, ver postulantes con su reputación y elegir a uno; cancelar.
+- **Chat** entre cliente y trabajador, con aviso y contador de mensajes sin leer.
+- **Compartir un trabajo por WhatsApp** con el mensaje listo. En el Entregable 1 definimos WhatsApp como el canal para conseguir usuarios, y esto lo vuelve medible.
+- **Avisos** (toasts) que confirman cada acción.
+
+**Commits:** `69e0de2`, `d20f690`
+
+---
+
+### 7.5 Trueque de servicios
+
+> Idea propuesta por una compañera; se valoró en grupo y se implementó con un alcance recortado. La valoración completa está en [`ideas-innovacion-cira.md`](ideas-innovacion-cira.md#10-trueque-de-servicios-trueque-de-barrio).
+
+**Qué es:** se puede pagar un trabajo **con otro servicio** ("te subo la refrigeradora si me revisas la instalación eléctrica"), con un **diferencial en dinero** opcional si los trabajos no valen lo mismo.
+
+**Cómo funciona:**
+1. Al publicar, **Trueque** aparece como tercer método de pago, junto a Efectivo y Tarjeta: se indica qué se ofrece a cambio y el diferencial opcional.
+2. Al postularse, el trabajador **acepta lo ofrecido o propone otra cosa** (contraoferta). El publicador ve la propuesta de cada postulante.
+3. **Acuerdo digital:** al elegir a alguien, el publicador firma el acuerdo (quién hace qué y cuándo) y el trabajador lo acepta antes de empezar.
+4. **Cierre en dos pasos:** el trabajador marca *"Entregué mi parte"* y, cuando recibe la del publicador, *"Recibí su parte: finalizar trueque"*. Mientras tanto, el publicador no puede cancelar.
+5. Se paga el diferencial (si lo hay) y ambos califican, con la pregunta extra **"¿Cumplió su parte?"**, que queda como insignia en los comentarios del perfil.
+6. Filtro *Trueques* en Explorar.
+
+**Por qué así (lo que recortamos y por qué):**
+- **Choca con el modelo de negocio:** un trueque no mueve dinero, así que CIRA no cobraría nada y además abre un hueco para saltarse la comisión. → Lo atamos al **Plan Plus**: el plan gratis tiene 1 trueque al mes y Plus, ilimitados. Si el diferencial se paga con tarjeta, cobra la comisión normal.
+- **No resuelve el arranque de la plataforma, lo dificulta:** un trueque necesita que coincidan dos necesidades a la vez, algo más difícil con pocos usuarios. Lo presentamos como **diferenciador de comunidad** y gancho de marketing para el lanzamiento local, no como estrategia de crecimiento.
+- **Las sanciones de la propuesta original** (bloqueo por huella del dispositivo, verificación por geolocalización, suspensión de 30 días a la primera falta) requieren un panel de administración que no existe y generan preguntas de privacidad. Quedan como **política futura**; en la app, las disputas van por "Reportar usuario".
+
+**Qué decir:** "El trueque fortalece la comunidad y empuja a los usuarios al Plan Plus, en vez de quitarle ingresos a la plataforma."
+
+**Dónde está:** `PostularTruequeSheet.tsx`, `AcuerdoTrueque.tsx` · Commit `360d721`
+
+---
+
+## 8. Conexión con el Business Model Canvas
+
+| Bloque del Canvas | Qué lo respalda en la app |
+|---|---|
+| **Segmentos de clientes** | Clientes (hogares y pequeños negocios) y trabajadores independientes: dos lados del mercado, con pantallas para cada uno (*Mis publicaciones* / *Mis trabajos*) |
+| **Propuesta de valor** | Cliente: encontrar a alguien confiable y cercano, incluso en una emergencia. Trabajador: más trabajos, reputación que demuestra su calidad y clientes que vuelven |
+| **Canales** | App web en el teléfono; WhatsApp para compartir trabajos y recomendar perfiles (links que llevan a CIRA) |
+| **Relación con clientes** | Autoservicio + comunidad: calificaciones, "De confianza", trueque, avisos y chat |
+| **Fuentes de ingreso** | Comisión del 10 % (tarjeta), tarifa de urgencia del 15 % y Plan Plus de ₡2 500/mes; visibles en "Ingresos de CIRA" |
+| **Recursos clave** | La plataforma, la base de usuarios verificados y su reputación acumulada |
+| **Actividades clave** | Emparejar trabajos con trabajadores cercanos, verificar identidades, procesar pagos y moderar reportes |
+| **Socios clave** | Pasarela de pagos (a futuro), Poder Judicial (hoja de delincuencia), OpenStreetMap (mapas sin costo) |
+| **Estructura de costos** | Hosting y mantenimiento. Costos bajos por decisión: mapas gratis (OpenStreetMap) y sin API de IA de pago |
+
+---
+
+## 9. Métricas que la app permite medir
+
+Para el punto de "métricas de lanzamiento y operación". Todas salen de datos que la app ya registra:
+
+| Métrica | Qué indica | De dónde sale |
+|---|---|---|
+| Trabajos publicados y tasa de asignación | Si hay oferta y demanda | Trabajos y su estado |
+| Tiempo hasta que una urgencia es aceptada | Si el Modo Urgencia cumple su promesa | Fecha de creación y de asignación |
+| % de pagos con tarjeta | Cuánto del volumen genera comisión | Pagos |
+| Conversión a Plan Plus | Si la suscripción tiene valor | Usuarios por plan y suscripciones |
+| % de usuarios verificados | Nivel de confianza de la red | Verificación |
+| **Tasa de recontratación** | Si los clientes vuelven (retención) | Ofertas directas aceptadas |
+| "Guardado por" promedio | Lealtad hacia los trabajadores | De confianza |
+| Calificación promedio y reportes por cada 100 trabajos | Calidad del servicio | Calificaciones y reportes |
+| Trueques que terminan cumplidos | Salud del trueque | Calificaciones con "¿Cumplió su parte?" |
+| Usuarios que llegan por links compartidos | Rendimiento del canal WhatsApp | Links de compartir y recomendar |
+| Ingresos por fuente | Mezcla del modelo freemium | Ingresos de CIRA |
+
+---
+
+## 10. Qué es real y qué es simulado
+
+Conviene decirlo con claridad en la exposición: el profesor pidió un mockup interactivo, y ser transparentes da credibilidad.
+
+| Real (funciona de verdad) | Simulado (por diseño, para la demo) |
+|---|---|
+| Base de datos SQLite que persiste entre recargas | Inicio de sesión: PIN `1234` para todos, sin SMS ni seguridad real |
+| Varios usuarios a la vez, chat, postulaciones, calificaciones | Pagos con tarjeta y suscripción Plus: no se cobra dinero |
+| Mapa real con geocodificación (OpenStreetMap) | Verificación de documentos: la "lectura" de la cédula y la revisión son automáticas |
+| Cálculo de comisiones, tarifas, propinas e ingresos | Alertas: se consultan cada pocos segundos, sin notificaciones push |
+| Reglas de negocio (límites del plan, vigencia de la hoja, acuerdo del trueque) validadas en el servidor | Los archivos de verificación no se guardan |
+
+---
+
+## 11. Guion de la demo
+
+Unos 8 minutos. Cada integrante con su teléfono conectado (`npm run demo` en `server/`; ver `README.md`). La base se recrea sola con datos de ejemplo listos para este guion.
+
+| # | Quién | Qué mostrar | Sección |
+|---|---|---|---|
+| 1 | Cualquiera | Explorar: tarjetas con foto, filtros y modo oscuro desde Cuenta → Apariencia | 4.2, 4.4 |
+| 2 | Eduardo (cliente) | Registra su tarjeta en Cuenta → Mi tarjeta (número de prueba `4242 4242 4242 4242`) y publica una **urgencia de plomería** pagando con tarjeta: el resumen muestra la tarifa de urgencia y la comisión | 6.1, 6.2, 7.2 |
+| 3 | Bayron (Plus, plomero) | Recibe la alerta primero, acepta la urgencia y avanza el seguimiento hasta "Terminado" | 6.3, 7.3 |
+| 4 | Marisol (sin cédula verificada) | En Explorar, las urgencias le piden "Verifica tu cédula"; verifica en vivo desde el recordatorio del Perfil y queda habilitada | 5.2, 7.2 |
+| 5 | Eduardo | Ve el seguimiento en vivo, paga con propina y califica a Bayron | 5.1, 6.2 |
+| 6 | Cualquiera | Cuenta → Ingresos de CIRA: lo que la plataforma ganó con lo que acabamos de hacer | 6.4 |
+| 7 | Ian | Perfil de un trabajador: corazón, "Guardado por N", Recomendar y Recontratar → oferta directa | 5.3 |
+| 8 | Ian / Bayron | Trueque "Subir refrigeradora": la contrapropuesta de Bayron, el acuerdo y el cierre en dos pasos | 7.5 |
+| 9 | Ian | Su hoja de delincuencia viene vencida: la renueva | 5.2 |
+
+> Para no esperar los 2 minutos del plan gratis en las alertas, se puede arrancar el servidor con `CIRA_RETRASO_ALERTAS_SEG=10`.
+
+---
+
+## 12. Decisiones descartadas y preguntas probables
+
+### Lo que decidimos no hacer (y por qué)
+
+| Idea | Decisión | Por qué |
+|---|---|---|
+| Sugerir la categoría con IA | Descartada (queda en el roadmap) | Pocas categorías; costo por uso y dependencia de un proveedor externo (Porter) |
+| Contacto por WhatsApp con el trabajador | Quitado | El trato saldría de la app y se perdería el pago, el seguimiento y la reputación. Sí se comparten links que llevan a CIRA |
+| Quinto botón en la barra para "De confianza" | No | La barra es para lo diario; lo ocasional va dentro de Perfil y Trabajadores |
+| Tarjeta grande con foto en todas las pantallas | Solo en Explorar | En gestión importa ver mucho de un vistazo |
+| Sanciones automáticas del trueque | Como política futura | Requieren un panel de administración y generan preguntas de privacidad |
+| Créditos o monedas internas para el trueque | No | La propuesta original los descartaba; lo resolvimos con el diferencial en dinero |
+
+### Preguntas que nos pueden hacer
+
+- **"¿Cómo gana dinero si el trueque no mueve dinero?"** → Por el Plan Plus (trueques ilimitados) y la comisión del diferencial con tarjeta ([§7.5](#75-trueque-de-servicios)).
+- **"¿Cómo evitan que se vayan a WhatsApp después del primer trabajo?"** → Recontratar dentro de la app es más fácil, el teléfono no se muestra, y la reputación y el seguimiento solo existen dentro de CIRA ([§5.3](#53-de-confianza-y-recontratar)).
+- **"¿Por qué alguien pagaría Plus si igual recibe las alertas?"** → En urgencias, llegar primero es quedarse con el trabajo; y entre los Plus gana el mejor calificado ([§6.3](#63-plan-plus-para-trabajadores)).
+- **"¿Cómo verifican de verdad la cédula?"** → En la demo es simulado; en producción se integraría con un servicio de verificación de identidad y la consulta de la hoja del Poder Judicial. El flujo y los estados ya están diseñados para eso ([§5.2](#52-verificación-de-cédula-y-hoja-de-delincuencia)).
+- **"¿Dónde está la IA o la nube?"** → Usamos IA (Claude Code) para desarrollar la app y su sistema de diseño; la app corre como servicio web y se puede publicar en la nube.
+- **"¿Qué pasa si un trabajador no cumple?"** → Reportes, calificación de cumplimiento en el trueque y la verificación vinculada a la cédula.
+
+---
+
+## 13. Registro de cambios
+
+Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una fila aquí y se actualiza o crea su sección arriba.
+
+| Commit | Qué entró | Sección |
+|---|---|---|
+| `360d721` | Trueque de servicios (idea #10) | 7.5, 6.3 |
+| `07e3d10` | Verificación de cédula y hoja de delincuencia | 5.2 |
+| `09c4cbf` | Modo oscuro | 4.4 |
+| `5655f7e` | Botón "+" junto a la barra; listas visibles en pantallas pequeñas | 4.3 |
+| `ed68772` | Barra inferior flotante sobre el contenido | 4.3 |
+| `fcd565a` | De confianza: guardar, recomendar y recontratar | 5.3 |
+| `29fd091` | Miniaturas de categoría en las pantallas de gestión | 4.2 |
+| `55feda1` | Tarjetas de trabajo con foto por categoría | 4.2 |
+| `4052114` | La tarjeta registrada gira al entrar a Mi tarjeta | 6.2 |
+| `70dd88b` | Ajustes de diseño y tarjeta de crédito realista | 4.1, 6.2 |
+| `e3c414a` | Toda la interfaz migrada a CIRA Aire | 4.1 |
+| `cfb1ac2` | Modo urgencia para cualquier categoría | 7.2 |
+| `d20f690` | Tarjeta, propina, Mi actividad, avisos y ajustes de la primera revisión | 6.2, 6.4, 7.4 |
+| `80baa17` | Ian pasa al Plan Plus para la presentación | 7.1 |
+| `7527420` | Los 6 usuarios del equipo | 7.1 |
+| `27c5b68` | Español e inglés | 4.5 |
+| `69e0de2` | Multiusuario, calificaciones, urgencias, pagos, Plan Plus y seguimiento | 5.1, 6, 7 |
+| `9743b42` | Sistema de diseño CIRA Aire | 4.1 |
+| `0c7ea79` | Ideas alineadas con el resumen del entregable final | — |
+| `9379bfb` | Backlog de ideas de innovación | — |

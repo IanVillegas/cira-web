@@ -7,6 +7,12 @@ mockup interactivo web con datos reales.
 - [`web/`](web) — Frontend (React + TypeScript + Tailwind CSS, Vite).
 - [`server/`](server) — Backend (Express + SQLite vía `node:sqlite`).
 
+## Documentación del proyecto
+
+- [`docs/novedades-entregable-final.md`](docs/novedades-entregable-final.md): todo lo nuevo para la exposición final, con su justificación y el guion de la demo.
+- [`docs/ideas-innovacion-cira.md`](docs/ideas-innovacion-cira.md): backlog y valoración de ideas.
+- [`DESIGN.md`](DESIGN.md): sistema de diseño CIRA Aire.
+
 ## Uso rápido
 
 ```bash
