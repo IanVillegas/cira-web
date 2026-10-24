@@ -1,17 +1,17 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
-import { Badge, Button, Card, Icon } from "@/components/aire";
-import { Calificacion } from "./Estrellas";
+import { Badge, Button, Icon } from "@/components/aire";
 import { api } from "@/lib/api";
+import { visualDeCategoria } from "@/lib/categorias";
 import { formatoColones as formatoPago } from "@/lib/format";
 import { tr } from "@/lib/i18n";
 import type { Trabajo } from "@/lib/types";
 
 interface JobCardProps {
   trabajo: Trabajo;
-  onApply?: (id: string) => void;
+  onApply?: (id: string) => void | Promise<unknown>;
   /** Modo urgencia: el primero en aceptar se queda con el trabajo. */
-  onAcceptUrgent?: (id: string) => void;
+  onAcceptUrgent?: (id: string) => void | Promise<unknown>;
   defaultExpanded?: boolean;
 }
 
@@ -26,9 +26,16 @@ function enlaceWhatsApp(trabajo: Trabajo) {
   return `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
 }
 
+/**
+ * Tarjeta de trabajo con la foto de su categoría: la imagen se funde con el tono
+ * de la categoría (--aire-cat-*) para que el texto se lea encima. Una acción
+ * principal (Postularme o Aceptar urgencia) y tres secundarias de ícono.
+ */
 export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = false }: JobCardProps) {
+  const visual = visualDeCategoria(trabajo.categoria);
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [abriendoChat, setAbriendoChat] = useState(false);
+  const [enviando, setEnviando] = useState(false);
   const navigate = useNavigate();
 
   const comunicarse = async () => {
@@ -41,110 +48,124 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
     }
   };
 
+  const accionPrincipal = async () => {
+    const accion = trabajo.urgente ? onAcceptUrgent : onApply;
+    if (!accion) return;
+    setEnviando(true);
+    try {
+      await accion(trabajo.id);
+    } finally {
+      setEnviando(false);
+    }
+  };
+
   return (
-    <Card className="grid gap-4">
-      <button
-        type="button"
-        aria-expanded={expanded}
-        className="flex w-full items-start gap-3 text-left"
-        onClick={() => setExpanded((v) => !v)}
-      >
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
-          <Icon name="work" size={26} className="text-aire-accent-text" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-center gap-1.5">
-            <span className="aire-text-eyebrow text-aire-accent-text">{tr(trabajo.categoria)}</span>
-            {trabajo.urgente && (
-              <Badge tone="danger" dot pulse>
-                {tr("Urgente")}
-              </Badge>
-            )}
+    <article
+      className={`ca-photocard ${visual.imagen ? "" : "is-sinfoto"}`}
+      style={{ "--ca-photo-tone": visual.tono } as CSSProperties}
+    >
+      {visual.imagen && (
+        <div className="ca-photocard__media">
+          <img src={visual.imagen} alt="" loading="lazy" decoding="async" />
+        </div>
+      )}
+      {visual.imagen && <div className="ca-photocard__fade" aria-hidden="true" />}
+
+      <div className="ca-photocard__top">
+        <div className="ca-photocard__stack">
+          <span className="ca-photocard__pill aire-text-eyebrow">
+            <Icon name={visual.icono} size={16} />
+            {tr(trabajo.categoria)}
           </span>
-          <span className="aire-text-headline block text-aire-ink">{trabajo.titulo}</span>
-        </span>
-        <Icon
-          name="expand_more"
-          size={22}
-          className={`mt-1 shrink-0 text-aire-ink-2 transition-transform duration-[320ms] ease-aire-spring ${expanded ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      <div className="grid gap-2">
-        <Fila icon="location_on">
-          {trabajo.ubicacion} · {trabajo.distanciaKm} km
-        </Fila>
-        <Fila icon="person">
-          <span className="truncate">{trabajo.publicador}</span>
-          <Calificacion valor={trabajo.publicadorCalificacion} />
-        </Fila>
-        <Fila icon="calendar_month">{tr(trabajo.fecha)}</Fila>
+          {trabajo.urgente && (
+            <Badge tone="danger" dot pulse>
+              {tr("Urgente")}
+            </Badge>
+          )}
+        </div>
+        <span className="ca-photocard__pill aire-text-headline">{formatoPago.format(trabajo.pago)}</span>
       </div>
 
-      <div>
-        <p className="aire-text-eyebrow text-aire-ink-2">{tr("Pago estimado")}</p>
-        <p className="aire-text-figure text-aire-ink">{formatoPago.format(trabajo.pago)}</p>
-      </div>
+      <div className="ca-photocard__body">
+        <div className="grid gap-1">
+          <h3 className="aire-text-title-3">{trabajo.titulo}</h3>
+          <p className="ca-photocard__meta aire-text-footnote">
+            <Icon name="location_on" size={16} />
+            {trabajo.ubicacion} · {trabajo.distanciaKm} km
+          </p>
+          <p className="ca-photocard__meta aire-text-footnote">
+            <Icon name="person" size={16} />
+            <span className="truncate">{trabajo.publicador}</span>
+            {trabajo.publicadorCalificacion === null ? (
+              <span>· {tr("Nuevo")}</span>
+            ) : (
+              <span className="inline-flex items-center gap-0.5">
+                · <Icon name="star" filled size={14} className="text-aire-warning" />
+                {trabajo.publicadorCalificacion.toFixed(1)}
+              </span>
+            )}
+          </p>
+        </div>
 
-      <div className="grid gap-2.5">
-        {trabajo.urgente ? (
-          <Button icon="bolt" onClick={() => onAcceptUrgent?.(trabajo.id)}>
-            {tr("Aceptar urgencia")}
-          </Button>
-        ) : (
-          <Button variant={trabajo.yaPostulado ? "destructive" : "primary"} onClick={() => onApply?.(trabajo.id)}>
-            {trabajo.yaPostulado ? tr("Retirar") : tr("Postularme")}
-          </Button>
+        {trabajo.descripcion && (
+          <button
+            type="button"
+            className={`ca-photocard__desc aire-text-subhead ${expanded ? "is-open" : ""}`}
+            aria-expanded={expanded}
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {trabajo.descripcion}
+          </button>
         )}
-        <div className="grid grid-cols-2 gap-2.5">
-          <Button variant="secondary" icon="chat_bubble" loading={abriendoChat} onClick={comunicarse}>
-            {tr("Comunícate")}
-          </Button>
-          <a href={enlaceWhatsApp(trabajo)} target="_blank" rel="noreferrer" className="ca-btn ca-btn--secondary ca-btn--md ca-btn--full">
-            <span className="ca-btn__label">
-              <Icon name="share" size={20} />
-              {tr("Compartir")}
-            </span>
+
+        <div className="ca-photocard__tags aire-text-caption">
+          <span className="ca-photocard__tag">
+            <Icon name="calendar_month" size={14} />
+            {tr(trabajo.fecha)}
+          </span>
+          <span className="ca-photocard__tag">
+            <Icon name="payments" size={14} />
+            {tr(trabajo.metodoPago)}
+          </span>
+          <span className="ca-photocard__tag">
+            <Icon name="groups" size={14} />
+            {tr("{n} persona(s)", { n: trabajo.postulantes })}
+          </span>
+        </div>
+
+        <div className="ca-photocard__actions">
+          {trabajo.urgente ? (
+            <Button variant="photo" icon="bolt" loading={enviando} onClick={accionPrincipal}>
+              {tr("Aceptar urgencia")}
+            </Button>
+          ) : (
+            <Button variant={trabajo.yaPostulado ? "photo-soft" : "photo"} loading={enviando} onClick={accionPrincipal}>
+              {trabajo.yaPostulado ? tr("Retirar") : tr("Postularme")}
+            </Button>
+          )}
+          <button
+            type="button"
+            className="ca-photocard__iconbtn"
+            aria-label={tr("Comunícate")}
+            disabled={abriendoChat}
+            onClick={comunicarse}
+          >
+            <Icon name="chat_bubble" size={20} />
+          </button>
+          <a
+            href={enlaceWhatsApp(trabajo)}
+            target="_blank"
+            rel="noreferrer"
+            className="ca-photocard__iconbtn"
+            aria-label={tr("Compartir")}
+          >
+            <Icon name="share" size={20} />
           </a>
-        </div>
-        <Button variant="plain" icon="map" onClick={() => navigate("/mapa")}>
-          {tr("Ver en mapa")}
-        </Button>
-      </div>
-
-      <div
-        className="grid transition-[grid-template-rows] duration-[320ms] ease-aire-spring"
-        style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}
-      >
-        <div className="overflow-hidden">
-          <div className="grid gap-3 border-t border-aire-hairline pt-4">
-            <Detalle icon="description" label={tr("Descripción")} text={trabajo.descripcion || "—"} />
-            <Detalle icon="payments" label={tr("Método de pago")} text={tr(trabajo.metodoPago)} />
-            <Detalle icon="groups" label={tr("Postulantes")} text={tr("{n} persona(s)", { n: trabajo.postulantes })} />
-          </div>
+          <button type="button" className="ca-photocard__iconbtn" aria-label={tr("Ver en mapa")} onClick={() => navigate("/mapa")}>
+            <Icon name="map" size={20} />
+          </button>
         </div>
       </div>
-    </Card>
-  );
-}
-
-function Fila({ icon, children }: { icon: string; children: React.ReactNode }) {
-  return (
-    <div className="aire-text-subhead flex min-w-0 items-center gap-2.5 text-aire-ink-2">
-      <Icon name={icon} size={20} className="shrink-0 text-aire-accent-text" />
-      {children}
-    </div>
-  );
-}
-
-function Detalle({ icon, label, text }: { icon: string; label: string; text: string }) {
-  return (
-    <div className="flex items-start gap-2.5">
-      <Icon name={icon} size={20} className="mt-0.5 text-aire-accent-text" />
-      <div>
-        <p className="aire-text-subhead font-semibold text-aire-ink">{label}</p>
-        <p className="aire-text-subhead text-aire-ink-2">{text}</p>
-      </div>
-    </div>
+    </article>
   );
 }

@@ -54,6 +54,9 @@ const TRABAJOS_ABIERTOS = [
   ["t-2", "Pintar sala y comedor", "Pintura de dos ambientes, aproximadamente 40 m². La pintura ya está comprada.", "Reparaciones", "Alajuela, Río Segundo", 10.0134, -84.2239, "Mañana, 8:00 a.m.", 45000, APP, "u-5"],
   ["t-3", "Mudanza de apartamento pequeño", "Ayuda para mover cajas y muebles de un apartamento de 1 habitación a otro edificio cercano.", "Mudanzas", "Heredia Centro", 9.9989, -84.1174, "Sábado, 9:00 a.m.", 25000, EFECTIVO, "u-5"],
   ["t-4", "Poda de jardín y limpieza de zacate", "Jardín de casa con zacate alto y algunos arbustos que necesitan poda.", "Jardinería", "Alajuela, Desamparados", 10.025, -84.25, "Hoy, 5:30 p.m.", 12000, APP, "u-3"],
+  ["t-5", "Traer sofá comprado en Heredia", "Compré un sofá de 3 plazas en Marketplace y necesito traerlo hasta mi casa. Ideal si tienes pickup o carro grande.", "Transporte", "Alajuela, San Rafael", 10.004, -84.208, "Domingo, 10:00 a.m.", 10000, APP, "u-6"],
+  ["t-6", "Baño y cepillado para gato", "Gato de pelo largo, tranquilo. Necesita baño, secado y cepillado en casa.", "Cuidado de mascotas", "Alajuela, Guácima", 9.98, -84.255, "Jueves, 4:00 p.m.", 8000, EFECTIVO, "u-3"],
+  ["t-7", "Instalar lámparas en terraza", "Instalación de tres lámparas exteriores y un interruptor nuevo. Los materiales ya están comprados.", "Electricidad", "Alajuela, El Coyol", 10.005, -84.27, "Mañana, 2:00 p.m.", 22000, APP, "u-6"],
   ["p-1", "Limpieza profunda de apartamento", "Limpieza general de apartamento de 2 habitaciones antes de mudanza.", "Limpieza", "Alajuela Centro", 10.0163, -84.2113, "Viernes, 1:00 p.m.", 20000, APP, "u-1"],
 ];
 

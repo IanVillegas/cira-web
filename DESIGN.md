@@ -152,6 +152,10 @@ Tarjeta de trabajo típica:
 </Card>
 ```
 
+### Tarjeta de trabajo con foto (`JobCard`)
+
+Única excepción a «sin degradados»: el degradado no decora, es el velo que hace legible el texto sobre la foto. Cada categoría tiene su foto en `web/public/images/categorias/<slug>.webp` (640×800, WebP) y su tono `--aire-cat-<slug>`; el mapeo está en `web/src/lib/categorias.ts` (las categorías sin foto, como Cerrajería, usan `--aire-cat-default`). Sobre la foto el texto usa `--aire-on-photo` / `--aire-on-photo-2`, los chips `--aire-photo-chip` y las píldoras `--aire-photo-glass`. La acción principal usa `Button variant="photo"` (o `"photo-soft"` para retirar la postulación); las secundarias son botones de ícono de 44px (`.ca-photocard__iconbtn`). Para sumar una foto: agrega la imagen, el token `--aire-cat-<slug>` y la entrada en `categorias.ts`.
+
 ## Voz y contenido
 
 - Habla de tú, con verbos claros: «Postularme», «Publicar trabajo», «Elegir distrito».
