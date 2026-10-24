@@ -21,11 +21,14 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 | 7 | Seguimiento del trabajo tipo Uber | ✅ Implementada | Media (la primera extra) |
 | 8 | Compartir un trabajo por WhatsApp | ✅ Implementada | Baja |
 | 9 | Idioma español / inglés | ✅ Implementada | Baja |
+| 10 | Trueque de servicios ("Trueque de barrio") | ✅ Implementada (alcance recortado) | Media |
 
 **Monetización (freemium):** la app es gratis para todos y CIRA gana dinero con tres fuentes, todas simuladas en la demo:
 1. **Plan Plus**: suscripción mensual del trabajador (idea #6).
 2. **Tarifa de urgencia**: pago único por trabajo urgente (idea #3).
 3. **Comisión** sobre los pagos hechos en la app (idea #4).
+
+El **trueque** (idea #10) no mueve dinero, así que se monetiza por el Plan Plus: el plan gratis permite 1 trueque al mes y Plus, ilimitados. Si el trueque lleva un diferencial en dinero y se paga con tarjeta, cobra la comisión normal.
 
 ---
 
@@ -182,6 +185,34 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 ---
 
+## 10. Trueque de servicios ("Trueque de barrio")
+
+> Idea propuesta por una compañera del equipo. Valorada en grupo antes de implementarla; se hizo con un alcance recortado.
+
+**Problema que resuelve:** Muchos trabajadores independientes necesitan servicios para su casa o su negocio, pero no siempre tienen el dinero para pagarlos. Pueden pagarlos con su propio trabajo.
+
+**Propuesta original:** intercambio 1 a 1 de servicios sin créditos ni monedas internas, con diferencial en efectivo, contraofertas por chat, acuerdo digital, cierre en dos pasos, calificación cruzada obligatoria y un sistema de disputas y sanciones (evidencia con chat, geolocalización y fotos; congelamiento de la cuenta; suspensión de 30 días a la primera falta y expulsión permanente a la segunda; sanción al denunciante de mala fe).
+
+**Valoración:**
+- ⚠️ **Choca con el modelo de negocio:** un trueque no mueve dinero, así que CIRA no cobra nada. Además abre un hueco: marcar como trueque un trabajo pagado para no pagar la comisión. → Se resuelve atándolo al **Plan Plus** (gratis: 1 trueque al mes; Plus: ilimitados).
+- ⚠️ **No resuelve el arranque ("huevo y gallina"), lo dificulta:** un trueque necesita que coincidan dos necesidades a la vez (yo necesito lo que tú ofreces y tú lo que yo ofrezco), algo más difícil con pocos usuarios que un trabajo pagado. Sí sirve como **mensaje de marketing** para el lanzamiento local.
+- ⚠️ **Las sanciones son demasiado para el MVP:** bloquear por huella del dispositivo, verificar la geolocalización y resolver en 48 horas requiere un panel de administración que no existe y genera preguntas de privacidad; suspender 30 días a la primera falta es muy duro. Quedan como **política** (roadmap y términos de uso), no en la app. Se rescata la sanción al denunciante de mala fe.
+- ✅ Gran parte ya existía: chat (contraofertas), seguimiento por etapas (cierre en dos pasos), calificación en ambas direcciones y "Reportar usuario" (disputas).
+
+**Cómo funciona (lo implementado):**
+- Al publicar, **Trueque** es un tercer método de pago (junto a Efectivo y Tarjeta): se indica qué se ofrece a cambio y, opcionalmente, un **diferencial** en colones (en efectivo o con tarjeta).
+- Al postularse, el trabajador acepta lo ofrecido o **propone otra cosa** (contraoferta). El publicador ve la propuesta de cada postulante antes de elegir.
+- **Acuerdo digital:** al elegir a alguien, el publicador firma el acuerdo (quién hace qué y cuándo); el trabajador lo acepta en *Mis trabajos* antes de empezar. Sin acuerdo aceptado no arranca el seguimiento.
+- **Cierre en dos pasos:** el trabajador hace su parte con el seguimiento normal y la marca como **"Primera parte entregada"**; cuando recibe la parte del publicador, marca **"Trueque finalizado"**.
+- Después se paga el diferencial (si hay) y ambos se califican, con la pregunta de si la otra persona **cumplió su parte**.
+- Disputas: con el "Reportar usuario" existente.
+
+**Relación con el modelo de negocio:** Empuja a los usuarios hacia el Plan Plus (trueques ilimitados) y el diferencial con tarjeta genera comisión. Refuerza el sentido de comunidad, que es parte de la propuesta de valor.
+
+**Viabilidad para la demo:** Alta. Se apoya en el flujo de publicar, postular, seguimiento, pago y calificación que ya existe.
+
+---
+
 ## Decisiones de implementación (para el documento)
 
 - **Cobros (todos simulados):** el cliente paga el monto del trabajo **+ comisión de CIRA (10 %, solo si paga con tarjeta) + tarifa de urgencia (15 %, solo urgencias)**; el trabajador recibe el monto completo. Los porcentajes y el precio del Plus se cambian en `server/src/config.js`.
@@ -192,6 +223,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 - **Alertas:** se consultan cada 5 s (sin notificaciones push). Radio de 15 km; los Plus las ven al instante (los mejor calificados primero, +10 s por puesto) y el plan gratis tras 2 minutos (`CIRA_RETRASO_ALERTAS_SEG` para acortarlo en la demo). Una alerta dura 30 minutos.
 - **Seguimiento:** aplica a cualquier trabajo asignado, no solo a urgencias. Al marcar "Terminado" el cliente paga y luego ambos califican.
 - **Insignias:** Plus (según el plan), cédula y hoja de delincuencia (campos de prueba), +50 trabajos (calculado) y "Responde urgencias" (se activa al aceptar una).
+- **Trueque (#10):** `pago` es el diferencial (puede ser 0) y `metodoPago`, cómo se paga. El límite del plan gratis está en `server/src/config.js` (`TRUEQUES_GRATIS_MES`). Un trueque no puede ser urgencia. Al elegir postulante, el publicador firma el acuerdo; sin que el trabajador lo acepte no arranca el seguimiento. "Terminado" en el seguimiento es la primera parte; el trueque termina cuando el trabajador marca que recibió la segunda, y si no hay diferencial queda pagado automáticamente.
 - **Idioma (#9):** selector en Cuenta (recarga la app). Los textos viven en el código en español y `web/src/lib/i18n/en.ts` trae la traducción al inglés (clave = texto en español; si falta, se muestra en español). Los errores del servidor también se traducen. El contenido escrito por los usuarios (títulos, descripciones, chats) no se traduce.
 
 ## Cambios técnicos pendientes (no son ideas nuevas)

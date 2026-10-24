@@ -88,11 +88,12 @@ Todos (salvo `auth` y `config`) requieren la cabecera `X-Cira-User`.
 | POST/PUT/DELETE | `/api/usuario/servicios[/:id]` | Servicios ofrecidos |
 | GET | `/api/usuarios/:id` | Perfil público: calificación, insignias, comentarios |
 | GET | `/api/trabajos` | Trabajos abiertos de otros; `?publicadas=true` o `?mios=true` |
-| POST | `/api/trabajos` | Publica (con `urgente: true` para el modo urgencia, o `invitadoId` para una oferta directa) |
+| POST | `/api/trabajos` | Publica (con `urgente: true` para el modo urgencia, `invitadoId` para una oferta directa, o `trueque: true` + `ofrece` para un trueque; ahí `pago` es el diferencial y puede ser 0. Plan gratis: `CIRA_TRUEQUES_GRATIS_MES` trueques al mes, 1 por defecto) |
 | PATCH | `/api/trabajos/:id` | Edita una publicación pendiente (solo su dueño) |
-| PATCH | `/api/trabajos/:id/postular` | Postula/retira postulación |
+| PATCH | `/api/trabajos/:id/postular` | Postula/retira postulación (en un trueque, `propuesta` es la contraoferta) |
 | GET/POST | `/api/trabajos/:id/postulantes`, `/asignar` | El publicador elige a un postulante |
 | POST | `/api/trabajos/:id/invitacion/aceptar`, `/rechazar` | La persona invitada acepta la oferta directa o la rechaza (queda abierta para todos) |
+| POST | `/api/trabajos/:id/trueque/aceptar`, `/finalizar` | Trueque: el trabajador acepta el acuerdo; luego cierra el trueque al recibir la parte del publicador |
 | POST | `/api/trabajos/:id/aceptar-urgencia` | El primero que acepta se queda con la urgencia |
 | PATCH | `/api/trabajos/:id/etapa` | Seguimiento: Aceptado → En camino → Llegó → Terminado |
 | POST | `/api/trabajos/:id/cancelar`, `/pagar`, `/calificar` | Cancelar/retirarse, pago simulado (con `propina` opcional), calificación 1–5 |

@@ -25,6 +25,8 @@ export const CONFIG = {
   REVISION_DOCUMENTOS_SEG: num(process.env.CIRA_REVISION_SEG, 6),
   /** Meses que se considera vigente la hoja de delincuencia desde su emisión (regla de CIRA). */
   VIGENCIA_ANTECEDENTES_MESES: 3,
+  /** Trueques que puede publicar al mes el plan gratis (Plus: ilimitados). */
+  TRUEQUES_GRATIS_MES: num(process.env.CIRA_TRUEQUES_GRATIS_MES, 1),
 };
 
 export const METODOS_PAGO = ["Efectivo", "Tarjeta"];

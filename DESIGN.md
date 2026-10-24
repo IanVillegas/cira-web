@@ -174,6 +174,13 @@ La app elige el tema con `lib/tema.ts` (Cuenta → Apariencia: Automático, Clar
 
 Cuenta → Verificación (`/cuenta/verificacion`). Cada documento es una tarjeta con su estado en `Badge`: Sin enviar (`neutral`), En revisión (`warning`, con `pulse`), Verificada (`success`) y Vencida (`danger`). Los flujos van en `Sheet`: la cédula pide fotos del frente y del reverso (en el teléfono abre la cámara), simula la lectura y muestra los datos para confirmar; la hoja de delincuencia pide el archivo y la fecha de emisión. Las imágenes solo se ven en el teléfono (vista previa local) y nunca se envían. Las insignias «Cédula verificada» y «Hoja de delincuencia al día» salen de aquí; sin cédula verificada, la tarjeta de una urgencia muestra «Verifica tu cédula» en lugar de «Aceptar urgencia». El Perfil muestra un recordatorio si la hoja venció o falta la cédula.
 
+### Trueque
+
+- Al publicar, **Trueque** es una tercera `SelectableCard` junto a Efectivo y Tarjeta; abre «¿Qué ofreces a cambio?» y el diferencial opcional. El plan gratis ve su cupo del mes; sin cupo, el aviso va en `warning-soft` con el enlace al Plan Plus.
+- En `JobCard`, la píldora del precio dice «Trueque» (+ diferencial) y lo ofrecido va en un bloque `.ca-photocard__swap`. Postularse abre `PostularTruequeSheet` (aceptar lo ofrecido o proponer otra cosa).
+- `AcuerdoTrueque` muestra las dos partes del trato (quién hace qué y cuándo) con un check por parte cumplida; lo ven el publicador y el trabajador.
+- En `RatingSheet`, un trueque pide además «¿Cumplió su parte?»; en el perfil público el comentario lleva la insignia «Cumplió / No cumplió el trueque».
+
 ## Voz y contenido
 
 - Habla de tú, con verbos claros: «Postularme», «Publicar trabajo», «Elegir distrito».

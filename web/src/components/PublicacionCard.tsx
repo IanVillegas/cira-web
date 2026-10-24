@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, Icon } from "@/components/aire";
 import type { BadgeTone } from "@/components/aire/Badge";
+import { AcuerdoTrueque } from "./AcuerdoTrueque";
 import { CategoriaThumb } from "./CategoriaThumb";
 import { Calificacion } from "./Estrellas";
 import { InsigniaChips } from "./InsigniaChips";
@@ -83,11 +84,25 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
           </p>
           <p className="aire-text-headline text-aire-ink">{trabajo.titulo}</p>
           <p className="aire-text-footnote text-aire-ink-2">
-            {tr(trabajo.fecha)} · {formatoColones.format(trabajo.pago)}
+            {tr(trabajo.fecha)} ·{" "}
+            {trabajo.trueque
+              ? trabajo.pago > 0
+                ? tr("Trueque + {monto}", { monto: formatoColones.format(trabajo.pago) })
+                : tr("Trueque")
+              : formatoColones.format(trabajo.pago)}
           </p>
         </div>
         <Badge tone={ESTADO_TONO[trabajo.estado] ?? "neutral"}>{tr(trabajo.estado)}</Badge>
       </div>
+
+      {pendiente && trabajo.trueque && (
+        <p className="aire-text-subhead flex items-start gap-2 rounded-aire-md bg-aire-surface-2 p-3 text-aire-ink">
+          <Icon name="handshake" size={20} className="mt-px shrink-0 text-aire-accent-text" />
+          <span>
+            <span className="font-semibold">{tr("Ofreces a cambio:")}</span> {trabajo.trueque.ofrece}
+          </span>
+        </p>
+      )}
 
       {pendiente && trabajo.urgente && (
         <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-danger-soft p-3 text-aire-danger-text">
@@ -142,6 +157,18 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
                     <Calificacion valor={p.calificacion} total={p.numCalificaciones} />
                   </div>
                   <InsigniaChips insignias={p.insignias} compact />
+                  {trabajo.trueque && (
+                    <p className="aire-text-footnote flex items-start gap-1.5 text-aire-ink-2">
+                      <Icon name={p.propuesta ? "swap_horiz" : "handshake"} size={16} className="mt-px shrink-0 text-aire-accent-text" />
+                      {p.propuesta ? (
+                        <span>
+                          <span className="font-semibold text-aire-ink">{tr("Propone a cambio:")}</span> {p.propuesta}
+                        </span>
+                      ) : (
+                        tr("Acepta lo que ofreces")
+                      )}
+                    </p>
+                  )}
                   <div className="grid grid-cols-2 gap-2">
                     <Button variant="secondary" size="sm" onClick={() => navigate(`/usuarios/${p.id}`)}>
                       {tr("Ver perfil")}
@@ -176,11 +203,13 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
             <span className="flex-1 truncate">{trabajo.trabajadorNombre}</span>
             <Icon name="chat_bubble" size={20} className="text-aire-accent-text" />
           </button>
-          <SeguimientoTrabajo etapa={trabajo.etapa} />
+          {trabajo.trueque && <AcuerdoTrueque trabajo={trabajo} rol="publicador" />}
+          {trabajo.trueque && enCurso && <EstadoTrueque trabajo={trabajo} />}
+          {(!trabajo.trueque || trabajo.trueque.acuerdoAceptado) && <SeguimientoTrabajo etapa={trabajo.etapa} />}
         </>
       )}
 
-      {enCurso && (
+      {enCurso && trabajo.trueque?.etapa !== "primera" && (
         <Button variant="destructive" disabled={ocupado} onClick={cancelar}>
           {tr("Cancelar trabajo")}
         </Button>
@@ -188,9 +217,13 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
 
       {trabajo.estado === "Finalizado" && !trabajo.pagado && (
         <>
-          <PagoResumen resumen={trabajo.resumenPago} />
+          <PagoResumen resumen={trabajo.resumenPago} trueque={!!trabajo.trueque} />
           <Button icon="credit_card" onClick={() => onPay(trabajo)}>
-            {trabajo.metodoPago === "Tarjeta" ? tr("Pagar con tarjeta") : tr("Pagar el trabajo")}
+            {trabajo.trueque
+              ? tr("Pagar el diferencial")
+              : trabajo.metodoPago === "Tarjeta"
+                ? tr("Pagar con tarjeta")
+                : tr("Pagar el trabajo")}
           </Button>
         </>
       )}
@@ -203,5 +236,23 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
 
       {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
     </Card>
+  );
+}
+
+/** Qué falta en un trueque, visto por quien lo publicó. */
+function EstadoTrueque({ trabajo }: { trabajo: Trabajo }) {
+  const t = trabajo.trueque;
+  if (!t) return null;
+  const nombre = trabajo.trabajadorNombre ?? "";
+  const [icon, texto] = !t.acuerdoAceptado
+    ? ["hourglass_top", tr("Esperando que {nombre} acepte el acuerdo.", { nombre })]
+    : t.etapa === "primera"
+      ? ["sync_alt", tr("{nombre} ya entregó su parte. Te toca cumplir la tuya; {nombre} cerrará el trueque al recibirla.", { nombre })]
+      : ["schedule", tr("{nombre} está haciendo su parte del trueque.", { nombre })];
+  return (
+    <p className="aire-text-subhead flex items-start gap-2 rounded-aire-md bg-aire-accent-soft p-3 text-aire-accent-text">
+      <Icon name={icon} size={20} className="mt-px shrink-0" />
+      {texto}
+    </p>
   );
 }

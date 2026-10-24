@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Card, Icon, Loader, PageHeader, Reveal, Stagger } from "@/components/aire";
+import { Badge, Button, Card, Icon, Loader, PageHeader, Reveal, Stagger } from "@/components/aire";
 import { CategoriaChip } from "@/components/CategoriaThumb";
 import { ConfianzaButton } from "@/components/ConfianzaButton";
 import { Calificacion } from "@/components/Estrellas";
@@ -109,6 +109,14 @@ export function PerfilPublicoPage() {
                     <Calificacion valor={c.estrellas} />
                   </div>
                   <p className="aire-text-subhead text-aire-ink-2">{c.comentario}</p>
+                  {c.cumplioTrueque !== undefined && (
+                    <span className="mt-1 self-start">
+                      <Badge tone={c.cumplioTrueque ? "success" : "danger"}>
+                        <Icon name="handshake" size={14} />
+                        {c.cumplioTrueque ? tr("Cumplió el trueque") : tr("No cumplió el trueque")}
+                      </Badge>
+                    </span>
+                  )}
                 </Card>
               ))}
             </Stagger>

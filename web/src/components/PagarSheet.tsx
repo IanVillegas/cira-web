@@ -104,7 +104,7 @@ export function PagarSheet({ trabajo, onClose, onPaid }: PagarSheetProps) {
           )}
         </div>
 
-        {resumen && <PagoResumen resumen={resumen} />}
+        {resumen && <PagoResumen resumen={resumen} trueque={!!trabajo?.trueque} />}
 
         {necesitaTarjeta &&
           (tarjeta ? (

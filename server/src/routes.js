@@ -14,6 +14,7 @@ import {
   mapUsuario,
   mapVerificacion,
   resolverRevision,
+  truequesDelMes,
   contarNoLeidos,
   obtenerUsuario,
   parseFechaSql,
@@ -103,6 +104,7 @@ router.get("/config", (_req, res) => {
     urgenciaPct: CONFIG.URGENCIA_PCT,
     plusPrecio: CONFIG.PLUS_PRECIO,
     retrasoGratisSeg: CONFIG.RETRASO_GRATIS_SEG,
+    truequesGratisMes: CONFIG.TRUEQUES_GRATIS_MES,
   });
 });
 
@@ -349,27 +351,42 @@ router.get("/trabajos/:id", (req, res) => {
 });
 
 router.post("/trabajos", (req, res) => {
-  const { titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodoPago, urgente, invitadoId } = req.body;
+  const { titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodoPago, urgente, invitadoId, trueque, ofrece } = req.body;
   const esUrgente = !!urgente;
+  const esTrueque = !!trueque;
+  if (esTrueque) {
+    if (!String(ofrece ?? "").trim()) return error(res, 400, "Indica qué ofreces a cambio.");
+    if (esUrgente) return error(res, 400, "Un trueque no puede ser urgencia.");
+    const yo = obtenerUsuario(req.usuarioId);
+    if (yo.plan !== "plus" && truequesDelMes(yo.id) >= CONFIG.TRUEQUES_GRATIS_MES) {
+      return error(res, 403, "Ya usaste tu trueque de este mes. Con el Plan Plus son ilimitados.");
+    }
+  }
   if (invitadoId) {
     if (invitadoId === req.usuarioId) return error(res, 400, "No puedes contratarte a ti mismo.");
     if (!obtenerUsuario(invitadoId)) return error(res, 404, "Usuario no encontrado.");
     if (esUrgente) return error(res, 400, "Una oferta directa no puede ser urgencia.");
   }
-  if (!titulo || !categoria || !ubicacion || !(pago > 0) || (!fecha && !esUrgente)) {
+  // En un trueque el pago es el diferencial en dinero: puede ser 0.
+  const pagoValido = esTrueque ? Number(pago ?? 0) >= 0 : pago > 0;
+  if (!titulo || !categoria || !ubicacion || !pagoValido || (!fecha && !esUrgente)) {
     return error(res, 400, "Faltan campos obligatorios o el pago no es válido.");
   }
   const metodo = metodoPago;
   if (!METODOS_PAGO.includes(metodo)) return error(res, 400, "Método de pago no válido.");
-  if (!tarjetaOk(req.usuarioId, metodo, esUrgente)) return error(res, 400, MSG_SIN_TARJETA);
+  // Un trueque sin diferencial no cobra nada: no hace falta tarjeta.
+  const cobraTarjeta = esTrueque ? Number(pago) > 0 && metodo === "Tarjeta" : true;
+  if (cobraTarjeta && !tarjetaOk(req.usuarioId, metodo, esUrgente)) return error(res, 400, MSG_SIN_TARJETA);
 
   const id = `t-${randomUUID()}`;
   db.prepare(
-    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodo_pago, publicador_id, urgente, invitado_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodo_pago, publicador_id, urgente, invitado_id,
+                          es_trueque, ofrece)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
     id, titulo, descripcion ?? "", categoria, ubicacion, lat ?? null, lng ?? null,
-    fecha || "Lo antes posible", pago, metodo, req.usuarioId, esUrgente ? 1 : 0, invitadoId || null,
+    fecha || "Lo antes posible", Math.round(Number(pago ?? 0)), metodo, req.usuarioId, esUrgente ? 1 : 0, invitadoId || null,
+    esTrueque ? 1 : 0, esTrueque ? String(ofrece).trim().slice(0, 300) : null,
   );
   responderTrabajo(req, res, id, 201);
 });
@@ -381,8 +398,9 @@ router.patch("/trabajos/:id", (req, res) => {
   if (row.publicador_id !== req.usuarioId) return error(res, 403, "Solo puedes editar tus publicaciones.");
   if (row.estado !== "Pendiente") return error(res, 409, "Solo se pueden editar publicaciones pendientes.");
 
-  const { titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodoPago } = req.body;
-  if (pago != null && !(pago > 0)) return error(res, 400, "El pago no es válido.");
+  const { titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodoPago, ofrece } = req.body;
+  if (pago != null && !(row.es_trueque ? pago >= 0 : pago > 0)) return error(res, 400, "El pago no es válido.");
+  if (row.es_trueque && ofrece != null && !String(ofrece).trim()) return error(res, 400, "Indica qué ofreces a cambio.");
   const metodo = metodoPago;
   if (metodo && !METODOS_PAGO.includes(metodo)) return error(res, 400, "Método de pago no válido.");
   if (!tarjetaOk(req.usuarioId, metodo ?? row.metodo_pago, !!row.urgente)) return error(res, 400, MSG_SIN_TARJETA);
@@ -397,11 +415,13 @@ router.patch("/trabajos/:id", (req, res) => {
        lng = COALESCE(?, lng),
        fecha = COALESCE(?, fecha),
        pago = COALESCE(?, pago),
-       metodo_pago = COALESCE(?, metodo_pago)
+       metodo_pago = COALESCE(?, metodo_pago),
+       ofrece = CASE WHEN es_trueque = 1 THEN COALESCE(?, ofrece) ELSE ofrece END
      WHERE id = ?`,
   ).run(
     titulo ?? null, descripcion ?? null, categoria ?? null, ubicacion ?? null,
-    lat ?? null, lng ?? null, fecha ?? null, pago ?? null, metodo ?? null, row.id,
+    lat ?? null, lng ?? null, fecha ?? null, pago ?? null, metodo ?? null,
+    ofrece != null ? String(ofrece).trim().slice(0, 300) : null, row.id,
   );
   responderTrabajo(req, res, row.id);
 });
@@ -419,7 +439,9 @@ router.patch("/trabajos/:id/postular", (req, res) => {
   if (existe) {
     db.prepare("DELETE FROM postulacion WHERE trabajo_id = ? AND usuario_id = ?").run(row.id, req.usuarioId);
   } else {
-    db.prepare("INSERT INTO postulacion (trabajo_id, usuario_id) VALUES (?, ?)").run(row.id, req.usuarioId);
+    // En un trueque se puede proponer otra cosa a cambio (contraoferta).
+    const propuesta = row.es_trueque ? String(req.body?.propuesta ?? "").trim().slice(0, 300) || null : null;
+    db.prepare("INSERT INTO postulacion (trabajo_id, usuario_id, propuesta) VALUES (?, ?, ?)").run(row.id, req.usuarioId, propuesta);
   }
   responderTrabajo(req, res, row.id);
 });
@@ -430,9 +452,9 @@ router.get("/trabajos/:id/postulantes", (req, res) => {
   if (row.publicador_id !== req.usuarioId) return error(res, 403, "Solo el publicador ve los postulantes.");
   const yo = obtenerUsuario(req.usuarioId);
   const postulantes = db
-    .prepare("SELECT usuario_id FROM postulacion WHERE trabajo_id = ? ORDER BY creado_en, rowid")
+    .prepare("SELECT usuario_id, propuesta FROM postulacion WHERE trabajo_id = ? ORDER BY creado_en, rowid")
     .all(row.id)
-    .map((p) => mapTrabajador(obtenerUsuario(p.usuario_id), yo));
+    .map((p) => ({ ...mapTrabajador(obtenerUsuario(p.usuario_id), yo), propuesta: p.propuesta ?? undefined }));
   res.json(postulantes);
 });
 
@@ -444,7 +466,7 @@ router.post("/trabajos/:id/asignar", (req, res) => {
   if (row.estado !== "Pendiente") return error(res, 409, "Este trabajo ya fue asignado.");
   const { trabajadorId } = req.body;
   const postulo = db
-    .prepare("SELECT 1 FROM postulacion WHERE trabajo_id = ? AND usuario_id = ?")
+    .prepare("SELECT propuesta FROM postulacion WHERE trabajo_id = ? AND usuario_id = ?")
     .get(row.id, trabajadorId);
   if (!postulo) return error(res, 400, "Esa persona no se ha postulado.");
 
@@ -452,6 +474,14 @@ router.post("/trabajos/:id/asignar", (req, res) => {
     trabajadorId,
     row.id,
   );
+  // Trueque: al elegir, el publicador firma el acuerdo (lo que ofreció o la contrapropuesta);
+  // falta que el trabajador lo acepte.
+  if (row.es_trueque) {
+    db.prepare("UPDATE trabajo SET trueque_acordado = ?, acuerdo_aceptado = 0, trueque_etapa = NULL WHERE id = ?").run(
+      postulo.propuesta || row.ofrece,
+      row.id,
+    );
+  }
   responderTrabajo(req, res, row.id);
 });
 
@@ -465,6 +495,8 @@ router.post("/trabajos/:id/invitacion/aceptar", (req, res) => {
     req.usuarioId,
     row.id,
   );
+  // Aceptar una oferta directa de trueque es aceptar sus términos.
+  if (row.es_trueque) db.prepare("UPDATE trabajo SET trueque_acordado = ofrece, acuerdo_aceptado = 1 WHERE id = ?").run(row.id);
   responderTrabajo(req, res, row.id);
 });
 
@@ -474,6 +506,33 @@ router.post("/trabajos/:id/invitacion/rechazar", (req, res) => {
   if (!row) return;
   if (row.invitado_id !== req.usuarioId || !invitacionPendiente(row)) return error(res, 403, "Esta oferta no es para ti.");
   db.prepare("UPDATE trabajo SET invitacion_rechazada = 1, creado_en = datetime('now') WHERE id = ?").run(row.id);
+  responderTrabajo(req, res, row.id);
+});
+
+// ── Trueque: acuerdo y cierre en dos pasos ──────────────────────────
+/** El trabajador elegido acepta el acuerdo del trueque; recién entonces arranca el seguimiento. */
+router.post("/trabajos/:id/trueque/aceptar", (req, res) => {
+  const row = trabajoDe(req, res);
+  if (!row) return;
+  if (!row.es_trueque) return error(res, 400, "Este trabajo no es un trueque.");
+  if (row.trabajador_id !== req.usuarioId) return error(res, 403, "Este acuerdo no es para ti.");
+  if (row.estado !== "Asignado") return error(res, 409, "Este acuerdo ya no se puede aceptar.");
+  db.prepare("UPDATE trabajo SET acuerdo_aceptado = 1 WHERE id = ?").run(row.id);
+  responderTrabajo(req, res, row.id);
+});
+
+/** El trabajador recibió la parte del publicador: el trueque termina (luego se paga el diferencial y se califica). */
+router.post("/trabajos/:id/trueque/finalizar", (req, res) => {
+  const row = trabajoDe(req, res);
+  if (!row) return;
+  if (!row.es_trueque) return error(res, 400, "Este trabajo no es un trueque.");
+  if (row.trabajador_id !== req.usuarioId) return error(res, 403, "Solo quien recibe la segunda parte cierra el trueque.");
+  if (row.trueque_etapa !== "primera") return error(res, 409, "Primero entrega tu parte del trueque.");
+  db.prepare(
+    `UPDATE trabajo SET estado = 'Finalizado', trueque_etapa = 'finalizado', finalizado_en = datetime('now'),
+       pagado = CASE WHEN pago = 0 THEN 1 ELSE pagado END
+     WHERE id = ?`,
+  ).run(row.id);
   responderTrabajo(req, res, row.id);
 });
 
@@ -504,14 +563,21 @@ router.patch("/trabajos/:id/etapa", (req, res) => {
   if (row.trabajador_id !== req.usuarioId) return error(res, 403, "Solo el trabajador asignado actualiza el seguimiento.");
   if (ESTADOS_CERRADOS.includes(row.estado)) return error(res, 409, "El trabajo ya terminó.");
 
+  if (row.es_trueque && !row.acuerdo_aceptado) return error(res, 409, "Primero acepta el acuerdo del trueque.");
+
   const siguiente = ETAPAS[ETAPAS.indexOf(row.etapa) + 1];
   if (!siguiente) return error(res, 409, "El trabajo ya está en su última etapa.");
-  const estado = siguiente === "Terminado" ? "Finalizado" : siguiente === "Llegó" ? "En progreso" : row.estado;
+  // En un trueque, "Terminado" es solo la primera parte: falta la del publicador.
+  const primeraParte = row.es_trueque && siguiente === "Terminado";
+  const estado = primeraParte
+    ? "En progreso"
+    : siguiente === "Terminado" ? "Finalizado" : siguiente === "Llegó" ? "En progreso" : row.estado;
   db.prepare(
     `UPDATE trabajo SET etapa = ?, estado = ?,
+       trueque_etapa = CASE WHEN ? THEN 'primera' ELSE trueque_etapa END,
        finalizado_en = CASE WHEN ? = 'Finalizado' THEN datetime('now') ELSE finalizado_en END
      WHERE id = ?`,
-  ).run(siguiente, estado, estado, row.id);
+  ).run(siguiente, estado, primeraParte ? 1 : 0, estado, row.id);
   responderTrabajo(req, res, row.id);
 });
 
@@ -522,11 +588,17 @@ router.post("/trabajos/:id/cancelar", (req, res) => {
   if (ESTADOS_CERRADOS.includes(row.estado)) return error(res, 409, "El trabajo ya terminó.");
 
   if (row.publicador_id === req.usuarioId) {
+    // Con la primera parte de un trueque ya entregada, el publicador debe cumplir la suya.
+    if (row.trueque_etapa === "primera") return error(res, 409, "Ya recibiste tu parte del trueque: falta que cumplas la tuya.");
     db.prepare("UPDATE trabajo SET estado = 'Cancelado' WHERE id = ?").run(row.id);
   } else {
     db.prepare("DELETE FROM postulacion WHERE trabajo_id = ? AND usuario_id = ?").run(row.id, req.usuarioId);
     if (row.trabajador_id === req.usuarioId) {
-      db.prepare("UPDATE trabajo SET trabajador_id = NULL, estado = 'Pendiente', etapa = NULL WHERE id = ?").run(row.id);
+      db.prepare(
+        `UPDATE trabajo SET trabajador_id = NULL, estado = 'Pendiente', etapa = NULL,
+           trueque_acordado = NULL, acuerdo_aceptado = 0, trueque_etapa = NULL
+         WHERE id = ?`,
+      ).run(row.id);
     }
   }
   responderTrabajo(req, res, row.id);
@@ -569,7 +641,7 @@ router.post("/trabajos/:id/calificar", (req, res) => {
   if (yaCalifico) return error(res, 409, "Ya calificaste este trabajo.");
 
   db.prepare(
-    "INSERT INTO calificacion (id, trabajo_id, de_id, a_id, estrellas, comentario) VALUES (?, ?, ?, ?, ?, ?)",
+    "INSERT INTO calificacion (id, trabajo_id, de_id, a_id, estrellas, comentario, cumplio) VALUES (?, ?, ?, ?, ?, ?, ?)",
   ).run(
     `k-${randomUUID()}`,
     row.id,
@@ -577,6 +649,8 @@ router.post("/trabajos/:id/calificar", (req, res) => {
     esPublicador ? row.trabajador_id : row.publicador_id,
     estrellas,
     String(req.body.comentario ?? "").trim().slice(0, 500),
+    // Trueque: además de la calidad, si la otra persona cumplió su parte del acuerdo.
+    row.es_trueque && typeof req.body.cumplio === "boolean" ? (req.body.cumplio ? 1 : 0) : null,
   );
   responderTrabajo(req, res, row.id);
 });

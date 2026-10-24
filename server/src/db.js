@@ -9,7 +9,7 @@ export const db = new DatabaseSync(DB_PATH);
 
 // Versión del esquema. Al subirla, la base local (solo datos de prueba) se recrea
 // y se vuelve a sembrar: el modelo pasó de un usuario fijo a varios usuarios reales.
-const VERSION_ESQUEMA = 7;
+const VERSION_ESQUEMA = 8;
 
 const TABLAS = [
   "favorito",
@@ -93,6 +93,15 @@ db.exec(`
     -- Oferta directa ("Recontratar"): solo esta persona la ve hasta que acepte o rechace.
     invitado_id TEXT REFERENCES usuario(id),
     invitacion_rechazada INTEGER NOT NULL DEFAULT 0,
+    -- Trueque: se paga con un servicio (ofrece) y, opcionalmente, un diferencial en dinero (pago).
+    es_trueque INTEGER NOT NULL DEFAULT 0,
+    ofrece TEXT,
+    -- Lo que el publicador hará al final (lo ofrecido o la contrapropuesta elegida).
+    trueque_acordado TEXT,
+    -- El trabajador aceptó el acuerdo (el publicador lo firma al elegirlo).
+    acuerdo_aceptado INTEGER NOT NULL DEFAULT 0,
+    -- null → en curso; 'primera' → el trabajador entregó su parte; 'finalizado'.
+    trueque_etapa TEXT,
     pagado INTEGER NOT NULL DEFAULT 0,
     creado_en TEXT NOT NULL DEFAULT (datetime('now')),
     finalizado_en TEXT
@@ -101,6 +110,8 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS postulacion (
     trabajo_id TEXT NOT NULL REFERENCES trabajo(id),
     usuario_id TEXT NOT NULL REFERENCES usuario(id),
+    -- En un trueque: contrapropuesta (qué pide a cambio); null = acepta lo ofrecido.
+    propuesta TEXT,
     creado_en TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (trabajo_id, usuario_id)
   );
@@ -128,6 +139,8 @@ db.exec(`
     a_id TEXT NOT NULL REFERENCES usuario(id),
     estrellas INTEGER NOT NULL,
     comentario TEXT NOT NULL DEFAULT '',
+    -- Solo en trueques: si la otra persona cumplió su parte del acuerdo.
+    cumplio INTEGER,
     creado_en TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE (trabajo_id, de_id)
   );

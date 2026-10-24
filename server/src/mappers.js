@@ -105,6 +105,17 @@ export function insigniasDe(row, completados) {
   return lista;
 }
 
+/** Trueques que una persona publicó este mes (el plan gratis tiene un límite). */
+export function truequesDelMes(usuarioId) {
+  return db
+    .prepare(
+      `SELECT COUNT(*) AS n FROM trabajo
+        WHERE publicador_id = ? AND es_trueque = 1 AND estado != 'Cancelado'
+          AND strftime('%Y-%m', creado_en) = strftime('%Y-%m', 'now')`,
+    )
+    .get(usuarioId).n;
+}
+
 /** Cuántas personas guardaron a este trabajador en "De confianza". */
 export function guardadoPorDe(usuarioId) {
   return db.prepare("SELECT COUNT(*) AS n FROM favorito WHERE trabajador_id = ?").get(usuarioId).n;
@@ -150,6 +161,7 @@ export function mapUsuario(row) {
     servicios: serviciosDe(row.id).map(mapServicio),
     guardadoPor: guardadoPorDe(row.id),
     verificacion: mapVerificacion(row),
+    truequesMes: truequesDelMes(row.id),
     ...reputacionDe(row.id),
   };
 }
@@ -178,13 +190,19 @@ export function mapTrabajador(row, viewer) {
 export function mapPerfilPublico(row, viewer) {
   const comentarios = db
     .prepare(
-      `SELECT c.estrellas, c.comentario, c.creado_en, u.nombre AS autor
+      `SELECT c.estrellas, c.comentario, c.cumplio, c.creado_en, u.nombre AS autor
          FROM calificacion c JOIN usuario u ON u.id = c.de_id
         WHERE c.a_id = ? AND c.comentario != ''
         ORDER BY c.creado_en DESC, c.rowid DESC LIMIT 10`,
     )
     .all(row.id)
-    .map((c) => ({ autor: c.autor, estrellas: c.estrellas, comentario: c.comentario, fecha: c.creado_en }));
+    .map((c) => ({
+      autor: c.autor,
+      estrellas: c.estrellas,
+      comentario: c.comentario,
+      fecha: c.creado_en,
+      cumplioTrueque: c.cumplio == null ? undefined : !!c.cumplio,
+    }));
   return { ...mapTrabajador(row, viewer), comentarios };
 }
 
@@ -243,6 +261,9 @@ export function mapTrabajo(row, viewerId) {
   const esPublicador = row.publicador_id === viewerId;
   const contraparte = esPublicador ? trabajador : publicador;
   const invitado = row.invitado_id ? obtenerUsuario(row.invitado_id) : null;
+  const miPropuesta = row.es_trueque
+    ? db.prepare("SELECT propuesta FROM postulacion WHERE trabajo_id = ? AND usuario_id = ?").get(row.id, viewerId)?.propuesta
+    : null;
 
   return {
     id: row.id,
@@ -270,6 +291,16 @@ export function mapTrabajo(row, viewerId) {
     invitacionParaMi:
       row.invitado_id === viewerId && !row.invitacion_rechazada && row.estado === "Pendiente" && !row.trabajador_id,
     invitacionRechazada: !!row.invitacion_rechazada,
+    // Trueque: `pago` es el diferencial en dinero (puede ser 0) y `metodoPago`, cómo se paga.
+    trueque: row.es_trueque
+      ? {
+          ofrece: row.ofrece,
+          acordado: row.trueque_acordado ?? undefined,
+          miPropuesta: miPropuesta ?? undefined,
+          acuerdoAceptado: !!row.acuerdo_aceptado,
+          etapa: row.trueque_etapa ?? "en_curso",
+        }
+      : null,
     postulantes,
     yaPostulado,
     esMio: esPublicador,

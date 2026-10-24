@@ -87,7 +87,17 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
             </Badge>
           )}
         </div>
-        <span className="ca-photocard__pill aire-text-headline">{formatoPago.format(trabajo.pago)}</span>
+        <span className="ca-photocard__pill aire-text-headline">
+          {trabajo.trueque ? (
+            <>
+              <Icon name="handshake" size={18} />
+              {tr("Trueque")}
+              {trabajo.pago > 0 && ` + ${formatoPago.format(trabajo.pago)}`}
+            </>
+          ) : (
+            formatoPago.format(trabajo.pago)
+          )}
+        </span>
       </div>
 
       <div className="ca-photocard__body">
@@ -122,15 +132,32 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
           </button>
         )}
 
+        {trabajo.trueque && (
+          <div className="ca-photocard__swap">
+            <Icon name="handshake" size={18} />
+            <span className="grid gap-0.5">
+              <span className="aire-text-eyebrow">{tr("Ofrece a cambio")}</span>
+              <span className="aire-text-subhead">{trabajo.trueque.ofrece}</span>
+              {trabajo.trueque.miPropuesta && (
+                <span className="aire-text-footnote" style={{ color: "var(--aire-on-photo-2)" }}>
+                  {tr("Tu propuesta: {texto}", { texto: trabajo.trueque.miPropuesta })}
+                </span>
+              )}
+            </span>
+          </div>
+        )}
+
         <div className="ca-photocard__tags aire-text-caption">
           <span className="ca-photocard__tag">
             <Icon name="calendar_month" size={14} />
             {tr(trabajo.fecha)}
           </span>
-          <span className="ca-photocard__tag">
-            <Icon name="payments" size={14} />
-            {tr(trabajo.metodoPago)}
-          </span>
+          {(!trabajo.trueque || trabajo.pago > 0) && (
+            <span className="ca-photocard__tag">
+              <Icon name="payments" size={14} />
+              {tr(trabajo.metodoPago)}
+            </span>
+          )}
           <span className="ca-photocard__tag">
             <Icon name="groups" size={14} />
             {tr("{n} persona(s)", { n: trabajo.postulantes })}

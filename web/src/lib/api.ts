@@ -128,10 +128,15 @@ export const api = {
     },
     obtener: (id: string) => request<Trabajo>(`/trabajos/${id}`),
     /** Con `invitadoId` es una oferta directa: solo esa persona la ve hasta que responda. */
-    crear: (datos: DatosTrabajo & { urgente?: boolean; invitadoId?: string }) => post<Trabajo>("/trabajos", datos),
-    editar: (id: string, datos: Partial<DatosTrabajo>) =>
+    crear: (datos: DatosTrabajo & { urgente?: boolean; invitadoId?: string; trueque?: boolean; ofrece?: string }) =>
+      post<Trabajo>("/trabajos", datos),
+    editar: (id: string, datos: Partial<DatosTrabajo> & { ofrece?: string }) =>
       request<Trabajo>(`/trabajos/${id}`, { method: "PATCH", body: JSON.stringify(datos) }),
-    postular: (id: string) => request<Trabajo>(`/trabajos/${id}/postular`, { method: "PATCH" }),
+    /** En un trueque, `propuesta` es la contraoferta (qué pide a cambio); vacía = acepta lo ofrecido. */
+    postular: (id: string, propuesta?: string) =>
+      request<Trabajo>(`/trabajos/${id}/postular`, { method: "PATCH", body: JSON.stringify({ propuesta }) }),
+    aceptarTrueque: (id: string) => post<Trabajo>(`/trabajos/${id}/trueque/aceptar`),
+    finalizarTrueque: (id: string) => post<Trabajo>(`/trabajos/${id}/trueque/finalizar`),
     postulantes: (id: string) => request<Trabajador[]>(`/trabajos/${id}/postulantes`),
     asignar: (id: string, trabajadorId: string) => post<Trabajo>(`/trabajos/${id}/asignar`, { trabajadorId }),
     aceptarInvitacion: (id: string) => post<Trabajo>(`/trabajos/${id}/invitacion/aceptar`),
@@ -140,8 +145,8 @@ export const api = {
     avanzarEtapa: (id: string) => request<Trabajo>(`/trabajos/${id}/etapa`, { method: "PATCH" }),
     cancelar: (id: string) => post<Trabajo>(`/trabajos/${id}/cancelar`),
     pagar: (id: string, propina = 0) => post<Trabajo>(`/trabajos/${id}/pagar`, { propina }),
-    calificar: (id: string, estrellas: number, comentario: string) =>
-      post<Trabajo>(`/trabajos/${id}/calificar`, { estrellas, comentario }),
+    calificar: (id: string, estrellas: number, comentario: string, cumplio?: boolean) =>
+      post<Trabajo>(`/trabajos/${id}/calificar`, { estrellas, comentario, cumplio }),
   },
 
   trabajadores: {

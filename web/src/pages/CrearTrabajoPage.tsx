@@ -39,6 +39,9 @@ export function CrearTrabajoPage() {
   const { usuario } = useAuth();
   const [cargando, setCargando] = useState(editando);
   const [urgente, setUrgente] = useState(false);
+  // Trueque: se paga con un servicio (`ofrece`) y, opcionalmente, un diferencial en dinero (`pago`).
+  const [trueque, setTrueque] = useState(false);
+  const [ofrece, setOfrece] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -75,6 +78,8 @@ export function CrearTrabajoPage() {
           return;
         }
         setUrgente(t.urgente);
+        setTrueque(!!t.trueque);
+        setOfrece(t.trueque?.ofrece ?? "");
         setForm({
           titulo: t.titulo,
           descripcion: t.descripcion,
@@ -83,7 +88,7 @@ export function CrearTrabajoPage() {
           coords: t.lat != null && t.lng != null ? { lat: t.lat, lng: t.lng } : null,
           fecha: t.fecha, // al editar la fecha se maneja como texto libre
           hora: "",
-          pago: String(t.pago),
+          pago: t.trueque && t.pago === 0 ? "" : String(t.pago),
           metodoPago: t.metodoPago,
         });
       })
@@ -91,13 +96,19 @@ export function CrearTrabajoPage() {
       .finally(() => setCargando(false));
   }, [id]);
 
-  const esUrgente = urgente && !paraId;
+  const esUrgente = urgente && !paraId && !trueque;
   const metodoEfectivo: MetodoPago = form.metodoPago;
+  const monto = Number(form.pago) || 0;
   // Con tarjeta, o en una urgencia (la tarifa se cobra con tarjeta), hace falta una tarjeta registrada.
-  const faltaTarjeta = (metodoEfectivo === "Tarjeta" || esUrgente) && !usuario?.tarjeta;
+  // En un trueque solo si hay un diferencial que se paga con tarjeta.
+  const faltaTarjeta = (trueque ? monto > 0 && metodoEfectivo === "Tarjeta" : metodoEfectivo === "Tarjeta" || esUrgente) && !usuario?.tarjeta;
+  // Plan gratis: trueques limitados por mes (al editar no cuenta).
+  const truequesRestantes = usuario?.plan === "plus" ? Infinity : Math.max(0, config.truequesGratisMes - (usuario?.truequesMes ?? 0));
+  const sinCupoTrueque = trueque && !editando && truequesRestantes === 0;
 
+  const pagoValido = trueque ? monto >= 0 && ofrece.trim().length > 0 && !sinCupoTrueque : monto > 0;
   const valido =
-    form.titulo.trim() && form.categoria && form.ubicacion && (esUrgente || form.fecha) && Number(form.pago) > 0 && !faltaTarjeta && (!paraId || invitado);
+    form.titulo.trim() && form.categoria && form.ubicacion && (esUrgente || form.fecha) && pagoValido && !faltaTarjeta && (!paraId || invitado);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,12 +124,12 @@ export function CrearTrabajoPage() {
         lat: form.coords?.lat,
         lng: form.coords?.lng,
         fecha: editando ? form.fecha : esUrgente ? "Lo antes posible" : formatearFecha(form.fecha, form.hora),
-        pago: Number(form.pago),
+        pago: monto,
         metodoPago: metodoEfectivo,
       };
-      if (id) await api.trabajos.editar(id, datos);
-      else await api.trabajos.crear({ ...datos, urgente: esUrgente, invitadoId: invitado?.id });
-      mostrarToast(editando ? tr("Cambios guardados") : invitado ? tr("Oferta enviada a {nombre}", { nombre: invitado.nombre }) : esUrgente ? tr("Urgencia publicada: avisamos a los trabajadores cercanos") : tr("Trabajo publicado"));
+      if (id) await api.trabajos.editar(id, trueque ? { ...datos, ofrece: ofrece.trim() } : datos);
+      else await api.trabajos.crear({ ...datos, urgente: esUrgente, invitadoId: invitado?.id, ...(trueque ? { trueque: true, ofrece: ofrece.trim() } : {}) });
+      mostrarToast(editando ? tr("Cambios guardados") : trueque ? tr("Trueque publicado") : invitado ? tr("Oferta enviada a {nombre}", { nombre: invitado.nombre }) : esUrgente ? tr("Urgencia publicada: avisamos a los trabajadores cercanos") : tr("Trabajo publicado"));
       navigate("/publicaciones");
     } catch (e) {
       setError(e instanceof Error ? e.message : tr("No se pudo publicar el trabajo."));
@@ -178,7 +189,7 @@ export function CrearTrabajoPage() {
           />
         </Card>
 
-        {!paraId && (!editando || urgente) && (
+        {!paraId && !trueque && (!editando || urgente) && (
           <Card className="flex items-start gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-aire-md bg-aire-danger-soft">
               <Icon name="bolt" filled size={22} className="text-aire-danger-text" />
@@ -216,33 +227,115 @@ export function CrearTrabajoPage() {
         </Card>
 
         <Card className="grid gap-3.5">
-          <Input
-            label={tr("Presupuesto ofrecido")}
-            type="number"
-            inputMode="numeric"
-            min={1}
-            prefix="₡"
-            placeholder="20000"
-            hint={tr("Monto en colones")}
-            value={form.pago}
-            onChange={(e) => setForm({ ...form, pago: e.target.value })}
-          />
+          {/* Al editar no se cambia entre dinero y trueque. */}
+          {!editando && (
+            <Field label={tr("¿Cómo vas a pagar?")}>
+              <div className="grid grid-cols-3 gap-2">
+                {METODOS.map((m) => (
+                  <SelectableCard
+                    key={m.value}
+                    icon={m.icon}
+                    text={m.label}
+                    selected={!trueque && metodoEfectivo === m.value}
+                    onClick={() => {
+                      setTrueque(false);
+                      setForm({ ...form, metodoPago: m.value });
+                    }}
+                  />
+                ))}
+                <SelectableCard icon="handshake" text={tr("Trueque")} selected={trueque} onClick={() => setTrueque(true)} />
+              </div>
+            </Field>
+          )}
 
-          <Field label={tr("Método de pago")}>
-            <div className="grid grid-cols-2 gap-2.5">
-              {METODOS.map((m) => (
-                <SelectableCard
-                  key={m.value}
-                  icon={m.icon}
-                  text={m.label}
-                  selected={metodoEfectivo === m.value}
-                  onClick={() => setForm({ ...form, metodoPago: m.value })}
-                />
-              ))}
-            </div>
-          </Field>
+          {trueque ? (
+            <>
+              <TextArea
+                label={tr("¿Qué ofreces a cambio?")}
+                rows={2}
+                maxLength={300}
+                placeholder={tr("Ej: Reviso la instalación eléctrica de tu casa (2 horas)")}
+                value={ofrece}
+                onChange={(e) => setOfrece(e.target.value)}
+              />
+              <Input
+                label={tr("Diferencial en dinero (opcional)")}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                prefix="₡"
+                placeholder="0"
+                hint={tr("Si los trabajos no valen lo mismo o hay gastos, como combustible.")}
+                value={form.pago}
+                onChange={(e) => setForm({ ...form, pago: e.target.value })}
+              />
+              {monto > 0 && (
+                <Field label={tr("¿Cómo pagas el diferencial?")}>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {METODOS.map((m) => (
+                      <SelectableCard
+                        key={m.value}
+                        icon={m.icon}
+                        text={m.label}
+                        selected={metodoEfectivo === m.value}
+                        onClick={() => setForm({ ...form, metodoPago: m.value })}
+                      />
+                    ))}
+                  </div>
+                </Field>
+              )}
+              {!editando && usuario?.plan !== "plus" && (
+                <div
+                  className={`aire-text-footnote grid gap-2 rounded-aire-md p-3 ${
+                    sinCupoTrueque ? "bg-aire-warning-soft text-aire-warning-text" : "bg-aire-surface-2 text-aire-ink-2"
+                  }`}
+                >
+                  <p className="flex items-start gap-2">
+                    <Icon name={sinCupoTrueque ? "block" : "info"} size={18} className="mt-px shrink-0" />
+                    {sinCupoTrueque
+                      ? tr("Ya usaste tu trueque de este mes. Con el Plan Plus son ilimitados.")
+                      : tr("Plan gratis: {n} trueque al mes. Con el Plan Plus son ilimitados.", { n: config.truequesGratisMes })}
+                  </p>
+                  {sinCupoTrueque && (
+                    <Button variant="secondary" size="sm" type="button" icon="star" onClick={() => navigate("/cuenta/plan")}>
+                      {tr("Conoce el Plan Plus")}
+                    </Button>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <Input
+                label={tr("Presupuesto ofrecido")}
+                type="number"
+                inputMode="numeric"
+                min={1}
+                prefix="₡"
+                placeholder="20000"
+                hint={tr("Monto en colones")}
+                value={form.pago}
+                onChange={(e) => setForm({ ...form, pago: e.target.value })}
+              />
+              {editando && (
+                <Field label={tr("Método de pago")}>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {METODOS.map((m) => (
+                      <SelectableCard
+                        key={m.value}
+                        icon={m.icon}
+                        text={m.label}
+                        selected={metodoEfectivo === m.value}
+                        onClick={() => setForm({ ...form, metodoPago: m.value })}
+                      />
+                    ))}
+                  </div>
+                </Field>
+              )}
+            </>
+          )}
 
-          {Number(form.pago) > 0 && <PagoResumen resumen={calcularResumen(Number(form.pago), esUrgente, metodoEfectivo, config)} />}
+          {monto > 0 && <PagoResumen resumen={calcularResumen(monto, esUrgente, metodoEfectivo, config)} trueque={trueque} />}
         </Card>
 
         {faltaTarjeta && (
@@ -259,14 +352,16 @@ export function CrearTrabajoPage() {
 
         {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
 
-        <Button type="submit" size="lg" icon={esUrgente ? "bolt" : undefined} disabled={!valido} loading={enviando} className="mt-1">
+        <Button type="submit" size="lg" icon={esUrgente ? "bolt" : trueque ? "handshake" : undefined} disabled={!valido} loading={enviando} className="mt-1">
           {editando
             ? tr("Guardar cambios")
             : invitado
               ? tr("Enviar oferta a {nombre}", { nombre: invitado.nombre })
               : esUrgente
                 ? tr("Publicar urgencia")
-                : tr("Publicar ahora")}
+                : trueque
+                  ? tr("Publicar trueque")
+                  : tr("Publicar ahora")}
         </Button>
       </form>
     </div>

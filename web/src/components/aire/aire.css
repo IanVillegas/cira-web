@@ -821,6 +821,10 @@
   display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 10px;
   border-radius: var(--aire-radius-full); background: var(--aire-photo-chip); color: var(--aire-on-photo);
 }
+.ca-photocard__swap {
+  display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px;
+  border-radius: var(--aire-radius-md); background: var(--aire-photo-glass); color: var(--aire-on-photo);
+}
 .ca-photocard__actions { display: flex; gap: 8px; margin-top: 4px; }
 .ca-photocard__iconbtn {
   flex: none; display: inline-flex; align-items: center; justify-content: center;

@@ -66,6 +66,18 @@ const OFERTA_DIRECTA = [
   "Electricidad", "Alajuela, Río Segundo", 10.0134, -84.2239, "Lunes, 9:00 a.m.", 15000, APP, "u-5", "u-1",
 ];
 
+// Trueques abiertos: id, título, descripción, categoría, ubicación, lat, lng, fecha, diferencial, método del diferencial, publicador, qué ofrece
+const TRUEQUES = [
+  ["p-2", "Subir refrigeradora al segundo piso", "Necesito ayuda para subir una refrigeradora por la escalera. Tengo carretilla.", "Mudanzas", "Alajuela Centro", 10.0163, -84.2113, "Sábado, 4:00 p.m.", 2000, EFECTIVO, "u-1", "Reviso la instalación eléctrica de tu casa (2 horas)"],
+  ["tr-1", "Cambiar chapa y bisagras de la puerta", "Puerta de la entrada que no cierra bien. Ya compré la chapa nueva.", "Reparaciones", "Alajuela, Desamparados", 10.026, -84.251, "Domingo, 10:00 a.m.", 0, EFECTIVO, "u-3", "Destapo y reviso las tuberías de tu baño o cocina"],
+];
+
+// Postulaciones a trueques: trabajo, usuario, contrapropuesta (null = acepta lo ofrecido).
+const POSTULACIONES_TRUEQUE = [
+  ["p-2", "u-6", null],
+  ["p-2", "u-3", "Cambiar 2 tomacorrientes de su taller"],
+];
+
 // "De confianza": quién guardó a quién (usuario, trabajador).
 const FAVORITOS = [
   ["u-1", "u-4"], ["u-1", "u-3"],
@@ -158,8 +170,16 @@ function sembrar() {
   const insertFavorito = db.prepare("INSERT INTO favorito (usuario_id, trabajador_id) VALUES (?, ?)");
   for (const f of FAVORITOS) insertFavorito.run(...f);
 
-  const insertPostulacion = db.prepare("INSERT INTO postulacion (trabajo_id, usuario_id) VALUES (?, ?)");
-  for (const p of POSTULACIONES) insertPostulacion.run(...p);
+  const insertTrueque = db.prepare(
+    `INSERT INTO trabajo (id, titulo, descripcion, categoria, ubicacion, lat, lng, fecha, pago, metodo_pago, publicador_id,
+                          estado, es_trueque, ofrece, creado_en)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendiente', 1, ?, datetime('now', '-1 day'))`,
+  );
+  for (const t of TRUEQUES) insertTrueque.run(...t);
+
+  const insertPostulacion = db.prepare("INSERT INTO postulacion (trabajo_id, usuario_id, propuesta) VALUES (?, ?, ?)");
+  for (const [t, u] of POSTULACIONES) insertPostulacion.run(t, u, null);
+  for (const p of POSTULACIONES_TRUEQUE) insertPostulacion.run(...p);
 
   const insertCalificacion = db.prepare(
     "INSERT INTO calificacion (id, trabajo_id, de_id, a_id, estrellas, comentario) VALUES (?, ?, ?, ?, ?, ?)",

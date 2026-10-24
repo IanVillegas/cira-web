@@ -4,10 +4,10 @@ import { tr } from "@/lib/i18n";
 import type { ResumenPago } from "@/lib/types";
 
 /** Desglose del pago: monto del trabajo, comisión de CIRA, tarifa de urgencia, propina y cómo se paga. */
-export function PagoResumen({ resumen }: { resumen: ResumenPago }) {
+export function PagoResumen({ resumen, trueque = false }: { resumen: ResumenPago; trueque?: boolean }) {
   return (
     <Card inset padding="sm" className="grid gap-1.5">
-      <Linea label={tr("Monto del trabajo")} valor={resumen.monto} />
+      <Linea label={trueque ? tr("Diferencial del trueque") : tr("Monto del trabajo")} valor={resumen.monto} />
       {resumen.comision > 0 && <Linea label={tr("Comisión de CIRA")} valor={resumen.comision} />}
       {resumen.tarifaUrgencia > 0 && <Linea label={tr("Tarifa de urgencia")} valor={resumen.tarifaUrgencia} />}
       {resumen.propina > 0 && <Linea label={tr("Propina")} valor={resumen.propina} />}

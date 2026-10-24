@@ -40,6 +40,8 @@ export interface Usuario {
   /** Cuántas personas lo tienen en "De confianza". */
   guardadoPor: number;
   verificacion: Verificacion;
+  /** Trueques publicados este mes (el plan gratis tiene un límite). */
+  truequesMes: number;
 }
 
 export type EstadoDocumento = "sin_enviar" | "en_revision" | "verificada" | "vencida";
@@ -54,6 +56,19 @@ export interface Verificacion {
     venceEl: string | null;
     vigenciaMeses: number;
   };
+}
+
+export interface Trueque {
+  /** Lo que el publicador ofreció a cambio. */
+  ofrece: string;
+  /** Lo que el publicador hará al final (lo ofrecido o la contrapropuesta elegida). */
+  acordado?: string;
+  /** Contrapropuesta de quien mira, si se postuló proponiendo otra cosa. */
+  miPropuesta?: string;
+  /** El trabajador aceptó el acuerdo (el publicador lo firma al elegirlo). */
+  acuerdoAceptado: boolean;
+  /** en_curso → primera (el trabajador entregó su parte) → finalizado. */
+  etapa: "en_curso" | "primera" | "finalizado";
 }
 
 export interface ServicioUsuario {
@@ -90,6 +105,8 @@ export interface Trabajo {
   invitacionParaMi: boolean;
   /** La persona invitada no pudo: la publicación quedó abierta para todos. */
   invitacionRechazada: boolean;
+  /** Trueque: se paga con un servicio. `pago` es el diferencial en dinero (puede ser 0). */
+  trueque: Trueque | null;
   postulantes: number;
   yaPostulado: boolean;
   esMio: boolean;
@@ -163,6 +180,8 @@ export interface Trabajador {
   descripcion: string;
   insignias: Insignia[];
   trabajosCompletados: number;
+  /** Contrapropuesta en un trueque (solo en la lista de postulantes). */
+  propuesta?: string;
   /** Quien mira lo tiene en "De confianza". */
   deConfianza: boolean;
   /** Cuántas personas lo tienen en "De confianza" (nunca quiénes). */
@@ -174,6 +193,8 @@ export interface ComentarioCalificacion {
   estrellas: number;
   comentario: string;
   fecha: string;
+  /** Solo en trueques: si cumplió su parte del acuerdo. */
+  cumplioTrueque?: boolean;
 }
 
 export interface PerfilPublico extends Trabajador {
@@ -193,6 +214,7 @@ export interface ConfigNegocio {
   urgenciaPct: number;
   plusPrecio: number;
   retrasoGratisSeg: number;
+  truequesGratisMes: number;
 }
 
 export interface Ingresos {

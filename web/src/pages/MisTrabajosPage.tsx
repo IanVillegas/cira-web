@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Loader, PageHeader, Stagger } from "@/components/aire";
+import { Button, Icon, Loader, PageHeader, Stagger } from "@/components/aire";
 import { ExploreTabs } from "@/components/ExploreTabs";
+import { AcuerdoTrueque } from "@/components/AcuerdoTrueque";
 import { CardAction, JobStatusCard, type EstadoTono } from "@/components/JobStatusCard";
 import { RatingSheet } from "@/components/RatingSheet";
 import { SeguimientoTrabajo } from "@/components/SeguimientoTrabajo";
@@ -16,6 +17,10 @@ import type { Trabajo } from "@/lib/types";
 
 function estadoDe(t: Trabajo): { text: string; tone: EstadoTono } {
   if (t.invitacionParaMi) return { text: tr("Te quieren recontratar"), tone: "accent" };
+  if (t.trueque && t.asignadoAMi && t.estado !== "Finalizado") {
+    if (!t.trueque.acuerdoAceptado) return { text: tr("Acepta el acuerdo"), tone: "accent" };
+    if (t.trueque.etapa === "primera") return { text: tr("Esperando su parte"), tone: "warning" };
+  }
   if (t.estado === "Pendiente") return { text: tr("Postulado"), tone: "accent" };
   if (t.estado === "Asignado") return { text: tr("Asignado"), tone: "warning" };
   if (t.estado === "En progreso") return { text: tr("En proceso"), tone: "success" };
@@ -93,7 +98,7 @@ export function MisTrabajosPage() {
                   actions={
                     <>
                       <CardAction icon="chat_bubble" label={tr("Escribir al publicador")} onClick={() => abrirChat(t.publicadorId)} />
-                      {t.estado !== "Finalizado" && !t.invitacionParaMi && (
+                      {t.estado !== "Finalizado" && !t.invitacionParaMi && t.trueque?.etapa !== "primera" && (
                         <CardAction
                           icon="close"
                           label={t.asignadoAMi ? tr("Cancelar trabajo") : tr("Retirar postulación")}
@@ -114,10 +119,15 @@ export function MisTrabajosPage() {
                       {t.invitacionParaMi && (
                         <>
                           <p className="aire-text-subhead text-aire-ink-2">
-                            {tr("{nombre} te envió una oferta directa por {pago}. Solo tú puedes verla.", {
-                              nombre: t.publicador,
-                              pago: formatoColones.format(t.pago),
-                            })}
+                            {t.trueque
+                              ? tr("{nombre} te propone un trueque: a cambio, {ofrece}. Solo tú puedes verlo.", {
+                                  nombre: t.publicador,
+                                  ofrece: t.trueque.ofrece,
+                                })
+                              : tr("{nombre} te envió una oferta directa por {pago}. Solo tú puedes verla.", {
+                                  nombre: t.publicador,
+                                  pago: formatoColones.format(t.pago),
+                                })}
                           </p>
                           <div className="grid grid-cols-2 gap-2.5">
                             <Button
@@ -135,13 +145,58 @@ export function MisTrabajosPage() {
                           </div>
                         </>
                       )}
-                      {t.asignadoAMi && <SeguimientoTrabajo etapa={t.etapa} />}
-                      {asignado && siguiente && (
+                      {t.trueque && !t.asignadoAMi && t.estado === "Pendiente" && !t.invitacionParaMi && (
+                        <p className="aire-text-footnote flex items-start gap-1.5 text-aire-ink-2">
+                          <Icon name="handshake" size={16} className="mt-px shrink-0 text-aire-accent-text" />
+                          {t.trueque.miPropuesta
+                            ? tr("Trueque · propusiste a cambio: {texto}", { texto: t.trueque.miPropuesta })
+                            : tr("Trueque · a cambio: {texto}", { texto: t.trueque.ofrece })}
+                        </p>
+                      )}
+                      {t.trueque && t.asignadoAMi && <AcuerdoTrueque trabajo={t} rol="trabajador" />}
+                      {t.trueque && asignado && !t.trueque.acuerdoAceptado && (
+                        <>
+                          <p className="aire-text-footnote text-aire-ink-2">
+                            {tr("{nombre} te eligió y firmó el acuerdo. Acéptalo para empezar.", { nombre: t.publicador })}
+                          </p>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <Button
+                              variant="secondary"
+                              onClick={() => ejecutar(() => api.trabajos.cancelar(t.id), tr("Rechazaste el acuerdo"))}
+                            >
+                              {tr("No acepto")}
+                            </Button>
+                            <Button
+                              icon="handshake"
+                              onClick={() => ejecutar(() => api.trabajos.aceptarTrueque(t.id), tr("Acuerdo aceptado: ¡a trabajar!"))}
+                            >
+                              {tr("Aceptar acuerdo")}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                      {t.asignadoAMi && (!t.trueque || t.trueque.acuerdoAceptado) && <SeguimientoTrabajo etapa={t.etapa} />}
+                      {asignado && siguiente && (!t.trueque || t.trueque.acuerdoAceptado) && (
                         <Button icon={ICONO_ETAPA[siguiente]} onClick={() => ejecutar(() => api.trabajos.avanzarEtapa(t.id), tr("Seguimiento actualizado"))}>
                           {siguiente === "Terminado"
-                            ? tr("Marcar como terminado")
+                            ? t.trueque
+                              ? tr("Entregué mi parte")
+                              : tr("Marcar como terminado")
                             : tr(siguiente === "En camino" ? "Estoy en camino" : "Ya llegué")}
                         </Button>
+                      )}
+                      {t.trueque?.etapa === "primera" && t.asignadoAMi && (
+                        <>
+                          <p className="aire-text-footnote text-aire-ink-2">
+                            {tr("Entregaste tu parte. Cuando {nombre} cumpla la suya, cierra el trueque.", { nombre: t.publicador })}
+                          </p>
+                          <Button
+                            icon="task_alt"
+                            onClick={() => ejecutar(() => api.trabajos.finalizarTrueque(t.id), tr("¡Trueque finalizado!"))}
+                          >
+                            {tr("Recibí su parte: finalizar trueque")}
+                          </Button>
+                        </>
                       )}
                       {t.estado === "Finalizado" && (
                         <Button icon="star" onClick={() => setACalificar(t)}>

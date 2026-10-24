@@ -109,7 +109,7 @@ export function MisPublicacionesPage() {
           </>
         }
       >
-        {pagado && <PagoResumen resumen={pagado.resumenPago} />}
+        {pagado && <PagoResumen resumen={pagado.resumenPago} trueque={!!pagado.trueque} />}
       </Dialog>
     </div>
   );
