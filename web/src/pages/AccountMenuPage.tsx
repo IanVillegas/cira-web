@@ -4,6 +4,7 @@ import { Icon, Loader, PageHeader, Sheet, Stagger, cx } from "@/components/aire"
 import { useAuth } from "@/lib/auth";
 import { cambiarIdioma, idioma, tr, type Idioma } from "@/lib/i18n";
 import { formatearTelefono } from "@/lib/format";
+import { cambiarTema, useTema, type Tema } from "@/lib/tema";
 
 const OPCIONES = [
   { icon: "edit", label: "Editar perfil", to: "/perfil/editar" },
@@ -19,11 +20,19 @@ const IDIOMAS: { value: Idioma; label: string }[] = [
   { value: "en", label: "English" },
 ];
 
-/** Cuenta: datos de la persona y accesos a tarjeta, actividad, plan, idioma y cierre de sesión. */
+const TEMAS: { value: Tema; label: string; icon: string; detalle?: string }[] = [
+  { value: "sistema", label: "Automático", icon: "brightness_auto", detalle: "Igual que tu teléfono" },
+  { value: "claro", label: "Claro", icon: "light_mode" },
+  { value: "oscuro", label: "Oscuro", icon: "dark_mode" },
+];
+
+/** Cuenta: datos de la persona y accesos a tarjeta, actividad, plan, apariencia, idioma y cierre de sesión. */
 export function AccountMenuPage() {
   const navigate = useNavigate();
   const { usuario, logout } = useAuth();
   const [idiomaAbierto, setIdiomaAbierto] = useState(false);
+  const [temaAbierto, setTemaAbierto] = useState(false);
+  const { tema, oscuro } = useTema();
 
   if (!usuario) return <Loader label={tr("Cargando cuenta...")} />;
 
@@ -44,6 +53,12 @@ export function AccountMenuPage() {
           {OPCIONES.map((o) => (
             <Fila key={o.to} icon={o.icon} label={tr(o.label)} onClick={() => navigate(o.to)} />
           ))}
+          <Fila
+            icon={oscuro ? "dark_mode" : "light_mode"}
+            label={tr("Apariencia")}
+            detalle={tr(TEMAS.find((t) => t.value === tema)?.label ?? "Automático")}
+            onClick={() => setTemaAbierto(true)}
+          />
           <Fila icon="language" label={tr("Idioma")} detalle={idioma() === "es" ? "Español" : "English"} onClick={() => setIdiomaAbierto(true)} />
           <Fila icon="person_off" label={tr("Inhabilitar cuenta")} onClick={() => navigate("/cuenta/inhabilitar")} />
         </Stagger>
@@ -60,6 +75,30 @@ export function AccountMenuPage() {
           />
         </div>
       </div>
+
+      <Sheet open={temaAbierto} onClose={() => setTemaAbierto(false)} title={tr("Apariencia")} subtitle={tr("Elige cómo se ve CIRA")} contained>
+        <div className="grid gap-1.5">
+          {TEMAS.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              aria-pressed={tema === t.value}
+              onClick={() => cambiarTema(t.value)}
+              className={cx(
+                "flex min-h-12 items-center gap-3 rounded-aire-md px-4 py-2 text-left transition-transform duration-[100ms] ease-aire-pop active:scale-[0.98]",
+                tema === t.value ? "bg-aire-accent-soft text-aire-accent-text" : "bg-aire-surface-2 text-aire-ink",
+              )}
+            >
+              <Icon name={t.icon} filled={tema === t.value} size={22} />
+              <span className="flex-1">
+                <span className={cx("aire-text-body block", tema === t.value && "font-semibold")}>{tr(t.label)}</span>
+                {t.detalle && <span className="aire-text-footnote block text-aire-ink-2">{tr(t.detalle)}</span>}
+              </span>
+              {tema === t.value && <Icon name="check" size={22} />}
+            </button>
+          ))}
+        </div>
+      </Sheet>
 
       <Sheet open={idiomaAbierto} onClose={() => setIdiomaAbierto(false)} title={tr("Idioma")} subtitle={tr("Elige el idioma de la app")} contained>
         <div className="grid gap-1.5">

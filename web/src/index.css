@@ -21,3 +21,10 @@ body {
 .ca-root .grid:not([class*="grid-cols"]) {
   grid-template-columns: minmax(0, 1fr);
 }
+
+/* Modo oscuro del mapa: las teselas de OpenStreetMap se invierten (los pines y controles no). */
+[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9); }
+[data-theme="dark"] .leaflet-container { background: var(--aire-surface-2); }
+
+/* Login en oscuro: el patrón de fondo se atenúa para no encandilar. */
+[data-theme="dark"] .ca-auth-bg::before { opacity: 0.05; }

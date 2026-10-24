@@ -166,6 +166,10 @@ En las listas de gestión (Mis publicaciones, Mis trabajos, Historial) la foto a
 - Recomendar usa `compartirPerfil` (`lib/compartir.ts`): menú nativo de compartir con el link al perfil en CIRA; nunca expone el teléfono.
 - Recontratar abre `/crear-trabajo?para=<id>`: la publicación es una oferta directa que solo ve esa persona (en Mis trabajos, con Aceptar / No puedo). Si la rechaza, queda abierta para todos.
 
+### Modo oscuro
+
+La app elige el tema con `lib/tema.ts` (Cuenta → Apariencia: Automático, Claro u Oscuro; se guarda en `cira.tema`). El tema se aplica con `data-theme` en `<html>`, así que los tokens `--aire-*` cambian solos: cualquier pantalla hecha solo con tokens ya funciona en oscuro. Un script en `index.html` lo aplica antes de pintar para que no parpadee. Excepciones en `index.css`: las teselas del mapa se invierten y el patrón del login se atenúa. Los tonos de categoría y los textos sobre foto (`--aire-cat-*`, `--aire-on-photo*`) son iguales en ambos temas.
+
 ## Voz y contenido
 
 - Habla de tú, con verbos claros: «Postularme», «Publicar trabajo», «Elegir distrito».

@@ -611,4 +611,11 @@ export const EN: Record<string, string> = {
   "Esta oferta no es para ti.": "This offer isn't for you.",
   "Esta oferta ya no está disponible.": "This offer is no longer available.",
   "No puedes agregarte a ti mismo.": "You can't add yourself.",
+  // Apariencia
+  "Apariencia": "Appearance",
+  "Elige cómo se ve CIRA": "Choose how CIRA looks",
+  "Automático": "Automatic",
+  "Igual que tu teléfono": "Same as your phone",
+  "Claro": "Light",
+  "Oscuro": "Dark",
 };
