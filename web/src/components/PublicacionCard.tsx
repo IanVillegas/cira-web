@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, Icon } from "@/components/aire";
 import type { BadgeTone } from "@/components/aire/Badge";
+import { CategoriaThumb } from "./CategoriaThumb";
 import { Calificacion } from "./Estrellas";
 import { InsigniaChips } from "./InsigniaChips";
 import { PagoResumen } from "./PagoResumen";
@@ -68,6 +69,7 @@ export function PublicacionCard({ trabajo, onChange, onRate, onPay }: Publicacio
   return (
     <Card className="grid gap-4">
       <div className="flex items-start gap-3">
+        <CategoriaThumb categoria={trabajo.categoria} />
         <div className="min-w-0 flex-1">
           <p className="flex flex-wrap items-center gap-1.5">
             <span className="aire-text-eyebrow text-aire-accent-text">{tr(trabajo.categoria)}</span>

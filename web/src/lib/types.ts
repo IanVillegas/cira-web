@@ -194,6 +194,7 @@ export interface Conversacion {
 export interface HistorialItem {
   id: string;
   titulo: string;
+  categoria: string;
   fecha: string;
   pago: number;
   estado: EstadoTrabajo;

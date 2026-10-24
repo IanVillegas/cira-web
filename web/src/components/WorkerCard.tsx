@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, Icon } from "@/components/aire";
+import { CategoriaChip } from "./CategoriaThumb";
 import { Calificacion } from "./Estrellas";
 import { InsigniaChips } from "./InsigniaChips";
 import { api } from "@/lib/api";
@@ -30,11 +31,10 @@ export function WorkerCard({ trabajador }: WorkerCardProps) {
   return (
     <Card className="grid gap-4">
       <button type="button" aria-expanded={expanded} className="flex w-full items-start gap-3 text-left" onClick={() => setExpanded((v) => !v)}>
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
-          <Icon name="person" size={26} className="text-aire-accent-text" />
+        <span className="aire-text-headline flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-full bg-aire-accent-soft text-aire-accent-text">
+          {iniciales(trabajador.nombre)}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="aire-text-eyebrow block truncate text-aire-accent-text">{tr(trabajador.servicios[0] ?? "Servicio")}</span>
+        <span className="min-w-0 flex-1 self-center">
           <span className="flex items-center gap-2">
             <span className="aire-text-headline truncate text-aire-ink">{trabajador.nombre}</span>
             <Calificacion valor={trabajador.calificacion} total={trabajador.numCalificaciones} />
@@ -59,6 +59,14 @@ export function WorkerCard({ trabajador }: WorkerCardProps) {
         </span>
       </div>
 
+      {trabajador.servicios.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {trabajador.servicios.map((s) => (
+            <CategoriaChip key={s} categoria={s} />
+          ))}
+        </div>
+      )}
+
       {trabajador.insignias.length > 0 && <InsigniaChips insignias={trabajador.insignias} compact />}
 
       <div className="grid grid-cols-2 gap-2.5">
@@ -74,12 +82,21 @@ export function WorkerCard({ trabajador }: WorkerCardProps) {
         <div className="overflow-hidden">
           <div className="grid gap-3 border-t border-aire-hairline pt-4">
             <Detalle icon="location_on" label={tr("Ubicación")} text={trabajador.zona} />
-            <Detalle icon="design_services" label={tr("Servicios")} text={trabajador.servicios.map((s) => tr(s)).join(", ")} />
           </div>
         </div>
       </div>
     </Card>
   );
+}
+
+/** "Douglas Solano" → "DS". */
+function iniciales(nombre: string) {
+  return nombre
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
 }
 
 function Detalle({ icon, label, text }: { icon: string; label: string; text: string }) {

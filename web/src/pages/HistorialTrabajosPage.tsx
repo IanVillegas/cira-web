@@ -39,7 +39,7 @@ export function HistorialTrabajosPage() {
         ) : (
           <Stagger className="grid gap-3">
             {historial.map((h) => (
-              <JobStatusCard key={h.id} titulo={h.titulo} publicador={tr(h.contraparte)} fecha={h.fecha} estado={estadoDe(h.estado)} apagado />
+              <JobStatusCard key={h.id} titulo={h.titulo} categoria={h.categoria} publicador={tr(h.contraparte)} fecha={h.fecha} estado={estadoDe(h.estado)} apagado />
             ))}
           </Stagger>
         )}

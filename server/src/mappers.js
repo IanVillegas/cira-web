@@ -255,6 +255,7 @@ export function mapHistorial(row, viewerId) {
   return {
     id: row.id,
     titulo: row.titulo,
+    categoria: row.categoria,
     fecha: row.fecha,
     pago: row.pago,
     estado: row.estado,

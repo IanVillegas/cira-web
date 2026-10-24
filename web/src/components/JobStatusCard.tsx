@@ -1,11 +1,14 @@
 import type { ReactNode } from "react";
 import { Badge, Card, Icon } from "@/components/aire";
 import type { BadgeTone } from "@/components/aire/Badge";
+import { CategoriaThumb } from "./CategoriaThumb";
 
 export type EstadoTono = BadgeTone;
 
 interface JobStatusCardProps {
   titulo: string;
+  /** Categoría del trabajo: muestra la miniatura con su foto. */
+  categoria?: string;
   publicador?: string;
   fecha: string;
   /** Texto y tono del estado. */
@@ -18,17 +21,21 @@ interface JobStatusCardProps {
 }
 
 /** Tarjeta de "Mis trabajos" y del historial. */
-export function JobStatusCard({ titulo, publicador, fecha, estado, apagado = false, actions, footer }: JobStatusCardProps) {
+export function JobStatusCard({ titulo, categoria, publicador, fecha, estado, apagado = false, actions, footer }: JobStatusCardProps) {
   return (
     <Card className="grid gap-3">
       <div className="flex items-start gap-3">
-        <span
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md ${
-            apagado ? "bg-aire-surface-3 text-aire-ink-2" : "bg-aire-accent-soft text-aire-accent-text"
-          }`}
-        >
-          <Icon name="work" size={26} />
-        </span>
+        {categoria ? (
+          <CategoriaThumb categoria={categoria} apagado={apagado} />
+        ) : (
+          <span
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md ${
+              apagado ? "bg-aire-surface-3 text-aire-ink-2" : "bg-aire-accent-soft text-aire-accent-text"
+            }`}
+          >
+            <Icon name="work" size={26} />
+          </span>
+        )}
         <div className="grid min-w-0 flex-1 gap-1">
           <p className="aire-text-headline truncate text-aire-ink">{titulo}</p>
           {publicador && <p className="aire-text-subhead truncate text-aire-ink-2">{publicador}</p>}

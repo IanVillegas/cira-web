@@ -84,6 +84,7 @@ export function MisTrabajosPage() {
                 <JobStatusCard
                   key={t.id}
                   titulo={t.titulo}
+                  categoria={t.categoria}
                   publicador={t.publicador}
                   fecha={tr(t.fecha)}
                   estado={estadoDe(t)}
