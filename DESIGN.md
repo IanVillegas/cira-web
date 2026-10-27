@@ -179,7 +179,7 @@ Todo mapa usa `<MapaTeselas />` como capa base (CARTO Voyager en claro, Dark Mat
 - `iconoTrabajador(nombre, disponible, calificacion)`: avatar con iniciales, aro y punto `--aire-success` (gris si está ocupado) y la nota debajo.
 - `iconoSeleccionado` (gota grande) e `iconoUsuario` (punto con halo).
 
-Los popups de Leaflet ya tienen la piel de Aire; su contenido usa clases `aire-text-*`. Los halos se detienen con `prefers-reduced-motion`.
+Los popups de Leaflet ya tienen la piel de Aire; su contenido usa clases `aire-text-*` y termina en `AccionesPopup` (Ver como secundaria y Contactar como principal; si es tuyo, solo Ver). Los halos se detienen con `prefers-reduced-motion`.
 
 ### Verificación de documentos
 

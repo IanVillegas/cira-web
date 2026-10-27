@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AttributionControl, MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import { MapaTeselas } from "@/components/MapaTeselas";
-import { Icon, Loader, cx } from "@/components/aire";
+import { useNavigate } from "react-router-dom";
+import { Button, Icon, Loader, cx } from "@/components/aire";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { buscarDireccion, obtenerUbicacionActual, type ResultadoBusquedaDireccion } from "@/lib/geo";
 import { iconoTrabajador, iconoTrabajo, iconoUsuario } from "@/lib/leafletIcons";
 import { CATEGORIAS } from "@/lib/mockData";
@@ -19,6 +21,32 @@ function RecenterMap({ center, zoom }: { center: [number, number]; zoom: number 
     map.flyTo(center, zoom, { duration: 0.8 });
   }, [center, zoom, map]);
   return null;
+}
+
+/** Botones al pie de cada popup: ver el detalle y, si no es tuyo, contactar (acción principal). */
+function AccionesPopup({
+  verLabel,
+  onVer,
+  onContactar,
+  contactando,
+}: {
+  verLabel: string;
+  onVer: () => void;
+  onContactar?: () => void;
+  contactando: boolean;
+}) {
+  return (
+    <div className={cx("mt-3 grid gap-2", onContactar && "grid-cols-2")}>
+      <Button variant={onContactar ? "secondary" : "primary"} onClick={onVer}>
+        {verLabel}
+      </Button>
+      {onContactar && (
+        <Button icon="chat_bubble" loading={contactando} onClick={onContactar}>
+          {tr("Contactar")}
+        </Button>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -42,6 +70,23 @@ export function MapaPage() {
 
   const [filtro, setFiltro] = useState(TODOS);
   const [filtroAbierto, setFiltroAbierto] = useState(false);
+
+  const navigate = useNavigate();
+  const { usuario } = useAuth();
+  // Id de la persona con quien se está abriendo el chat (muestra el spinner en su botón).
+  const [abriendoChat, setAbriendoChat] = useState<string | null>(null);
+
+  const contactar = async (personaId: string) => {
+    setAbriendoChat(personaId);
+    try {
+      const conversacion = await api.conversaciones.con(personaId);
+      navigate(`/chats/${conversacion.id}`);
+    } catch {
+      setAviso(tr("No se pudo abrir el chat. Intenta de nuevo."));
+    } finally {
+      setAbriendoChat(null);
+    }
+  };
 
   useEffect(() => {
     Promise.all([api.trabajos.listar(), api.trabajadores.listar()])
@@ -136,6 +181,12 @@ export function MapaPage() {
                 <p className="aire-text-headline">{t.titulo}</p>
                 <p className="aire-text-subhead text-aire-ink-2">{t.ubicacion}</p>
                 <p className="aire-text-headline mt-1 text-aire-accent-text">₡{t.pago.toLocaleString(localeActual())}</p>
+                <AccionesPopup
+                  verLabel={tr("Ver trabajo")}
+                  onVer={() => navigate(`/explorar?trabajo=${t.id}`)}
+                  onContactar={t.publicadorId !== usuario?.id ? () => contactar(t.publicadorId) : undefined}
+                  contactando={abriendoChat === t.publicadorId}
+                />
               </Popup>
             </Marker>
           ))}
@@ -146,6 +197,12 @@ export function MapaPage() {
                 <p className="aire-text-headline">{w.nombre}</p>
                 <p className="aire-text-subhead text-aire-ink-2">{w.servicios.map((s) => tr(s)).join(" · ")}</p>
                 <p className="aire-text-subhead text-aire-ink-2">{w.disponible ? tr("Disponible") : tr("Ocupado")}</p>
+                <AccionesPopup
+                  verLabel={tr("Ver perfil")}
+                  onVer={() => navigate(`/usuarios/${w.id}`)}
+                  onContactar={w.id !== usuario?.id ? () => contactar(w.id) : undefined}
+                  contactando={abriendoChat === w.id}
+                />
               </Popup>
             </Marker>
           ))}

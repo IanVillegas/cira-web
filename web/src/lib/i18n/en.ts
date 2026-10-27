@@ -528,6 +528,7 @@ export const EN: Record<string, string> = {
   "Comunícate": "Message",
   "Confirmar pago en efectivo": "Confirm cash payment",
   "Contactar": "Contact",
+  "No se pudo abrir el chat. Intenta de nuevo.": "Couldn't open the chat. Try again.",
   "Descartar": "Dismiss",
   "Elegir": "Choose",
   "Eliminar tarjeta": "Delete card",

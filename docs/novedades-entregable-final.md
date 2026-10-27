@@ -164,15 +164,15 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 - **Trabajos:** una gota azul con el ícono de su categoría (llave para plomería, rayo para electricidad, patita para mascotas…). Las **urgencias van en rojo y laten**.
 - **Trabajadores:** un avatar con sus iniciales, un aro y un punto **verde si está disponible** (gris si está ocupado) y su **calificación** debajo.
 - **Tu ubicación:** un punto azul con un halo que respira; el punto que se marca al publicar es una gota más grande.
-- Los popups usan las mismas superficies, radios y sombras del resto de la app.
+- Los popups usan las mismas superficies, radios y sombras del resto de la app, y **llevan a la acción**: un trabajo tiene *Ver trabajo* (abre Explorar con ese trabajo primero y desplegado, listo para postularse) y *Contactar* (chat con quien lo publicó); un trabajador tiene *Ver perfil* y *Contactar*. En lo tuyo solo aparece *Ver*.
 
 **Problema:** con pines idénticos había que tocar cada uno para saber qué era. El mapa no comunicaba nada a simple vista y desentonaba con el resto del diseño.
 
 **Por qué así:** en un vistazo se sabe qué se necesita, dónde, qué es urgente y quién está libre y bien calificado cerca, sin abrir nada. Sigue siendo gratis y sin API key (CARTO sirve teselas libres sobre datos de OpenStreetMap). En oscuro ya no se invierten los colores del mapa: se carga un estilo oscuro de verdad, así los pines conservan sus colores.
 
-**Qué decir en la exposición:** "Abrimos el mapa y en un segundo se ve lo urgente en rojo y quién está disponible en verde, con su calificación. El mapa muestra la oferta y la demanda de la zona."
+**Qué decir en la exposición:** "Abrimos el mapa y en un segundo se ve lo urgente en rojo y quién está disponible en verde, con su calificación. Tocamos un trabajador y desde ahí mismo lo contactamos: del mapa al chat en dos toques."
 
-**Dónde está:** `web/src/lib/leafletIcons.ts` (pines), `web/src/components/MapaTeselas.tsx` (estilo del mapa), sección "Mapa" de `web/src/components/aire/aire.css` · Commit `65f5d4d`
+**Dónde está:** `web/src/lib/leafletIcons.ts` (pines), `web/src/components/MapaTeselas.tsx` (estilo del mapa), `web/src/pages/MapaPage.tsx` (popups con acciones), sección "Mapa" de `web/src/components/aire/aire.css` · Commit `65f5d4d`
 
 ---
 
@@ -557,6 +557,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | Popups del mapa con Ver trabajo / Ver perfil y Contactar | 4.6 |
 | `65f5d4d` | Mapa con estilo propio (CARTO) y pines por categoría, urgencia y disponibilidad | 4.6 |
 | `68ca7db` | Limpieza entre huéspedes y trabajos con hora límite (idea #12) | 7.7 |
 | `3790bba` | Registro del commit de la agenda en esta guía | — |

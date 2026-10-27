@@ -929,7 +929,7 @@ a.ca-photocard__iconbtn { text-decoration: none; }
   border-radius: var(--aire-radius-md); background: var(--aire-surface); color: var(--aire-ink);
   box-shadow: var(--aire-shadow-float);
 }
-.leaflet-popup-content { margin: 12px 16px; font-family: var(--aire-font-sans); }
+.leaflet-popup-content { margin: 14px 16px; width: 264px !important; max-width: calc(100vw - 96px); font-family: var(--aire-font-sans); }
 .leaflet-popup-content p { margin: 0; }
 .leaflet-popup-tip { background: var(--aire-surface); box-shadow: none; }
 .leaflet-container a.leaflet-popup-close-button { color: var(--aire-ink-2); }
