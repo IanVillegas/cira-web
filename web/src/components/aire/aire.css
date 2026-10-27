@@ -924,6 +924,11 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 }
 @keyframes ca-mappin-halo { from { transform: scale(1); opacity: 0.55; } to { transform: scale(3.2); opacity: 0; } }
 
+/* Teselas de OpenStreetMap: menos saturadas en claro para que los pines resalten;
+   en oscuro se invierten (hue-rotate devuelve agua y parques a su tono). */
+.ca-maptiles { filter: saturate(0.55) contrast(0.95) brightness(1.03); }
+[data-theme="dark"] .ca-maptiles { filter: invert(1) hue-rotate(180deg) saturate(0.5) brightness(0.85) contrast(0.9); }
+
 /* Popups con la piel de Aire en lugar de la de Leaflet. */
 .leaflet-popup-content-wrapper {
   border-radius: var(--aire-radius-md); background: var(--aire-surface); color: var(--aire-ink);

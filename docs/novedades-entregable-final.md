@@ -160,7 +160,7 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 
 ### 4.6 Mapa con estilo propio y pines que informan
 
-**Qué es:** el mapa dejó de verse como el OpenStreetMap genérico. Usa un estilo de calles suave (CARTO Voyager en claro, Dark Matter en oscuro) y pines diseñados con CIRA Aire:
+**Qué es:** el mapa dejó de verse como el OpenStreetMap genérico. Las calles se ven más suaves (menos saturadas) para que resalten los pines, y en modo oscuro el mapa se oscurece; los pines están diseñados con CIRA Aire:
 - **Trabajos:** una gota azul con el ícono de su categoría (llave para plomería, rayo para electricidad, patita para mascotas…). Las **urgencias van en rojo y laten**.
 - **Trabajadores:** un avatar con sus iniciales, un aro y un punto **verde si está disponible** (gris si está ocupado) y su **calificación** debajo.
 - **Tu ubicación:** un punto azul con un halo que respira; el punto que se marca al publicar es una gota más grande.
@@ -168,11 +168,11 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 
 **Problema:** con pines idénticos había que tocar cada uno para saber qué era. El mapa no comunicaba nada a simple vista y desentonaba con el resto del diseño.
 
-**Por qué así:** en un vistazo se sabe qué se necesita, dónde, qué es urgente y quién está libre y bien calificado cerca, sin abrir nada. Sigue siendo gratis y sin API key (CARTO sirve teselas libres sobre datos de OpenStreetMap). En oscuro ya no se invierten los colores del mapa: se carga un estilo oscuro de verdad, así los pines conservan sus colores.
+**Por qué así:** en un vistazo se sabe qué se necesita, dónde, qué es urgente y quién está libre y bien calificado cerca, sin abrir nada. Sigue siendo gratis y sin API key: son las teselas de OpenStreetMap con un filtro de color, y el filtro no afecta a los pines, que conservan sus colores. (Probamos CARTO, pero ahora exige API key.)
 
 **Qué decir en la exposición:** "Abrimos el mapa y en un segundo se ve lo urgente en rojo y quién está disponible en verde, con su calificación. Tocamos un trabajador y desde ahí mismo lo contactamos: del mapa al chat en dos toques."
 
-**Dónde está:** `web/src/lib/leafletIcons.ts` (pines), `web/src/components/MapaTeselas.tsx` (estilo del mapa), `web/src/pages/MapaPage.tsx` (popups con acciones), sección "Mapa" de `web/src/components/aire/aire.css` · Commits `65f5d4d`, `980b0b3`
+**Dónde está:** `web/src/lib/leafletIcons.ts` (pines), `web/src/components/MapaTeselas.tsx` (capa del mapa), `web/src/pages/MapaPage.tsx` (popups con acciones), sección "Mapa" de `web/src/components/aire/aire.css` · Commits `65f5d4d`, `980b0b3`
 
 ---
 
@@ -447,7 +447,7 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 | **Fuentes de ingreso** | Comisión del 10 % (tarjeta), tarifa de urgencia del 15 % y Plan Plus de ₡2 500/mes; visibles en "Ingresos de CIRA". Los servicios recurrentes multiplican las comisiones por cliente; a futuro, mensualidad por propiedad para anfitriones |
 | **Recursos clave** | La plataforma, la base de usuarios verificados y su reputación acumulada |
 | **Actividades clave** | Emparejar trabajos con trabajadores cercanos, verificar identidades, procesar pagos y moderar reportes |
-| **Socios clave** | Pasarela de pagos (a futuro), Poder Judicial (hoja de delincuencia), OpenStreetMap y CARTO (mapas sin costo) |
+| **Socios clave** | Pasarela de pagos (a futuro), Poder Judicial (hoja de delincuencia), OpenStreetMap (mapas sin costo) |
 | **Estructura de costos** | Hosting y mantenimiento. Costos bajos por decisión: mapas gratis (OpenStreetMap) y sin API de IA de pago |
 
 ---
@@ -485,7 +485,7 @@ Conviene decirlo con claridad en la exposición: el profesor pidió un mockup in
 |---|---|
 | Base de datos SQLite que persiste entre recargas | Inicio de sesión: PIN `1234` para todos, sin SMS ni seguridad real |
 | Varios usuarios a la vez, chat, postulaciones, calificaciones | Pagos con tarjeta y suscripción Plus: no se cobra dinero |
-| Mapa real con geocodificación (OpenStreetMap) y estilo de CARTO; pines por categoría, urgencia y disponibilidad | Verificación de documentos: la "lectura" de la cédula y la revisión son automáticas |
+| Mapa real con geocodificación (OpenStreetMap); pines por categoría, urgencia y disponibilidad | Verificación de documentos: la "lectura" de la cédula y la revisión son automáticas |
 | Cálculo de comisiones, tarifas, propinas e ingresos | Alertas: se consultan cada pocos segundos, sin notificaciones push |
 | Agenda, fechas, servicios recurrentes, reemplazos y propiedades (validados en el servidor) | Las visitas de los servicios recurrentes se crean al consultar la app, no con una tarea programada |
 | Escalado a urgencia de las limpiezas entre huéspedes (por tiempo o por rechazo) | Las reservas se registran a mano (en producción se leerían del calendario de Airbnb o Booking) |
@@ -557,9 +557,10 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | El mapa vuelve a OpenStreetMap con filtro (CARTO pedía API key) | 4.6 |
 | `da749fb` | Corrige el campo del PIN del login, que tomaba los estilos de los pines del mapa | 4.6 |
 | `980b0b3` | Popups del mapa con Ver trabajo / Ver perfil y Contactar | 4.6 |
-| `65f5d4d` | Mapa con estilo propio (CARTO) y pines por categoría, urgencia y disponibilidad | 4.6 |
+| `65f5d4d` | Mapa con estilo propio y pines por categoría, urgencia y disponibilidad | 4.6 |
 | `68ca7db` | Limpieza entre huéspedes y trabajos con hora límite (idea #12) | 7.7 |
 | `3790bba` | Registro del commit de la agenda en esta guía | — |
 | `173f953` | CIRA Agenda: fechas reales, servicios recurrentes, reemplazos y propiedades (idea #11) | 7.6 |
