@@ -557,7 +557,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | El mapa vuelve a OpenStreetMap con filtro (CARTO pedía API key) | 4.6 |
+| `c94ab33` | El mapa vuelve a OpenStreetMap con filtro (CARTO pedía API key) | 4.6 |
 | `da749fb` | Corrige el campo del PIN del login, que tomaba los estilos de los pines del mapa | 4.6 |
 | `980b0b3` | Popups del mapa con Ver trabajo / Ver perfil y Contactar | 4.6 |
 | `65f5d4d` | Mapa con estilo propio y pines por categoría, urgencia y disponibilidad | 4.6 |
