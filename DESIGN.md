@@ -173,7 +173,7 @@ La app elige el tema con `lib/tema.ts` (Cuenta → Apariencia: Automático, Clar
 
 ### Mapa
 
-Todo mapa usa `<MapaTeselas />` como capa base (CARTO Voyager en claro, Dark Matter en oscuro; para probar otro estilo se cambian sus URLs) y los pines de `lib/leafletIcons.ts`, con estilos `.ca-pin*` en `aire.css`:
+Todo mapa usa `<MapaTeselas />` como capa base (CARTO Voyager en claro, Dark Matter en oscuro; para probar otro estilo se cambian sus URLs) y los pines de `lib/leafletIcons.ts`, con estilos `.ca-mappin*` en `aire.css`:
 
 - `iconoTrabajo(categoria, urgente)`: gota en `--aire-accent` con el ícono de `visualDeCategoria`; urgente en `--aire-danger` con halo.
 - `iconoTrabajador(nombre, disponible, calificacion)`: avatar con iniciales, aro y punto `--aire-success` (gris si está ocupado) y la nota debajo.

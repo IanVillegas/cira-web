@@ -557,6 +557,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | Corrige el campo del PIN del login, que tomaba los estilos de los pines del mapa | 4.6 |
 | `980b0b3` | Popups del mapa con Ver trabajo / Ver perfil y Contactar | 4.6 |
 | `65f5d4d` | Mapa con estilo propio (CARTO) y pines por categoría, urgencia y disponibilidad | 4.6 |
 | `68ca7db` | Limpieza entre huéspedes y trabajos con hora límite (idea #12) | 7.7 |

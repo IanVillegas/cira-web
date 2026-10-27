@@ -1,7 +1,7 @@
 import L from "leaflet";
 import { visualDeCategoria } from "@/lib/categorias";
 
-// Pines del mapa hechos con divIcon (HTML + clases .ca-pin* de aire.css), así
+// Pines del mapa hechos con divIcon (HTML + clases .ca-mappin* de aire.css), así
 // usan los tokens --aire-* y cambian solos con el modo oscuro. Los estilos
 // viven en components/aire/aire.css, sección "Mapa".
 
@@ -19,14 +19,14 @@ function memo(clave: string, crear: () => L.DivIcon) {
 const escapar = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
-const simbolo = (nombre: string) => `<span class="material-symbols-rounded ca-pin-icon">${nombre}</span>`;
+const simbolo = (nombre: string) => `<span class="material-symbols-rounded ca-mappin-icon">${nombre}</span>`;
 
 /** Gota con el ícono de la categoría. Las urgencias van en rojo y laten. */
 export function iconoTrabajo(categoria: string, urgente = false) {
   return memo(`trabajo:${categoria}:${urgente}`, () =>
     L.divIcon({
       className: "",
-      html: `<div class="ca-pin${urgente ? " ca-pin--urgente" : ""}">${simbolo(visualDeCategoria(categoria).icono)}</div>`,
+      html: `<div class="ca-mappin${urgente ? " ca-mappin--urgente" : ""}">${simbolo(visualDeCategoria(categoria).icono)}</div>`,
       iconSize: [40, 48],
       iconAnchor: [20, 48],
       popupAnchor: [0, -46],
@@ -46,10 +46,10 @@ export function iconoTrabajador(nombre: string, disponible: boolean, calificacio
     L.divIcon({
       className: "",
       html:
-        `<div class="ca-pin-avatar${disponible ? "" : " ca-pin-avatar--ocupado"}">` +
-        `<span class="ca-pin-avatar-ini">${escapar(iniciales(nombre))}</span>` +
-        `<span class="ca-pin-avatar-dot"></span>` +
-        (nota ? `<span class="ca-pin-avatar-nota">★ ${nota}</span>` : "") +
+        `<div class="ca-mappin-avatar${disponible ? "" : " ca-mappin-avatar--ocupado"}">` +
+        `<span class="ca-mappin-avatar-ini">${escapar(iniciales(nombre))}</span>` +
+        `<span class="ca-mappin-avatar-dot"></span>` +
+        (nota ? `<span class="ca-mappin-avatar-nota">★ ${nota}</span>` : "") +
         `</div>`,
       iconSize: [40, 40],
       iconAnchor: [20, 20],
@@ -61,7 +61,7 @@ export function iconoTrabajador(nombre: string, disponible: boolean, calificacio
 /** Punto elegido al publicar o en la vista previa: gota grande en acento. */
 export const iconoSeleccionado = L.divIcon({
   className: "",
-  html: `<div class="ca-pin ca-pin--grande">${simbolo("home_pin")}</div>`,
+  html: `<div class="ca-mappin ca-mappin--grande">${simbolo("home_pin")}</div>`,
   iconSize: [48, 58],
   iconAnchor: [24, 58],
   popupAnchor: [0, -56],
@@ -70,7 +70,7 @@ export const iconoSeleccionado = L.divIcon({
 /** "Tu ubicación": punto azul con halo que respira. */
 export const iconoUsuario = L.divIcon({
   className: "",
-  html: `<div class="ca-pin-yo"></div>`,
+  html: `<div class="ca-mappin-yo"></div>`,
   iconSize: [18, 18],
   iconAnchor: [9, 9],
 });
