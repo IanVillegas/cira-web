@@ -875,6 +875,71 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 /* Mapa a pantalla completa: los controles de Leaflet (y la atribución de OSM) suben sobre la barra. */
 .ca-mapa-full .leaflet-bottom { margin-bottom: var(--aire-tabbar-space); }
 
+/* ── Mapa: pines y popups (lib/leafletIcons.ts) ───────────
+   Gota con el ícono de la categoría para trabajos, avatar con iniciales para trabajadores
+   y punto que respira para "tu ubicación". Solo tokens: cambian solos en modo oscuro. */
+.ca-pin {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+  background: var(--aire-accent); color: var(--aire-on-accent);
+  box-shadow: 0 0 0 2.5px var(--aire-surface), var(--aire-shadow-thumb);
+  animation: ca-pin-in var(--aire-dur-base) var(--aire-ease-pop) both;
+}
+@keyframes ca-pin-in { from { opacity: 0; transform: rotate(-45deg) scale(0.6); } to { opacity: 1; transform: rotate(-45deg); } }
+.ca-pin-icon { transform: rotate(45deg); font-size: 22px; font-variation-settings: "FILL" 1; }
+.ca-pin--grande { width: 48px; height: 48px; }
+.ca-pin--grande .ca-pin-icon { font-size: 26px; }
+.ca-pin--urgente { background: var(--aire-danger); }
+.ca-pin--urgente::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--aire-danger);
+  z-index: -1; animation: ca-pin-halo 1.6s var(--aire-ease-out) infinite;
+}
+.ca-pin-avatar {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: var(--aire-radius-full);
+  background: var(--aire-surface); color: var(--aire-ink);
+  box-shadow: 0 0 0 2.5px var(--aire-success), var(--aire-shadow-thumb);
+  animation: ca-pop-in var(--aire-dur-base) var(--aire-ease-pop) both;
+}
+.ca-pin-avatar--ocupado { box-shadow: 0 0 0 2.5px var(--aire-surface-3), var(--aire-shadow-thumb); color: var(--aire-ink-2); }
+.ca-pin-avatar-ini { font-family: var(--aire-font-sans); font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
+.ca-pin-avatar-dot {
+  position: absolute; right: -1px; bottom: -1px; width: 12px; height: 12px; border-radius: var(--aire-radius-full);
+  background: var(--aire-success); box-shadow: 0 0 0 2px var(--aire-surface);
+}
+.ca-pin-avatar--ocupado .ca-pin-avatar-dot { background: var(--aire-ink-3); }
+.ca-pin-avatar-nota {
+  position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); white-space: nowrap;
+  padding: 1px 7px; border-radius: var(--aire-radius-full); background: var(--aire-surface); color: var(--aire-ink);
+  font-family: var(--aire-font-sans); font-size: 12px; line-height: 17px; font-weight: 600;
+  box-shadow: var(--aire-shadow-thumb);
+}
+.ca-pin-yo {
+  position: relative; width: 18px; height: 18px; border-radius: var(--aire-radius-full);
+  background: var(--aire-accent); box-shadow: 0 0 0 3px var(--aire-surface), var(--aire-shadow-thumb);
+}
+.ca-pin-yo::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--aire-accent);
+  z-index: -1; animation: ca-pin-halo 2s var(--aire-ease-out) infinite;
+}
+@keyframes ca-pin-halo { from { transform: scale(1); opacity: 0.55; } to { transform: scale(3.2); opacity: 0; } }
+
+/* Popups con la piel de Aire en lugar de la de Leaflet. */
+.leaflet-popup-content-wrapper {
+  border-radius: var(--aire-radius-md); background: var(--aire-surface); color: var(--aire-ink);
+  box-shadow: var(--aire-shadow-float);
+}
+.leaflet-popup-content { margin: 12px 16px; font-family: var(--aire-font-sans); }
+.leaflet-popup-content p { margin: 0; }
+.leaflet-popup-tip { background: var(--aire-surface); box-shadow: none; }
+.leaflet-container a.leaflet-popup-close-button { color: var(--aire-ink-2); }
+.leaflet-container { font-family: var(--aire-font-sans); background: var(--aire-surface-2); }
+.leaflet-control-attribution.leaflet-control {
+  margin: 0 0 6px 12px; padding: 1px 8px; border-radius: var(--aire-radius-full);
+  background: var(--aire-glass); color: var(--aire-ink-2); font-size: 10px; backdrop-filter: blur(12px);
+}
+.leaflet-control-attribution a { color: var(--aire-ink-2); }
+
 /* ── Píldora de día (disponibilidad al contratar) ──────── */
 .ca-daypill {
   flex: none; display: grid; justify-items: center; gap: 1px; width: 52px; min-height: 66px; padding: 8px 0 6px;
@@ -917,6 +982,8 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 
 /* ── Movimiento reducido: sin desplazamientos, solo cambios de opacidad breves ── */
 @media (prefers-reduced-motion: reduce) {
+  .ca-pin, .ca-pin-avatar { animation: none !important; }
+  .ca-pin--urgente::after, .ca-pin-yo::after { animation: none !important; opacity: 0.25; transform: scale(1.5); }
   .ca-root *, .ca-root *::before, .ca-root *::after,
   [class^="ca-"], [class^="ca-"] *, [class*=" ca-"] {
     animation-duration: 1ms !important;

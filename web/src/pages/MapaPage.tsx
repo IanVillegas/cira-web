@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { AttributionControl, MapContainer, Marker, Popup, useMap } from "react-leaflet";
+import { MapaTeselas } from "@/components/MapaTeselas";
 import { Icon, Loader, cx } from "@/components/aire";
 import { api } from "@/lib/api";
 import { buscarDireccion, obtenerUbicacionActual, type ResultadoBusquedaDireccion } from "@/lib/geo";
@@ -116,10 +117,8 @@ export function MapaPage() {
           className="h-full w-full"
           attributionControl={false}
         >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          />
+          <MapaTeselas />
+          <AttributionControl position="bottomleft" prefix={false} />
           <RecenterMap center={vista.center} zoom={vista.zoom} />
 
           {miUbicacion && (
@@ -129,9 +128,11 @@ export function MapaPage() {
           )}
 
           {trabajosVisibles.map((t) => (
-            <Marker key={t.id} position={[t.lat!, t.lng!]} icon={iconoTrabajo}>
+            <Marker key={t.id} position={[t.lat!, t.lng!]} icon={iconoTrabajo(t.categoria, t.urgente)}>
               <Popup>
-                <p className="aire-text-eyebrow text-aire-accent-text">{tr(t.categoria)}</p>
+                <p className="aire-text-eyebrow" style={{ color: t.urgente ? "var(--aire-danger-text)" : "var(--aire-accent-text)" }}>
+                  {t.urgente ? `${tr("Urgente")} · ${tr(t.categoria)}` : tr(t.categoria)}
+                </p>
                 <p className="aire-text-headline">{t.titulo}</p>
                 <p className="aire-text-subhead text-aire-ink-2">{t.ubicacion}</p>
                 <p className="aire-text-headline mt-1 text-aire-accent-text">₡{t.pago.toLocaleString(localeActual())}</p>
@@ -140,7 +141,7 @@ export function MapaPage() {
           ))}
 
           {trabajadoresVisibles.map((w) => (
-            <Marker key={w.id} position={[w.lat!, w.lng!]} icon={iconoTrabajador}>
+            <Marker key={w.id} position={[w.lat!, w.lng!]} icon={iconoTrabajador(w.nombre, w.disponible, w.calificacion)}>
               <Popup>
                 <p className="aire-text-headline">{w.nombre}</p>
                 <p className="aire-text-subhead text-aire-ink-2">{w.servicios.map((s) => tr(s)).join(" · ")}</p>

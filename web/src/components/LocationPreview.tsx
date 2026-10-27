@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, Marker, useMap } from "react-leaflet";
 import { Icon } from "@/components/aire";
+import { MapaTeselas } from "@/components/MapaTeselas";
 import { iconoSeleccionado } from "@/lib/leafletIcons";
 
 function Recenter({ center }: { center: [number, number] }) {
@@ -41,7 +42,7 @@ export function LocationPreview({ center, text }: LocationPreviewProps) {
             touchZoom={false}
             attributionControl={false}
           >
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <MapaTeselas />
             <Recenter center={center} />
             <Marker position={center} icon={iconoSeleccionado} />
           </MapContainer>

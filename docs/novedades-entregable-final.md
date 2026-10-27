@@ -32,7 +32,7 @@ En esta etapa CIRA pasó de un **mockup interactivo de un solo usuario** a una *
 
 | Bloque | Qué incorporamos | Por qué importa en la exposición |
 |---|---|---|
-| **Experiencia** | Sistema de diseño CIRA Aire, tarjetas con foto por categoría, barra flotante, modo oscuro, español/inglés | La app se ve y se siente como un producto real, no como un prototipo |
+| **Experiencia** | Sistema de diseño CIRA Aire, tarjetas con foto por categoría, barra flotante, modo oscuro, español/inglés, mapa con pines que informan | La app se ve y se siente como un producto real, no como un prototipo |
 | **Confianza** | Calificaciones en ambas direcciones, reportes, verificación de cédula y hoja de delincuencia, "De confianza" | Contratar a un desconocido es el mayor freno del mercado informal |
 | **Monetización** | Comisión por pago con tarjeta, tarifa de urgencia, Plan Plus, propina, "Ingresos de CIRA" | El profesor pidió que el modelo de negocio **se vea funcionando**, no solo en el Canvas |
 | **Operación** | Multiusuario, Modo Urgencia con alertas, seguimiento tipo Uber, ofertas directas, trueque, **agenda con servicios recurrentes, reemplazos, propiedades y limpieza entre huéspedes** | Cubre el ciclo completo: necesidad → contacto → trabajo → pago → reputación → **siguiente visita** |
@@ -140,7 +140,7 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 **Cómo funciona:**
 - Como todos los colores son tokens del sistema de diseño, al cambiar de tema cambia toda la app.
 - El tema se aplica antes de cargar la página para que no haya un destello blanco.
-- El mapa invierte sus colores y el fondo del inicio de sesión se atenúa para no encandilar.
+- El mapa cambia a un estilo oscuro propio (ver [§4.6](#46-mapa-con-estilo-propio-y-pines-que-informan)) y el fondo del inicio de sesión se atenúa para no encandilar.
 
 **Por qué importa:** es una expectativa básica de cualquier app hoy, ahorra batería en pantallas OLED y demuestra que el sistema de diseño está bien hecho (no hubo que tocar pantalla por pantalla).
 
@@ -155,6 +155,24 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 **Por qué importa:** es lo que más se conecta con el enfoque de **aplicaciones globales** del curso y con la expansión a Latinoamérica del roadmap. El contenido que escriben los usuarios (títulos, chats) no se traduce.
 
 **Dónde está:** `web/src/lib/i18n.ts`, `web/src/lib/i18n/en.ts` · Commit `27c5b68`
+
+---
+
+### 4.6 Mapa con estilo propio y pines que informan
+
+**Qué es:** el mapa dejó de verse como el OpenStreetMap genérico. Usa un estilo de calles suave (CARTO Voyager en claro, Dark Matter en oscuro) y pines diseñados con CIRA Aire:
+- **Trabajos:** una gota azul con el ícono de su categoría (llave para plomería, rayo para electricidad, patita para mascotas…). Las **urgencias van en rojo y laten**.
+- **Trabajadores:** un avatar con sus iniciales, un aro y un punto **verde si está disponible** (gris si está ocupado) y su **calificación** debajo.
+- **Tu ubicación:** un punto azul con un halo que respira; el punto que se marca al publicar es una gota más grande.
+- Los popups usan las mismas superficies, radios y sombras del resto de la app.
+
+**Problema:** con pines idénticos había que tocar cada uno para saber qué era. El mapa no comunicaba nada a simple vista y desentonaba con el resto del diseño.
+
+**Por qué así:** en un vistazo se sabe qué se necesita, dónde, qué es urgente y quién está libre y bien calificado cerca, sin abrir nada. Sigue siendo gratis y sin API key (CARTO sirve teselas libres sobre datos de OpenStreetMap). En oscuro ya no se invierten los colores del mapa: se carga un estilo oscuro de verdad, así los pines conservan sus colores.
+
+**Qué decir en la exposición:** "Abrimos el mapa y en un segundo se ve lo urgente en rojo y quién está disponible en verde, con su calificación. El mapa muestra la oferta y la demanda de la zona."
+
+**Dónde está:** `web/src/lib/leafletIcons.ts` (pines), `web/src/components/MapaTeselas.tsx` (estilo del mapa), sección "Mapa" de `web/src/components/aire/aire.css` · Commit `PENDIENTE`
 
 ---
 
@@ -429,7 +447,7 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 | **Fuentes de ingreso** | Comisión del 10 % (tarjeta), tarifa de urgencia del 15 % y Plan Plus de ₡2 500/mes; visibles en "Ingresos de CIRA". Los servicios recurrentes multiplican las comisiones por cliente; a futuro, mensualidad por propiedad para anfitriones |
 | **Recursos clave** | La plataforma, la base de usuarios verificados y su reputación acumulada |
 | **Actividades clave** | Emparejar trabajos con trabajadores cercanos, verificar identidades, procesar pagos y moderar reportes |
-| **Socios clave** | Pasarela de pagos (a futuro), Poder Judicial (hoja de delincuencia), OpenStreetMap (mapas sin costo) |
+| **Socios clave** | Pasarela de pagos (a futuro), Poder Judicial (hoja de delincuencia), OpenStreetMap y CARTO (mapas sin costo) |
 | **Estructura de costos** | Hosting y mantenimiento. Costos bajos por decisión: mapas gratis (OpenStreetMap) y sin API de IA de pago |
 
 ---
@@ -467,7 +485,7 @@ Conviene decirlo con claridad en la exposición: el profesor pidió un mockup in
 |---|---|
 | Base de datos SQLite que persiste entre recargas | Inicio de sesión: PIN `1234` para todos, sin SMS ni seguridad real |
 | Varios usuarios a la vez, chat, postulaciones, calificaciones | Pagos con tarjeta y suscripción Plus: no se cobra dinero |
-| Mapa real con geocodificación (OpenStreetMap) | Verificación de documentos: la "lectura" de la cédula y la revisión son automáticas |
+| Mapa real con geocodificación (OpenStreetMap) y estilo de CARTO; pines por categoría, urgencia y disponibilidad | Verificación de documentos: la "lectura" de la cédula y la revisión son automáticas |
 | Cálculo de comisiones, tarifas, propinas e ingresos | Alertas: se consultan cada pocos segundos, sin notificaciones push |
 | Agenda, fechas, servicios recurrentes, reemplazos y propiedades (validados en el servidor) | Las visitas de los servicios recurrentes se crean al consultar la app, no con una tarea programada |
 | Escalado a urgencia de las limpiezas entre huéspedes (por tiempo o por rechazo) | Las reservas se registran a mano (en producción se leerían del calendario de Airbnb o Booking) |
@@ -539,6 +557,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | Mapa con estilo propio (CARTO) y pines por categoría, urgencia y disponibilidad | 4.6 |
 | `68ca7db` | Limpieza entre huéspedes y trabajos con hora límite (idea #12) | 7.7 |
 | `3790bba` | Registro del commit de la agenda en esta guía | — |
 | `173f953` | CIRA Agenda: fechas reales, servicios recurrentes, reemplazos y propiedades (idea #11) | 7.6 |

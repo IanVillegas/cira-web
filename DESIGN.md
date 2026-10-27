@@ -169,7 +169,17 @@ En las listas de gestión (Mis publicaciones, Mis trabajos, Historial) la foto a
 
 ### Modo oscuro
 
-La app elige el tema con `lib/tema.ts` (Cuenta → Apariencia: Automático, Claro u Oscuro; se guarda en `cira.tema`). El tema se aplica con `data-theme` en `<html>`, así que los tokens `--aire-*` cambian solos: cualquier pantalla hecha solo con tokens ya funciona en oscuro. Un script en `index.html` lo aplica antes de pintar para que no parpadee. Excepciones en `index.css`: las teselas del mapa se invierten y el patrón del login se atenúa. Los tonos de categoría y los textos sobre foto (`--aire-cat-*`, `--aire-on-photo*`) son iguales en ambos temas.
+La app elige el tema con `lib/tema.ts` (Cuenta → Apariencia: Automático, Claro u Oscuro; se guarda en `cira.tema`). El tema se aplica con `data-theme` en `<html>`, así que los tokens `--aire-*` cambian solos: cualquier pantalla hecha solo con tokens ya funciona en oscuro. Un script en `index.html` lo aplica antes de pintar para que no parpadee. Excepciones: el mapa cambia de teselas (`MapaTeselas`) y el patrón del login se atenúa (`index.css`). Los tonos de categoría y los textos sobre foto (`--aire-cat-*`, `--aire-on-photo*`) son iguales en ambos temas.
+
+### Mapa
+
+Todo mapa usa `<MapaTeselas />` como capa base (CARTO Voyager en claro, Dark Matter en oscuro; para probar otro estilo se cambian sus URLs) y los pines de `lib/leafletIcons.ts`, con estilos `.ca-pin*` en `aire.css`:
+
+- `iconoTrabajo(categoria, urgente)`: gota en `--aire-accent` con el ícono de `visualDeCategoria`; urgente en `--aire-danger` con halo.
+- `iconoTrabajador(nombre, disponible, calificacion)`: avatar con iniciales, aro y punto `--aire-success` (gris si está ocupado) y la nota debajo.
+- `iconoSeleccionado` (gota grande) e `iconoUsuario` (punto con halo).
+
+Los popups de Leaflet ya tienen la piel de Aire; su contenido usa clases `aire-text-*`. Los halos se detienen con `prefers-reduced-motion`.
 
 ### Verificación de documentos
 

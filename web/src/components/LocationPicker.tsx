@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, useMapEvents } from "react-leaflet";
 import { FieldCaption, Icon } from "@/components/aire";
+import { MapaTeselas } from "@/components/MapaTeselas";
 import { iconoSeleccionado } from "@/lib/leafletIcons";
 import { obtenerUbicacionActual, reverseGeocode } from "@/lib/geo";
 import { tr } from "@/lib/i18n";
@@ -80,7 +81,7 @@ export function LocationPicker({ value, address, onChange }: LocationPickerProps
           className="h-full w-full"
           attributionControl={false}
         >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <MapaTeselas />
           <ClickHandler onClick={seleccionar} />
           {value && <Marker position={value} icon={iconoSeleccionado} />}
         </MapContainer>
