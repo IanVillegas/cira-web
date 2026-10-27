@@ -172,7 +172,7 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 
 **Qué decir en la exposición:** "Abrimos el mapa y en un segundo se ve lo urgente en rojo y quién está disponible en verde, con su calificación. Tocamos un trabajador y desde ahí mismo lo contactamos: del mapa al chat en dos toques."
 
-**Dónde está:** `web/src/lib/leafletIcons.ts` (pines), `web/src/components/MapaTeselas.tsx` (estilo del mapa), `web/src/pages/MapaPage.tsx` (popups con acciones), sección "Mapa" de `web/src/components/aire/aire.css` · Commit `65f5d4d`
+**Dónde está:** `web/src/lib/leafletIcons.ts` (pines), `web/src/components/MapaTeselas.tsx` (estilo del mapa), `web/src/pages/MapaPage.tsx` (popups con acciones), sección "Mapa" de `web/src/components/aire/aire.css` · Commits `65f5d4d`, `980b0b3`
 
 ---
 
@@ -557,7 +557,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | Popups del mapa con Ver trabajo / Ver perfil y Contactar | 4.6 |
+| `980b0b3` | Popups del mapa con Ver trabajo / Ver perfil y Contactar | 4.6 |
 | `65f5d4d` | Mapa con estilo propio (CARTO) y pines por categoría, urgencia y disponibilidad | 4.6 |
 | `68ca7db` | Limpieza entre huéspedes y trabajos con hora límite (idea #12) | 7.7 |
 | `3790bba` | Registro del commit de la agenda en esta guía | — |
