@@ -196,19 +196,20 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 
 ### 4.6 Mapa con estilo propio y pines que informan
 
-**Qué es:** el mapa dejó de verse como el OpenStreetMap genérico. Las calles se ven más suaves (menos saturadas) para que resalten los pines, y en modo oscuro el mapa se oscurece; los pines están diseñados con CIRA Aire:
+**Qué es:** el mapa dejó de verse como el OpenStreetMap genérico. Ahora es un **mapa vectorial** (MapLibre GL, con componentes adaptados de mapcn): zoom suave, calles nítidas en cualquier nivel, un estilo claro sobrio y un **modo oscuro de verdad**. Los pines están diseñados con CIRA Aire:
 - **Trabajos:** una gota azul con el ícono de su categoría (llave para plomería, rayo para electricidad, patita para mascotas…). Las **urgencias van en rojo y laten**.
 - **Trabajadores:** un avatar con sus iniciales, un aro y un punto **verde si está disponible** (gris si está ocupado) y su **calificación** debajo.
 - **Tu ubicación:** un punto azul con un halo que respira; el punto que se marca al publicar es una gota más grande.
+- **Pines agrupados:** cuando varios quedan encimados se juntan en un círculo con la cantidad (rojo si adentro hay una urgencia); al tocarlo, el mapa se acerca hasta separarlos. Tu propio perfil no aparece en el mapa.
 - Los popups usan las mismas superficies, radios y sombras del resto de la app, y **llevan a la acción**: un trabajo tiene *Ver trabajo* (abre Explorar con ese trabajo primero y desplegado, listo para postularse) y *Contactar* (chat con quien lo publicó); un trabajador tiene *Ver perfil* y *Contactar*. En lo tuyo solo aparece *Ver*.
 
-**Problema:** con pines idénticos había que tocar cada uno para saber qué era. El mapa no comunicaba nada a simple vista y desentonaba con el resto del diseño.
+**Problema:** con pines idénticos había que tocar cada uno para saber qué era, y los que estaban cerca se tapaban entre sí. El mapa no comunicaba nada a simple vista y desentonaba con el resto del diseño.
 
-**Por qué así:** en un vistazo se sabe qué se necesita, dónde, qué es urgente y quién está libre y bien calificado cerca, sin abrir nada. Sigue siendo gratis y sin API key: son las teselas de OpenStreetMap con un filtro de color, y el filtro no afecta a los pines, que conservan sus colores. (Probamos CARTO, pero ahora exige API key.)
+**Por qué así:** en un vistazo se sabe qué se necesita, dónde, qué es urgente y quién está libre y bien calificado cerca, sin abrir nada. Sigue siendo gratis y sin API key: el estilo es de **OpenFreeMap**, que sirve los datos de OpenStreetMap sin registro ni límites de uso. (Probamos CARTO, pero ahora exige API key.) mapcn es software libre (MIT); tomamos solo su núcleo y lo vestimos con CIRA Aire.
 
 **Qué decir en la exposición:** "Abrimos el mapa y en un segundo se ve lo urgente en rojo y quién está disponible en verde, con su calificación. Tocamos un trabajador y desde ahí mismo lo contactamos: del mapa al chat en dos toques."
 
-**Dónde está:** `web/src/lib/leafletIcons.ts` (pines), `web/src/components/MapaTeselas.tsx` (capa del mapa), `web/src/pages/MapaPage.tsx` (popups con acciones), sección "Mapa" de `web/src/components/aire/aire.css` · Commits `65f5d4d`, `980b0b3`
+**Dónde está:** `web/src/components/mapa/` (`mapcn.tsx`: mapa, pines y popups; `Pines.tsx`: diseño de los pines y agrupación; `mapContext.ts`: estilos del mapa), `web/src/pages/MapaPage.tsx` (popups con acciones), sección "Mapa" de `web/src/components/aire/aire.css` · Commits `65f5d4d`, `980b0b3`, `d383f6b`
 
 ---
 
@@ -483,7 +484,7 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 | **Fuentes de ingreso** | Comisión del 10 % (tarjeta), tarifa de urgencia del 15 % y Plan Plus de ₡2 500/mes; visibles en "Ingresos de CIRA". Los servicios recurrentes multiplican las comisiones por cliente; a futuro, mensualidad por propiedad para anfitriones |
 | **Recursos clave** | La plataforma, la base de usuarios verificados y su reputación acumulada |
 | **Actividades clave** | Emparejar trabajos con trabajadores cercanos, verificar identidades, procesar pagos y moderar reportes |
-| **Socios clave** | Pasarela de pagos (a futuro), Poder Judicial (hoja de delincuencia), OpenStreetMap (mapas sin costo) |
+| **Socios clave** | Pasarela de pagos (a futuro), Poder Judicial (hoja de delincuencia), OpenStreetMap y OpenFreeMap (mapas sin costo) |
 | **Estructura de costos** | Hosting y mantenimiento. Costos bajos por decisión: mapas gratis (OpenStreetMap) y sin API de IA de pago |
 
 ---
@@ -521,7 +522,7 @@ Conviene decirlo con claridad en la exposición: el profesor pidió un mockup in
 |---|---|
 | Base de datos SQLite que persiste entre recargas | Inicio de sesión: PIN `1234` para todos, sin SMS ni seguridad real |
 | Varios usuarios a la vez, chat, postulaciones, calificaciones | Pagos con tarjeta y suscripción Plus: no se cobra dinero |
-| Mapa real con geocodificación (OpenStreetMap); pines por categoría, urgencia y disponibilidad | Verificación de documentos: la "lectura" de la cédula y la revisión son automáticas |
+| Mapa vectorial real (MapLibre + OpenFreeMap) con geocodificación (OpenStreetMap); pines por categoría, urgencia y disponibilidad, agrupados si se enciman | Verificación de documentos: la "lectura" de la cédula y la revisión son automáticas |
 | Cálculo de comisiones, tarifas, propinas e ingresos | Alertas: se consultan cada pocos segundos, sin notificaciones push |
 | Agenda, fechas, servicios recurrentes, reemplazos y propiedades (validados en el servidor) | Las visitas de los servicios recurrentes se crean al consultar la app, no con una tarea programada |
 | Escalado a urgencia de las limpiezas entre huéspedes (por tiempo o por rechazo) | Las reservas se registran a mano (en producción se leerían del calendario de Airbnb o Booking) |
@@ -596,6 +597,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 | `ddcb8ee` | Hoja que se cierra deslizando desde cualquier parte, tarjetas con degradado y sin sombra cortada, "+" de propiedades en la Agenda | 4.3.2, 7.6 |
 | `f466b8b` | Explorar como inicio: accesos, filas de Urgentes, Trabajos y Trabajadores, Ver todos y detalle en hoja | 4.3.2 |
 | `d79ead1` | Secciones de Explorar como círculos con ícono (sin scroll) | 4.3.2 |
+| `d383f6b` | Mapa vectorial con MapLibre (núcleo de mapcn) y OpenFreeMap; pines agrupados | 4.6 |
 | `4600a31` | Títulos en la misma fila que los botones de atrás y de acción | 4.3.1 |
 | `c94ab33` | El mapa vuelve a OpenStreetMap con filtro (CARTO pedía API key) | 4.6 |
 | `da749fb` | Corrige el campo del PIN del login, que tomaba los estilos de los pines del mapa | 4.6 |

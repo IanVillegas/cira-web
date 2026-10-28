@@ -170,17 +170,19 @@ En las listas de gestión (Mis publicaciones, Mis trabajos, Historial) la foto a
 
 ### Modo oscuro
 
-La app elige el tema con `lib/tema.ts` (Cuenta → Apariencia: Automático, Claro u Oscuro; se guarda en `cira.tema`). El tema se aplica con `data-theme` en `<html>`, así que los tokens `--aire-*` cambian solos: cualquier pantalla hecha solo con tokens ya funciona en oscuro. Un script en `index.html` lo aplica antes de pintar para que no parpadee. Excepciones: el mapa cambia de teselas (`MapaTeselas`) y el patrón del login se atenúa (`index.css`). Los tonos de categoría y los textos sobre foto (`--aire-cat-*`, `--aire-on-photo*`) son iguales en ambos temas.
+La app elige el tema con `lib/tema.ts` (Cuenta → Apariencia: Automático, Claro u Oscuro; se guarda en `cira.tema`). El tema se aplica con `data-theme` en `<html>`, así que los tokens `--aire-*` cambian solos: cualquier pantalla hecha solo con tokens ya funciona en oscuro. Un script en `index.html` lo aplica antes de pintar para que no parpadee. Excepciones: el mapa carga otro estilo vectorial (`ESTILOS_MAPA` en `components/mapa/mapContext.ts`) y el patrón del login se atenúa (`index.css`). Los tonos de categoría y los textos sobre foto (`--aire-cat-*`, `--aire-on-photo*`) son iguales en ambos temas.
 
 ### Mapa
 
-Todo mapa usa `<MapaTeselas />` como capa base: teselas de OpenStreetMap con el filtro `.ca-maptiles` (desaturadas en claro, invertidas en oscuro). CARTO ya no sirve sin API key y los pines de `lib/leafletIcons.ts`, con estilos `.ca-mappin*` en `aire.css`:
+Los mapas son vectoriales: **MapLibre GL** con componentes adaptados de [mapcn](https://github.com/AnmolSaini16/mapcn) (MIT) en `components/mapa/`. El estilo es de **OpenFreeMap** (gratis, sin API key): Positron en claro y Dark en oscuro, y cambia solo con el tema (`ESTILOS_MAPA` en `mapContext.ts`). CARTO ya no sirve sin API key.
 
-- `iconoTrabajo(categoria, urgente)`: gota en `--aire-accent` con el ícono de `visualDeCategoria`; urgente en `--aire-danger` con halo.
-- `iconoTrabajador(nombre, disponible, calificacion)`: avatar con iniciales, aro y punto `--aire-success` (gris si está ocupado) y la nota debajo.
-- `iconoSeleccionado` (gota grande) e `iconoUsuario` (punto con halo).
+- `<Map center={[lng, lat]} zoom>`: contenedor; `interactive={false}` para vistas previas, `scrollZoom={false}` dentro de formularios, `onClick` para elegir un punto. Ojo: MapLibre usa `[lng, lat]` y teselas de 512px (un nivel de zoom menos que Leaflet para ver la misma zona).
+- `<MapMarker longitude latitude anchor>` + `<MarkerContent>` (el pin) + `<MarkerPopup offset>` (el globo, con la piel de Aire y botón para cerrar).
+- `useMap()` (de `mapContext.ts`) da la instancia para `flyTo`/`easeTo`.
+- Pines en `components/mapa/Pines.tsx`, con estilos `.ca-mappin*` en `aire.css`: `PinTrabajo` (gota con el ícono de la categoría; urgente en rojo con halo), `PinTrabajador` (avatar con iniciales, disponibilidad y nota), `PinSeleccionado` (gota grande) y `PinUsuario` (punto con halo). Las gotas usan `anchor={ANCLA_GOTA}`; los círculos, `ANCLA_CENTRO`.
+- `PinesAgrupados` junta los pines encimados (supercluster) en un círculo con la cantidad (rojo si adentro hay una urgencia); al tocarlo el mapa se acerca hasta separarlos.
 
-Los popups de Leaflet ya tienen la piel de Aire; su contenido usa clases `aire-text-*` y termina en `AccionesPopup` (Ver como secundaria y Contactar como principal; si es tuyo, solo Ver). Los halos se detienen con `prefers-reduced-motion`.
+El contenido de los popups usa clases `aire-text-*` y termina en `AccionesPopup` (Ver como secundaria y Contactar como principal; si es tuyo, solo Ver). Los halos y entradas se detienen con `prefers-reduced-motion`.
 
 ### Verificación de documentos
 

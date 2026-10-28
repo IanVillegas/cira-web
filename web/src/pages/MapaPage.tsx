@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AttributionControl, MapContainer, Marker, Popup, useMap } from "react-leaflet";
-import { MapaTeselas } from "@/components/MapaTeselas";
+import { Map, MapMarker, MarkerContent, MarkerPopup } from "@/components/mapa/mapcn";
+import { useMap } from "@/components/mapa/mapContext";
+import { ANCLA_CENTRO, ANCLA_GOTA, PinTrabajador, PinTrabajo, PinUsuario, PinesAgrupados } from "@/components/mapa/Pines";
 import { useNavigate } from "react-router-dom";
 import { Button, Icon, Loader, cx } from "@/components/aire";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { buscarDireccion, obtenerUbicacionActual, type ResultadoBusquedaDireccion } from "@/lib/geo";
-import { iconoTrabajador, iconoTrabajo, iconoUsuario } from "@/lib/leafletIcons";
 import { CATEGORIAS } from "@/lib/mockData";
 import type { Trabajador, Trabajo } from "@/lib/types";
 import { localeActual, tr } from "@/lib/i18n";
@@ -15,13 +15,19 @@ import { localeActual, tr } from "@/lib/i18n";
 const CENTRO_DEFECTO: [number, number] = [10.0163, -84.2113];
 const TODOS = tr("Todos los servicios");
 
+/** Vuela a `center` ([lat, lng]) cada vez que cambia (búsqueda o "mi ubicación"). */
 function RecenterMap({ center, zoom }: { center: [number, number]; zoom: number }) {
-  const map = useMap();
+  const { map } = useMap();
   useEffect(() => {
-    map.flyTo(center, zoom, { duration: 0.8 });
+    map?.flyTo({ center: [center[1], center[0]], zoom, duration: 800 });
   }, [center, zoom, map]);
   return null;
 }
+
+/** Un pin suelto del mapa: trabajo o trabajador, con lo necesario para su popup. */
+type PuntoDelMapa =
+  | { tipo: "trabajo"; id: string; lng: number; lat: number; urgente: boolean; trabajo: Trabajo }
+  | { tipo: "trabajador"; id: string; lng: number; lat: number; urgente: false; trabajador: Trabajador };
 
 /** Botones al pie de cada popup: ver el detalle y, si no es tuyo, contactar (acción principal). */
 function AccionesPopup({
@@ -60,7 +66,7 @@ export function MapaPage() {
   const [miUbicacion, setMiUbicacion] = useState<[number, number] | null>(null);
   const [vista, setVista] = useState<{ center: [number, number]; zoom: number }>({
     center: CENTRO_DEFECTO,
-    zoom: 14,
+    zoom: 13,
   });
   const [aviso, setAviso] = useState<string | null>(null);
 
@@ -108,9 +114,10 @@ export function MapaPage() {
   const trabajadoresVisibles = useMemo(
     () =>
       trabajadores.filter(
-        (w) => w.lat != null && w.lng != null && (filtro === TODOS || w.servicios.includes(filtro)),
+        (w) =>
+          w.id !== usuario?.id && w.lat != null && w.lng != null && (filtro === TODOS || w.servicios.includes(filtro)),
       ),
-    [trabajadores, filtro],
+    [trabajadores, filtro, usuario?.id],
   );
 
   const onBusqueda = (texto: string) => {
@@ -125,7 +132,7 @@ export function MapaPage() {
   };
 
   const irA = (r: ResultadoBusquedaDireccion) => {
-    setVista({ center: [r.lat, r.lng], zoom: 16 });
+    setVista({ center: [r.lat, r.lng], zoom: 15 });
     setBusqueda(r.nombre.split(",").slice(0, 2).join(","));
     setSugerencias([]);
   };
@@ -141,11 +148,60 @@ export function MapaPage() {
     try {
       const { lat, lng } = await obtenerUbicacionActual();
       setMiUbicacion([lat, lng]);
-      setVista({ center: [lat, lng], zoom: 15 });
+      setVista({ center: [lat, lng], zoom: 14 });
     } catch {
       setAviso(tr("No se pudo obtener tu ubicación. Revisa los permisos del navegador."));
     }
   };
+
+  const puntos = useMemo<PuntoDelMapa[]>(
+    () => [
+      ...trabajosVisibles.map((t) => ({ tipo: "trabajo" as const, id: `t-${t.id}`, lng: t.lng!, lat: t.lat!, urgente: t.urgente, trabajo: t })),
+      ...trabajadoresVisibles.map((w) => ({ tipo: "trabajador" as const, id: `w-${w.id}`, lng: w.lng!, lat: w.lat!, urgente: false as const, trabajador: w })),
+    ],
+    [trabajosVisibles, trabajadoresVisibles],
+  );
+
+  const pinDeTrabajo = (t: Trabajo) => (
+    <MapMarker key={`t-${t.id}`} longitude={t.lng!} latitude={t.lat!} anchor={ANCLA_GOTA}>
+      <MarkerContent>
+        <PinTrabajo categoria={t.categoria} urgente={t.urgente} />
+      </MarkerContent>
+      <MarkerPopup offset={52}>
+        <p className="aire-text-eyebrow" style={{ color: t.urgente ? "var(--aire-danger-text)" : "var(--aire-accent-text)" }}>
+          {t.urgente ? `${tr("Urgente")} · ${tr(t.categoria)}` : tr(t.categoria)}
+        </p>
+        <p className="aire-text-headline">{t.titulo}</p>
+        <p className="aire-text-subhead text-aire-ink-2">{t.ubicacion}</p>
+        <p className="aire-text-headline mt-1 text-aire-accent-text">₡{t.pago.toLocaleString(localeActual())}</p>
+        <AccionesPopup
+          verLabel={tr("Ver trabajo")}
+          onVer={() => navigate(`/explorar?trabajo=${t.id}`)}
+          onContactar={t.publicadorId !== usuario?.id ? () => contactar(t.publicadorId) : undefined}
+          contactando={abriendoChat === t.publicadorId}
+        />
+      </MarkerPopup>
+    </MapMarker>
+  );
+
+  const pinDeTrabajador = (w: Trabajador) => (
+    <MapMarker key={`w-${w.id}`} longitude={w.lng!} latitude={w.lat!} anchor={ANCLA_CENTRO}>
+      <MarkerContent>
+        <PinTrabajador nombre={w.nombre} disponible={w.disponible} calificacion={w.calificacion} />
+      </MarkerContent>
+      <MarkerPopup offset={28}>
+        <p className="aire-text-headline">{w.nombre}</p>
+        <p className="aire-text-subhead text-aire-ink-2">{w.servicios.map((s) => tr(s)).join(" · ")}</p>
+        <p className="aire-text-subhead text-aire-ink-2">{w.disponible ? tr("Disponible") : tr("Ocupado")}</p>
+        <AccionesPopup
+          verLabel={tr("Ver perfil")}
+          onVer={() => navigate(`/usuarios/${w.id}`)}
+          onContactar={() => contactar(w.id)}
+          contactando={abriendoChat === w.id}
+        />
+      </MarkerPopup>
+    </MapMarker>
+  );
 
   return (
     <div className="ca-mapa-full relative h-full min-h-[480px] bg-aire-surface-3">
@@ -154,59 +210,22 @@ export function MapaPage() {
           <Loader label={tr("Cargando mapa...")} />
         </div>
       ) : (
-        <MapContainer
-          center={vista.center}
-          zoom={vista.zoom}
-          scrollWheelZoom
-          zoomControl={false}
-          className="h-full w-full"
-          attributionControl={false}
-        >
-          <MapaTeselas />
-          <AttributionControl position="bottomleft" prefix={false} />
+        <Map center={[vista.center[1], vista.center[0]]} zoom={vista.zoom}>
           <RecenterMap center={vista.center} zoom={vista.zoom} />
 
           {miUbicacion && (
-            <Marker position={miUbicacion} icon={iconoUsuario}>
-              <Popup>{tr("Tu ubicación")}</Popup>
-            </Marker>
+            <MapMarker longitude={miUbicacion[1]} latitude={miUbicacion[0]} anchor={ANCLA_CENTRO}>
+              <MarkerContent>
+                <PinUsuario />
+              </MarkerContent>
+              <MarkerPopup>
+                <p className="aire-text-headline">{tr("Tu ubicación")}</p>
+              </MarkerPopup>
+            </MapMarker>
           )}
 
-          {trabajosVisibles.map((t) => (
-            <Marker key={t.id} position={[t.lat!, t.lng!]} icon={iconoTrabajo(t.categoria, t.urgente)}>
-              <Popup>
-                <p className="aire-text-eyebrow" style={{ color: t.urgente ? "var(--aire-danger-text)" : "var(--aire-accent-text)" }}>
-                  {t.urgente ? `${tr("Urgente")} · ${tr(t.categoria)}` : tr(t.categoria)}
-                </p>
-                <p className="aire-text-headline">{t.titulo}</p>
-                <p className="aire-text-subhead text-aire-ink-2">{t.ubicacion}</p>
-                <p className="aire-text-headline mt-1 text-aire-accent-text">₡{t.pago.toLocaleString(localeActual())}</p>
-                <AccionesPopup
-                  verLabel={tr("Ver trabajo")}
-                  onVer={() => navigate(`/explorar?trabajo=${t.id}`)}
-                  onContactar={t.publicadorId !== usuario?.id ? () => contactar(t.publicadorId) : undefined}
-                  contactando={abriendoChat === t.publicadorId}
-                />
-              </Popup>
-            </Marker>
-          ))}
-
-          {trabajadoresVisibles.map((w) => (
-            <Marker key={w.id} position={[w.lat!, w.lng!]} icon={iconoTrabajador(w.nombre, w.disponible, w.calificacion)}>
-              <Popup>
-                <p className="aire-text-headline">{w.nombre}</p>
-                <p className="aire-text-subhead text-aire-ink-2">{w.servicios.map((s) => tr(s)).join(" · ")}</p>
-                <p className="aire-text-subhead text-aire-ink-2">{w.disponible ? tr("Disponible") : tr("Ocupado")}</p>
-                <AccionesPopup
-                  verLabel={tr("Ver perfil")}
-                  onVer={() => navigate(`/usuarios/${w.id}`)}
-                  onContactar={w.id !== usuario?.id ? () => contactar(w.id) : undefined}
-                  contactando={abriendoChat === w.id}
-                />
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+          <PinesAgrupados puntos={puntos} renderPunto={(p) => (p.tipo === "trabajo" ? pinDeTrabajo(p.trabajo) : pinDeTrabajador(p.trabajador))} />
+        </Map>
       )}
 
       {/* Controles flotantes de vidrio sobre el mapa */}

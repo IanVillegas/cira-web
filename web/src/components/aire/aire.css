@@ -903,10 +903,10 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 .ca-tabbar-dock { position: absolute; inset: auto 0 0 0; z-index: 1100; pointer-events: none; }
 .ca-tabbar-dock > * { pointer-events: auto; }
 .ca-scroll-under-tabbar { padding-bottom: var(--aire-tabbar-space); }
-/* Mapa a pantalla completa: los controles de Leaflet (y la atribución de OSM) suben sobre la barra. */
-.ca-mapa-full .leaflet-bottom { margin-bottom: var(--aire-tabbar-space); }
+/* Mapa a pantalla completa: los controles de MapLibre (y los créditos de OSM) suben sobre la barra. */
+.ca-mapa-full .maplibregl-ctrl-bottom-left, .ca-mapa-full .maplibregl-ctrl-bottom-right { margin-bottom: var(--aire-tabbar-space); }
 
-/* ── Mapa: pines y popups (lib/leafletIcons.ts) ───────────
+/* ── Mapa: pines y popups (components/mapa/) ──────────────
    Gota con el ícono de la categoría para trabajos, avatar con iniciales para trabajadores
    y punto que respira para "tu ubicación". Solo tokens: cambian solos en modo oscuro. */
 .ca-mappin {
@@ -915,10 +915,12 @@ a.ca-photocard__iconbtn { text-decoration: none; }
   background: var(--aire-accent); color: var(--aire-on-accent);
   box-shadow: 0 0 0 2.5px var(--aire-surface), var(--aire-shadow-thumb);
   animation: ca-mappin-in var(--aire-dur-base) var(--aire-ease-pop) both;
+  /* La punta de la gota sobresale 8px del cuadro al rotar: el margen la deja justo en la coordenada. */
+  margin-bottom: 8px;
 }
 @keyframes ca-mappin-in { from { opacity: 0; transform: rotate(-45deg) scale(0.6); } to { opacity: 1; transform: rotate(-45deg); } }
 .ca-mappin-icon { transform: rotate(45deg); font-size: 22px; font-variation-settings: "FILL" 1; }
-.ca-mappin--grande { width: 48px; height: 48px; }
+.ca-mappin--grande { width: 48px; height: 48px; margin-bottom: 10px; }
 .ca-mappin--grande .ca-mappin-icon { font-size: 26px; }
 .ca-mappin--urgente { background: var(--aire-danger); }
 .ca-mappin--urgente::after {
@@ -955,26 +957,62 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 }
 @keyframes ca-mappin-halo { from { transform: scale(1); opacity: 0.55; } to { transform: scale(3.2); opacity: 0; } }
 
-/* Teselas de OpenStreetMap: menos saturadas en claro para que los pines resalten;
-   en oscuro se invierten (hue-rotate devuelve agua y parques a su tono). */
-.ca-maptiles { filter: saturate(0.55) contrast(0.95) brightness(1.03); }
-[data-theme="dark"] .ca-maptiles { filter: invert(1) hue-rotate(180deg) saturate(0.5) brightness(0.85) contrast(0.9); }
+/* Grupo de pines cercanos: círculo con la cantidad; rojo si adentro hay una urgencia. */
+.ca-mappin-grupo {
+  display: flex; align-items: center; justify-content: center; min-width: 44px; height: 44px; padding: 0 10px;
+  border-radius: var(--aire-radius-full); background: var(--aire-accent); color: var(--aire-on-accent);
+  font: 700 16px/1 var(--aire-font-sans); letter-spacing: -0.2px; cursor: pointer;
+  box-shadow: 0 0 0 3px var(--aire-surface), 0 0 0 7px var(--aire-accent-soft), var(--aire-shadow-thumb);
+  animation: ca-pop-in var(--aire-dur-base) var(--aire-ease-pop) both;
+  transition: transform var(--aire-dur-base) var(--aire-ease-pop);
+}
+.ca-mappin-grupo:active { transform: scale(0.9); transition-duration: var(--aire-dur-instant); }
+.ca-mappin-grupo--urgente { background: var(--aire-danger); box-shadow: 0 0 0 3px var(--aire-surface), 0 0 0 7px var(--aire-danger-soft), var(--aire-shadow-thumb); }
 
-/* Popups con la piel de Aire en lugar de la de Leaflet. */
-.leaflet-popup-content-wrapper {
-  border-radius: var(--aire-radius-md); background: var(--aire-surface); color: var(--aire-ink);
+/* Contenedor del mapa (components/mapa/mapcn.tsx). */
+.ca-map { background: var(--aire-surface-2); font-family: var(--aire-font-sans); }
+.ca-map__marker { cursor: pointer; }
+.ca-map__estado {
+  position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; background: var(--aire-surface-2); color: var(--aire-ink-2);
+}
+
+/* Popups de MapLibre con la piel de Aire. */
+.ca-map__popup-shell .maplibregl-popup-content {
+  padding: 0; border-radius: var(--aire-radius-md); background: var(--aire-surface); color: var(--aire-ink);
   box-shadow: var(--aire-shadow-float);
 }
-.leaflet-popup-content { margin: 14px 16px; width: 264px !important; max-width: calc(100vw - 96px); font-family: var(--aire-font-sans); }
-.leaflet-popup-content p { margin: 0; }
-.leaflet-popup-tip { background: var(--aire-surface); box-shadow: none; }
-.leaflet-container a.leaflet-popup-close-button { color: var(--aire-ink-2); }
-.leaflet-container { font-family: var(--aire-font-sans); background: var(--aire-surface-2); }
-.leaflet-control-attribution.leaflet-control {
-  margin: 0 0 6px 12px; padding: 1px 8px; border-radius: var(--aire-radius-full);
-  background: var(--aire-glass); color: var(--aire-ink-2); font-size: 10px; backdrop-filter: blur(12px);
+.ca-map__popup-shell.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.ca-map__popup-shell.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.ca-map__popup-shell.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip { border-top-color: var(--aire-surface); }
+.ca-map__popup-shell.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.ca-map__popup-shell.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.ca-map__popup-shell.maplibregl-popup-anchor-top-right .maplibregl-popup-tip { border-bottom-color: var(--aire-surface); }
+.ca-map__popup-shell.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--aire-surface); }
+.ca-map__popup-shell.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--aire-surface); }
+.ca-map__popup {
+  position: relative; width: 264px; max-width: calc(100vw - 96px); padding: 14px 16px;
+  animation: ca-pop-in var(--aire-dur-fast) var(--aire-ease-out) both;
 }
-.leaflet-control-attribution a { color: var(--aire-ink-2); }
+.ca-map__popup p { margin: 0; padding-right: 28px; }
+.ca-map__popup .ca-btn { padding-left: 10px; padding-right: 10px; }
+.ca-map__popup-close {
+  position: absolute; top: 4px; right: 4px; display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border: 0; border-radius: var(--aire-radius-full); background: transparent;
+  color: var(--aire-ink-2); cursor: pointer;
+}
+.ca-map__popup-close:active { background: var(--aire-surface-3); }
+.ca-map__popup-close:focus { outline: none; }
+.ca-map__popup-close:focus-visible { box-shadow: 0 0 0 3px var(--aire-focus); }
+
+/* Créditos (OpenFreeMap / OpenStreetMap) en una píldora de vidrio. */
+.ca-map .maplibregl-ctrl-attrib {
+  margin: 0 0 6px 12px; border-radius: var(--aire-radius-full); background: var(--aire-glass);
+  color: var(--aire-ink-2); font-size: 10px; backdrop-filter: blur(12px);
+}
+.ca-map .maplibregl-ctrl-attrib a { color: var(--aire-ink-2); }
+.ca-map .maplibregl-ctrl-attrib-button { background-color: transparent; }
+[data-theme="dark"] .ca-map .maplibregl-ctrl-attrib-button { filter: invert(1); }
 
 /* ── Carruseles de Explorar (components/Carrusel.tsx) ─────
    Filas que se deslizan a lo ancho con imán por tarjeta; todas las tarjetas miden lo mismo
@@ -1102,7 +1140,7 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 
 /* ── Movimiento reducido: sin desplazamientos, solo cambios de opacidad breves ── */
 @media (prefers-reduced-motion: reduce) {
-  .ca-mappin, .ca-mappin-avatar { animation: none !important; }
+  .ca-mappin, .ca-mappin-avatar, .ca-mappin-grupo, .ca-map__popup { animation: none !important; }
   .ca-mappin--urgente::after, .ca-mappin-yo::after { animation: none !important; opacity: 0.25; transform: scale(1.5); }
   .ca-root *, .ca-root *::before, .ca-root *::after,
   [class^="ca-"], [class^="ca-"] *, [class*=" ca-"] {
