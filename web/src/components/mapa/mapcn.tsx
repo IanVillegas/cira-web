@@ -219,10 +219,15 @@ export function MarkerContent({ children, className }: { children: ReactNode; cl
   return createPortal(<div className={cx("ca-map__marker", className)}>{children}</div>, marker.getElement());
 }
 
-export type MarkerPopupProps = { children: ReactNode; className?: string } & Omit<PopupOptions, "className" | "closeButton">;
+export type MarkerPopupProps = {
+  children: ReactNode;
+  className?: string;
+  /** Abre el globo al montarse y acomoda el mapa para que se vea completo (p. ej. "Ver en mapa"). */
+  abrirAlInicio?: boolean;
+} & Omit<PopupOptions, "className" | "closeButton">;
 
 /** Globo que se abre al tocar el pin, con la piel de Aire y botón para cerrar. */
-export function MarkerPopup({ children, className, ...popupOptions }: MarkerPopupProps) {
+export function MarkerPopup({ children, className, abrirAlInicio = false, ...popupOptions }: MarkerPopupProps) {
   const { marker, map } = useMarkerContext();
   const { Popup } = useMapLib();
   const container = useMemo(() => document.createElement("div"), []);
@@ -245,6 +250,17 @@ export function MarkerPopup({ children, className, ...popupOptions }: MarkerPopu
       marker.setPopup(null);
     };
   }, [map, marker, popup, container]);
+
+  useEffect(() => {
+    if (!map || !abrirAlInicio) return;
+    // Un cuadro después: el pin ya está en el mapa (MapMarker lo agrega en su propio efecto).
+    const id = requestAnimationFrame(() => {
+      if (!popup.isOpen()) marker.togglePopup();
+      // El pin queda más abajo del centro para que el globo no choque con el buscador.
+      map.easeTo({ center: marker.getLngLat(), offset: [0, 130], duration: 500 });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [map, marker, popup, abrirAlInicio]);
 
   return createPortal(
     <div className={cx("ca-map__popup", className)}>

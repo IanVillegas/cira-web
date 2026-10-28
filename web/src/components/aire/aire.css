@@ -972,6 +972,8 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 /* Contenedor del mapa (components/mapa/mapcn.tsx). */
 .ca-map { background: var(--aire-surface-2); font-family: var(--aire-font-sans); }
 .ca-map__marker { cursor: pointer; }
+/* El trabajo al que se llegó con "Ver en mapa" queda por encima de los pines vecinos. */
+.maplibregl-marker.ca-map__marker--foco { z-index: 2; }
 .ca-map__estado {
   position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 8px; background: var(--aire-surface-2); color: var(--aire-ink-2);

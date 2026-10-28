@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Map, MapMarker, MarkerContent, MarkerPopup } from "@/components/mapa/mapcn";
 import { useMap } from "@/components/mapa/mapContext";
 import { ANCLA_CENTRO, ANCLA_GOTA, PinTrabajador, PinTrabajo, PinUsuario, PinesAgrupados } from "@/components/mapa/Pines";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button, Icon, Loader, cx } from "@/components/aire";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -74,6 +74,10 @@ export function MapaPage() {
   const [sugerencias, setSugerencias] = useState<ResultadoBusquedaDireccion[]>([]);
   const debounce = useRef<number | undefined>(undefined);
 
+  // "Ver en mapa" de un trabajo (/mapa?trabajo=ID): el mapa abre en ese trabajo con su globo abierto.
+  const [searchParams] = useSearchParams();
+  const enfocado = searchParams.get("trabajo");
+
   const [filtro, setFiltro] = useState(TODOS);
   const [filtroAbierto, setFiltroAbierto] = useState(false);
 
@@ -99,13 +103,16 @@ export function MapaPage() {
       .then(([t, w]) => {
         setTrabajos(t);
         setTrabajadores(w);
+        const foco = t.find((x) => x.id === enfocado);
+        if (foco?.lat != null && foco.lng != null) setVista({ center: [foco.lat, foco.lng], zoom: 16 });
       })
       .catch(() => {
         setTrabajos([]);
         setTrabajadores([]);
       })
       .finally(() => setCargando(false));
-  }, []);
+    // Con otro ?trabajo= (otro "Ver en mapa") se vuelve a cargar y se enfoca ese.
+  }, [enfocado]);
 
   const trabajosVisibles = useMemo(
     () => trabajos.filter((t) => t.lat != null && t.lng != null && (filtro === TODOS || t.categoria === filtro)),
@@ -156,18 +163,28 @@ export function MapaPage() {
 
   const puntos = useMemo<PuntoDelMapa[]>(
     () => [
-      ...trabajosVisibles.map((t) => ({ tipo: "trabajo" as const, id: `t-${t.id}`, lng: t.lng!, lat: t.lat!, urgente: t.urgente, trabajo: t })),
+      // El trabajo enfocado va aparte (siempre como pin suelto, nunca dentro de un grupo).
+      ...trabajosVisibles
+        .filter((t) => t.id !== enfocado)
+        .map((t) => ({ tipo: "trabajo" as const, id: `t-${t.id}`, lng: t.lng!, lat: t.lat!, urgente: t.urgente, trabajo: t })),
       ...trabajadoresVisibles.map((w) => ({ tipo: "trabajador" as const, id: `w-${w.id}`, lng: w.lng!, lat: w.lat!, urgente: false as const, trabajador: w })),
     ],
-    [trabajosVisibles, trabajadoresVisibles],
+    [trabajosVisibles, trabajadoresVisibles, enfocado],
   );
+  const trabajoEnfocado = trabajosVisibles.find((t) => t.id === enfocado) ?? null;
 
-  const pinDeTrabajo = (t: Trabajo) => (
-    <MapMarker key={`t-${t.id}`} longitude={t.lng!} latitude={t.lat!} anchor={ANCLA_GOTA}>
+  const pinDeTrabajo = (t: Trabajo, abrirAlInicio = false) => (
+    <MapMarker
+      key={`t-${t.id}`}
+      longitude={t.lng!}
+      latitude={t.lat!}
+      anchor={ANCLA_GOTA}
+      className={abrirAlInicio ? "ca-map__marker--foco" : undefined}
+    >
       <MarkerContent>
         <PinTrabajo categoria={t.categoria} urgente={t.urgente} />
       </MarkerContent>
-      <MarkerPopup offset={52}>
+      <MarkerPopup offset={52} abrirAlInicio={abrirAlInicio}>
         <p className="aire-text-eyebrow" style={{ color: t.urgente ? "var(--aire-danger-text)" : "var(--aire-accent-text)" }}>
           {t.urgente ? `${tr("Urgente")} · ${tr(t.categoria)}` : tr(t.categoria)}
         </p>
@@ -224,6 +241,7 @@ export function MapaPage() {
             </MapMarker>
           )}
 
+          {trabajoEnfocado && pinDeTrabajo(trabajoEnfocado, true)}
           <PinesAgrupados puntos={puntos} renderPunto={(p) => (p.tipo === "trabajo" ? pinDeTrabajo(p.trabajo) : pinDeTrabajador(p.trabajador))} />
         </Map>
       )}

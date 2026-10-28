@@ -177,7 +177,7 @@ La app elige el tema con `lib/tema.ts` (Cuenta → Apariencia: Automático, Clar
 Los mapas son vectoriales: **MapLibre GL** con componentes adaptados de [mapcn](https://github.com/AnmolSaini16/mapcn) (MIT) en `components/mapa/`. El estilo es de **OpenFreeMap** (gratis, sin API key): Positron en claro y Dark en oscuro, y cambia solo con el tema (`ESTILOS_MAPA` en `mapContext.ts`). CARTO ya no sirve sin API key.
 
 - `<Map center={[lng, lat]} zoom>`: contenedor; `interactive={false}` para vistas previas, `scrollZoom={false}` dentro de formularios, `onClick` para elegir un punto. Ojo: MapLibre usa `[lng, lat]` y teselas de 512px (un nivel de zoom menos que Leaflet para ver la misma zona).
-- `<MapMarker longitude latitude anchor>` + `<MarkerContent>` (el pin) + `<MarkerPopup offset>` (el globo, con la piel de Aire y botón para cerrar).
+- `<MapMarker longitude latitude anchor className>` + `<MarkerContent>` (el pin) + `<MarkerPopup offset abrirAlInicio>` (el globo, con la piel de Aire y botón para cerrar; `abrirAlInicio` lo abre al montarse y acomoda el mapa). `/mapa?trabajo=ID` abre el mapa en ese trabajo.
 - `useMap()` (de `mapContext.ts`) da la instancia para `flyTo`/`easeTo`.
 - Pines en `components/mapa/Pines.tsx`, con estilos `.ca-mappin*` en `aire.css`: `PinTrabajo` (gota con el ícono de la categoría; urgente en rojo con halo), `PinTrabajador` (avatar con iniciales, disponibilidad y nota), `PinSeleccionado` (gota grande) y `PinUsuario` (punto con halo). Las gotas usan `anchor={ANCLA_GOTA}`; los círculos, `ANCLA_CENTRO`.
 - `PinesAgrupados` junta los pines encimados (supercluster) en un círculo con la cantidad (rojo si adentro hay una urgencia); al tocarlo el mapa se acerca hasta separarlos.

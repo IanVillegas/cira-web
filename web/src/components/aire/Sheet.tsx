@@ -117,7 +117,8 @@ export function Sheet({ open, onClose, title, subtitle, children, contained = fa
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
-    panelRef.current?.focus();
+    // Sin preventScroll el navegador "acerca" la hoja (todavía fuera de la pantalla) y la página salta.
+    panelRef.current?.focus({ preventScroll: true });
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 

@@ -200,6 +200,7 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 - **Trabajos:** una gota azul con el ícono de su categoría (llave para plomería, rayo para electricidad, patita para mascotas…). Las **urgencias van en rojo y laten**.
 - **Trabajadores:** un avatar con sus iniciales, un aro y un punto **verde si está disponible** (gris si está ocupado) y su **calificación** debajo.
 - **Tu ubicación:** un punto azul con un halo que respira; el punto que se marca al publicar es una gota más grande.
+- **"Ver en mapa" lleva al punto exacto:** el botón de mapa de un trabajo (en su hoja o en la lista) abre el mapa centrado en ese trabajo, con su globo abierto y su pin por encima de los vecinos.
 - **Pines agrupados:** cuando varios quedan encimados se juntan en un círculo con la cantidad (rojo si adentro hay una urgencia); al tocarlo, el mapa se acerca hasta separarlos. Tu propio perfil no aparece en el mapa.
 - Los popups usan las mismas superficies, radios y sombras del resto de la app, y **llevan a la acción**: un trabajo tiene *Ver trabajo* (abre Explorar con ese trabajo primero y desplegado, listo para postularse) y *Contactar* (chat con quien lo publicó); un trabajador tiene *Ver perfil* y *Contactar*. En lo tuyo solo aparece *Ver*.
 
@@ -594,6 +595,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | "Ver en mapa" abre el mapa en el trabajo con su globo; la hoja ya no hace saltar la pantalla al abrirse | 4.6, 4.3.2 |
 | `ddcb8ee` | Hoja que se cierra deslizando desde cualquier parte, tarjetas con degradado y sin sombra cortada, "+" de propiedades en la Agenda | 4.3.2, 7.6 |
 | `f466b8b` | Explorar como inicio: accesos, filas de Urgentes, Trabajos y Trabajadores, Ver todos y detalle en hoja | 4.3.2 |
 | `d79ead1` | Secciones de Explorar como círculos con ícono (sin scroll) | 4.3.2 |

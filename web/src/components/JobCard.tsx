@@ -203,7 +203,9 @@ export function JobCard({ trabajo, onApply, onAcceptUrgent, defaultExpanded = fa
           >
             <Icon name="share" size={20} />
           </a>
-          <button type="button" className="ca-photocard__iconbtn" aria-label={tr("Ver en mapa")} onClick={() => navigate("/mapa")}>
+          <button type="button" className="ca-photocard__iconbtn" aria-label={tr("Ver en mapa")}
+            onClick={() => navigate(trabajo.lat != null && trabajo.lng != null ? `/mapa?trabajo=${trabajo.id}` : "/mapa")}
+          >
             <Icon name="map" size={20} />
           </button>
         </div>
