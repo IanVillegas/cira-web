@@ -593,7 +593,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | Hoja que se cierra deslizando desde cualquier parte, tarjetas con degradado y sin sombra cortada, "+" de propiedades en la Agenda | 4.3.2, 7.6 |
+| `ddcb8ee` | Hoja que se cierra deslizando desde cualquier parte, tarjetas con degradado y sin sombra cortada, "+" de propiedades en la Agenda | 4.3.2, 7.6 |
 | `f466b8b` | Explorar como inicio: accesos, filas de Urgentes, Trabajos y Trabajadores, Ver todos y detalle en hoja | 4.3.2 |
 | `d79ead1` | Secciones de Explorar como círculos con ícono (sin scroll) | 4.3.2 |
 | `4600a31` | Títulos en la misma fila que los botones de atrás y de acción | 4.3.1 |
