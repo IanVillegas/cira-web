@@ -141,7 +141,7 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 
 **Por qué así:** se gana espacio vertical para el contenido (en el teléfono se ve una tarjeta más) y el encabezado se lee de un vistazo. Es el mismo patrón en las 23 pantallas porque todas usan el mismo componente.
 
-**Dónde está:** `web/src/components/aire/PageHeader.tsx`, sección "Encabezado" de `web/src/components/aire/aire.css` · Commit `PENDIENTE`
+**Dónde está:** `web/src/components/aire/PageHeader.tsx`, sección "Encabezado" de `web/src/components/aire/aire.css` · Commit `4600a31`
 
 ---
 
@@ -569,7 +569,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | Títulos en la misma fila que los botones de atrás y de acción | 4.3.1 |
+| `4600a31` | Títulos en la misma fila que los botones de atrás y de acción | 4.3.1 |
 | `c94ab33` | El mapa vuelve a OpenStreetMap con filtro (CARTO pedía API key) | 4.6 |
 | `da749fb` | Corrige el campo del PIN del login, que tomaba los estilos de los pines del mapa | 4.6 |
 | `980b0b3` | Popups del mapa con Ver trabajo / Ver perfil y Contactar | 4.6 |
