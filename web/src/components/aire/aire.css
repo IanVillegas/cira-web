@@ -86,7 +86,7 @@
 }
 
 [data-theme="dark"] {
-  --aire-bg: #000000;
+  --aire-bg: #121212; /* gris muy oscuro (no negro puro): más suave a la vista y sin "estela" en OLED */
   --aire-surface: #1c1c1e;
   --aire-surface-2: #2c2c2e;
   --aire-surface-3: #3a3a3c;

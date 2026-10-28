@@ -178,6 +178,7 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 
 **Cómo funciona:**
 - Como todos los colores son tokens del sistema de diseño, al cambiar de tema cambia toda la app.
+- El fondo oscuro es un gris muy oscuro (`#121212`), no negro puro: cansa menos la vista, combina mejor con la franja azul y evita la "estela" que dejan algunas pantallas OLED al hacer scroll.
 - El tema se aplica antes de cargar la página para que no haya un destello blanco.
 - El mapa cambia a un estilo oscuro propio (ver [§4.6](#46-mapa-con-estilo-propio-y-pines-que-informan)) y el fondo del inicio de sesión se atenúa para no encandilar.
 
@@ -598,6 +599,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | Modo oscuro con fondo `#121212` en vez de negro puro | 4.4 |
 | `388ae6e` | Encabezado sobre franja azul en todas las pantallas (menos Perfil y Mapa); botón + de crear publicación en Mis publicaciones | 4.3.1, 4.3.2 |
 | `ff2e1cf` | "Ver en mapa" abre el mapa en el trabajo con su globo; la hoja ya no hace saltar la pantalla al abrirse | 4.6, 4.3.2 |
 | `ddcb8ee` | Hoja que se cierra deslizando desde cualquier parte, tarjetas con degradado y sin sombra cortada, "+" de propiedades en la Agenda | 4.3.2, 7.6 |

@@ -28,7 +28,7 @@ Esta guía es la fuente de verdad para cualquier interfaz nueva o rediseñada de
 
 | Token (`--aire-…` / Tailwind `…-aire-…`) | Claro | Oscuro | Uso |
 |---|---|---|---|
-| `bg` | `#f5f5f7` | `#000000` | Fondo de la app |
+| `bg` | `#f5f5f7` | `#121212` | Fondo de la app (en oscuro, gris muy oscuro y no negro puro) |
 | `surface` | `#ffffff` | `#1c1c1e` | Tarjetas, hojas, campos |
 | `surface-2` | `#fafafc` | `#2c2c2e` | Bloques dentro de una tarjeta, celdas |
 | `surface-3` | `#e8e8ed` | `#3a3a3c` | Rellenos neutros, pista del segmentado, skeleton |

@@ -28,7 +28,7 @@ function aplicar() {
   const html = document.documentElement;
   html.dataset.theme = oscuro ? "dark" : "light";
   html.style.colorScheme = oscuro ? "dark" : "light";
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", oscuro ? "#000000" : "#f5f5f7");
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", oscuro ? "#121212" : "#f5f5f7");
   oyentes.forEach((o) => o());
 }
 
