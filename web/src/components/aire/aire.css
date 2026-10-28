@@ -525,6 +525,35 @@
 .ca-chip__check { display: inline-flex; width: 0; margin-right: 0; overflow: hidden; opacity: 0; transform: scale(0.4); transition: width var(--ca-dur-base) var(--ca-ease-spring), margin var(--ca-dur-base) var(--ca-ease-spring), opacity var(--ca-dur-fast), transform var(--ca-dur-base) var(--ca-ease-pop); }
 .ca-chip.is-active .ca-chip__check { width: 16px; margin-right: 4px; opacity: 1; transform: scale(1); }
 
+/* ── Secciones con ícono (IconTabs) ────────────────────── */
+.ca-icontabs { display: grid; gap: 4px; padding: 0 12px; }
+.ca-icontab {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; padding: 2px 0;
+  border: 0; background: transparent; color: var(--aire-ink-2); cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.ca-icontab__circle {
+  display: flex; align-items: center; justify-content: center; width: 58px; height: 58px;
+  border-radius: var(--aire-radius-full); background: var(--aire-surface); color: var(--aire-ink-2);
+  box-shadow: inset 0 0 0 1px var(--aire-hairline), var(--aire-shadow-card);
+  transition: transform var(--ca-dur-base) var(--ca-ease-pop);
+}
+.ca-icontab:active .ca-icontab__circle { transform: scale(0.92); transition-duration: var(--ca-dur-instant); }
+.ca-icontab:focus-visible { outline: none; }
+.ca-icontab:focus-visible .ca-icontab__circle { box-shadow: inset 0 0 0 1px var(--aire-hairline), 0 0 0 3px var(--aire-focus); }
+/* Corta solo entre palabras ("Mis / publicaciones"), nunca a media palabra. */
+.ca-icontab__label {
+  max-width: 100%; font: 500 12px/15px var(--aire-font-sans); letter-spacing: -0.1px; text-align: center;
+  overflow-wrap: normal; word-break: keep-all; hyphens: none;
+}
+.ca-icontab.is-active { color: var(--aire-accent-text); }
+.ca-icontab.is-active .ca-icontab__label { font-weight: 600; }
+.ca-icontab.is-active .ca-icontab__circle {
+  background: var(--aire-accent-soft); color: var(--aire-accent-text);
+  box-shadow: inset 0 0 0 1.5px var(--aire-accent), var(--aire-shadow-card);
+  animation: ca-icontab-pop var(--ca-dur-base) var(--ca-ease-pop);
+}
+@keyframes ca-icontab-pop { 0% { transform: scale(0.9); } 100% { transform: scale(1); } }
+
 /* ── Control segmentado ────────────────────────────────── */
 .ca-seg-scroll { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
 .ca-seg-scroll.has-gutter { padding-inline: 20px; scroll-padding-inline: 20px; }

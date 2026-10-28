@@ -7,6 +7,8 @@ export { Switch } from "./Switch";
 export { SelectableCard } from "./SelectableCard";
 export { FilterChip } from "./FilterChip";
 export { SegmentedControl } from "./SegmentedControl";
+export { IconTabs } from "./IconTabs";
+export type { IconTabItem } from "./IconTabs";
 export { PinInput } from "./PinInput";
 export { PageHeader } from "./PageHeader";
 export { EmptyState } from "./EmptyState";

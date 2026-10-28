@@ -102,6 +102,7 @@ Interletrado negativo en todo texto de 15px o más; ya viene en cada clase.
 | `Switch` | `Switch` | `checked`, `onChange`, `label` |
 | `SelectableCard` | `SelectableCard` | `icon`, `text`, `selected`, `onClick` |
 | `FilterChip` | `FilterChip` | `label`, `active` |
+| `IconTabs` | nuevo | `items` (`{ value, label, icon }`), `value`, `onChange`, `label`. Fila de círculos con ícono y nombre debajo, repartida a lo ancho (sin scroll); la activa en `--aire-accent-soft` con aro de acento. Para secciones hermanas de una misma pantalla (Explorar) |
 | `SegmentedControl` | `ExploreTabs` | `items` (`{ value, label }`), `value`, `onChange`, `fullWidth`, `gutter` (margen lateral de 20px que se desplaza con el contenido) |
 | `PinInput` | `PinInput` | igual que hoy + `error` |
 | `PageHeader` | `PageHeader` | `title`, `subtitle` (una sola línea), `onBack`, `backLabel` (nombre accesible), `action` (`{ icon, label, onClick }`), `large`. Una sola fila: botón atrás circular a la izquierda, título y botón de acción a la derecha; el subtítulo va debajo alineado con el título. `reserveBar` quedó obsoleto |
@@ -225,7 +226,7 @@ Viven en `web/src/components/` (no en `aire/`) porque dependen de la lógica de 
 |---|---|
 | `SelectSheet` | Selector de una opción: campo de solo lectura que abre una `Sheet` con la lista (categorías) |
 | `Vacio` | `EmptyState` con la ilustración elegida por nombre (`empty_no_signal`, …) |
-| `ExploreTabs` | `SegmentedControl` de Explorar atado a la ruta |
+| `ExploreTabs` | `IconTabs` de Explorar atado a la ruta: Trabajos, Trabajadores, Mis trabajos y Mis publicaciones |
 | `ToastHost` y `lib/toast.ts` | `mostrarToast(texto, tipo, accion?)` desde cualquier lugar; el host muestra el aviso más reciente con `Toast` |
 | `JobCard`, `WorkerCard`, `PublicacionCard`, `JobStatusCard` | Tarjetas de trabajo y personas (una acción principal por tarjeta) |
 | `PagarSheet`, `RatingSheet`, `ReportSheet`, `DistrictPickerSheet` | Hojas de pago con propina, calificación, reporte y distrito |
