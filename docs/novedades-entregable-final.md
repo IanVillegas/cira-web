@@ -165,7 +165,7 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 
 **Qué decir en la exposición:** "Al abrir CIRA ves lo urgente, lo que hay cerca y quién está libre, sin desplazarte. Tocás una tarjeta y tenés todo para postularte o contactar."
 
-**Dónde está:** `web/src/pages/ExplorarPage.tsx` (inicio), `web/src/components/Carrusel.tsx` (filas), `web/src/components/TarjetasCompactas.tsx`, `web/src/components/DetalleSheets.tsx` (hojas de detalle), `web/src/components/AccesosExplorar.tsx` y `web/src/components/aire/IconTabs.tsx`; las listas completas en `ExplorarTrabajosPage.tsx` (`/explorar/trabajos`) y `ExplorarTrabajadoresPage.tsx` · Commits `d79ead1`, `PENDIENTE`
+**Dónde está:** `web/src/pages/ExplorarPage.tsx` (inicio), `web/src/components/Carrusel.tsx` (filas), `web/src/components/TarjetasCompactas.tsx`, `web/src/components/DetalleSheets.tsx` (hojas de detalle), `web/src/components/AccesosExplorar.tsx` y `web/src/components/aire/IconTabs.tsx`; las listas completas en `ExplorarTrabajosPage.tsx` (`/explorar/trabajos`) y `ExplorarTrabajadoresPage.tsx` · Commits `d79ead1`, `f466b8b`
 
 ---
 
@@ -593,7 +593,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | Explorar como inicio: accesos, filas de Urgentes, Trabajos y Trabajadores, Ver todos y detalle en hoja | 4.3.2 |
+| `f466b8b` | Explorar como inicio: accesos, filas de Urgentes, Trabajos y Trabajadores, Ver todos y detalle en hoja | 4.3.2 |
 | `d79ead1` | Secciones de Explorar como círculos con ícono (sin scroll) | 4.3.2 |
 | `4600a31` | Títulos en la misma fila que los botones de atrás y de acción | 4.3.1 |
 | `c94ab33` | El mapa vuelve a OpenStreetMap con filtro (CARTO pedía API key) | 4.6 |
