@@ -153,7 +153,7 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 
 **Por qué así:** las cuatro se ven siempre, sin deslizar, y el ícono ayuda a reconocer cada una de un vistazo (maletín, trabajador, lista de tareas, megáfono). Es el patrón de categorías que usan las apps de servicios y marketplaces actuales.
 
-**Dónde está:** `web/src/components/aire/IconTabs.tsx` (componente nuevo de Aire), `web/src/components/ExploreTabs.tsx` · Commit `PENDIENTE`
+**Dónde está:** `web/src/components/aire/IconTabs.tsx` (componente nuevo de Aire), `web/src/components/ExploreTabs.tsx` · Commit `d79ead1`
 
 ---
 
@@ -581,7 +581,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | Secciones de Explorar como círculos con ícono (sin scroll) | 4.3.2 |
+| `d79ead1` | Secciones de Explorar como círculos con ícono (sin scroll) | 4.3.2 |
 | `4600a31` | Títulos en la misma fila que los botones de atrás y de acción | 4.3.1 |
 | `c94ab33` | El mapa vuelve a OpenStreetMap con filtro (CARTO pedía API key) | 4.6 |
 | `da749fb` | Corrige el campo del PIN del login, que tomaba los estilos de los pines del mapa | 4.6 |
