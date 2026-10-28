@@ -18,7 +18,8 @@ export interface SheetProps {
 /**
  * Hoja inferior (reemplaza a DistrictPickerSheet y similares): sube con la
  * curva de resorte de iOS, el fondo se oscurece y se puede cerrar
- * arrastrándola hacia abajo, tocando el velo o con Escape.
+ * deslizándola hacia abajo (desde cualquier parte en táctil, desde la barrita con
+ * mouse), tocando el velo o con Escape.
  */
 export function Sheet({ open, onClose, title, subtitle, children, contained = false, label }: SheetProps) {
   const [mounted, setMounted] = useState(open);
@@ -49,6 +50,69 @@ export function Sheet({ open, onClose, title, subtitle, children, contained = fa
     return () => window.clearTimeout(t);
   }, [open]);
 
+  // Cerrar deslizando hacia abajo desde cualquier parte del panel (en táctil). Solo arrastra
+  // cuando el contenido ya está arriba del todo; si no, el gesto es un scroll normal. Mientras
+  // arrastra, el gesto no llega a la página (evita el "deslizar para recargar" del navegador).
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!open || !panel) return;
+    let inicio: { x: number; y: number; t: number } | null = null;
+    let arrastrando = false;
+    let dy = 0;
+
+    const cuerpoArriba = (target: EventTarget | null) => {
+      const cuerpo = panel.querySelector(".ca-sheet__body");
+      return !cuerpo || !cuerpo.contains(target as Node) || cuerpo.scrollTop <= 0;
+    };
+    const onStart = (e: TouchEvent) => {
+      const p = e.touches[0];
+      inicio = cuerpoArriba(e.target) ? { x: p.clientX, y: p.clientY, t: performance.now() } : null;
+      arrastrando = false;
+      dy = 0;
+    };
+    const onMove = (e: TouchEvent) => {
+      if (!inicio) return;
+      const p = e.touches[0];
+      const dx = p.clientX - inicio.x;
+      dy = p.clientY - inicio.y;
+      if (!arrastrando) {
+        // Hacia arriba o de lado (un carrusel): es scroll, no cierre.
+        if (dy <= 0 || Math.abs(dx) > Math.abs(dy)) {
+          if (Math.abs(dx) > 8 || dy < -8) inicio = null;
+          return;
+        }
+        if (dy < 8) return;
+        arrastrando = true;
+      }
+      e.preventDefault();
+      setDrag(Math.max(0, dy));
+    };
+    const onEnd = () => {
+      if (arrastrando && inicio) {
+        const v = dy / Math.max(1, performance.now() - inicio.t);
+        if (dy > 120 || v > 0.6) onCloseRef.current();
+      }
+      inicio = null;
+      arrastrando = false;
+      setDrag(0);
+    };
+
+    panel.addEventListener("touchstart", onStart, { passive: true });
+    panel.addEventListener("touchmove", onMove, { passive: false });
+    panel.addEventListener("touchend", onEnd);
+    panel.addEventListener("touchcancel", onEnd);
+    return () => {
+      panel.removeEventListener("touchstart", onStart);
+      panel.removeEventListener("touchmove", onMove);
+      panel.removeEventListener("touchend", onEnd);
+      panel.removeEventListener("touchcancel", onEnd);
+    };
+  }, [open, mounted]);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -59,7 +123,9 @@ export function Sheet({ open, onClose, title, subtitle, children, contained = fa
 
   if (!mounted) return null;
 
+  // Con mouse o lápiz se arrastra desde la barrita de arriba; el táctil lo maneja el efecto de arriba.
   const onPointerDown = (e: RPointerEvent) => {
+    if (e.pointerType === "touch") return;
     start.current = { y: e.clientY, t: performance.now() };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };

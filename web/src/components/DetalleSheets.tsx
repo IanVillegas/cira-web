@@ -75,7 +75,7 @@ export function TrabajoSheet({ trabajo, onClose, onCambio, onRecargar }: Trabajo
     <>
       <Sheet open={trabajo !== null} onClose={cerrar} title={tr("Detalle del trabajo")} contained>
         {visible && (
-          <div className="grid gap-3 pb-1">
+          <div className="ca-detalle grid gap-3 pb-1">
             {aviso && (
               <p role="alert" className="aire-text-subhead rounded-aire-md bg-aire-danger-soft p-3 font-semibold text-aire-danger-text">
                 {aviso}
@@ -103,8 +103,8 @@ export function TrabajadorSheet({ trabajador, onClose, onCambio }: TrabajadorShe
   return (
     <Sheet open={trabajador !== null} onClose={onClose} title={tr("Trabajador")} contained>
       {visible && (
-        <div className="pb-1">
-          <WorkerCard key={visible.id} trabajador={visible} onChange={onCambio} defaultExpanded />
+        <div className="ca-detalle pb-1">
+          <WorkerCard key={visible.id} trabajador={visible} onChange={onCambio} />
         </div>
       )}
     </Sheet>

@@ -16,13 +16,10 @@ interface WorkerCardProps {
   onChange?: (trabajador: Trabajador) => void;
   /** "confianza": la acción principal es Recontratar (lista De confianza). */
   modo?: "explorar" | "confianza";
-  /** Abre ya desplegada (en la hoja de detalle de Explorar). */
-  defaultExpanded?: boolean;
 }
 
 /** Tarjeta de trabajador: reputación, insignias y acciones para ver el perfil o contactar. */
-export function WorkerCard({ trabajador, onChange, modo = "explorar", defaultExpanded = false }: WorkerCardProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
+export function WorkerCard({ trabajador, onChange, modo = "explorar" }: WorkerCardProps) {
   const [abriendoChat, setAbriendoChat] = useState(false);
   const navigate = useNavigate();
 
@@ -39,7 +36,7 @@ export function WorkerCard({ trabajador, onChange, modo = "explorar", defaultExp
   return (
     <Card className="grid gap-4">
       <div className="flex items-start gap-2">
-        <button type="button" aria-expanded={expanded} className="flex min-w-0 flex-1 items-start gap-3 text-left" onClick={() => setExpanded((v) => !v)}>
+        <div className="flex min-w-0 flex-1 items-start gap-3">
           <span className="aire-text-headline flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-full bg-aire-accent-soft text-aire-accent-text">
             {iniciales(trabajador.nombre)}
           </span>
@@ -49,12 +46,7 @@ export function WorkerCard({ trabajador, onChange, modo = "explorar", defaultExp
               <Calificacion valor={trabajador.calificacion} total={trabajador.numCalificaciones} />
             </span>
           </span>
-          <Icon
-            name="expand_more"
-            size={22}
-            className={`mt-3 shrink-0 text-aire-ink-2 transition-transform duration-[320ms] ease-aire-spring ${expanded ? "rotate-180" : ""}`}
-          />
-        </button>
+        </div>
         <ConfianzaButton trabajador={trabajador} onChange={onChange} />
       </div>
 
@@ -108,13 +100,6 @@ export function WorkerCard({ trabajador, onChange, modo = "explorar", defaultExp
         </div>
       )}
 
-      <div className="grid transition-[grid-template-rows] duration-[320ms] ease-aire-spring" style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}>
-        <div className="overflow-hidden">
-          <div className="grid gap-3 border-t border-aire-hairline pt-4">
-            <Detalle icon="location_on" label={tr("Ubicación")} text={trabajador.zona} />
-          </div>
-        </div>
-      </div>
     </Card>
   );
 }
@@ -127,16 +112,4 @@ function iniciales(nombre: string) {
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase())
     .join("");
-}
-
-function Detalle({ icon, label, text }: { icon: string; label: string; text: string }) {
-  return (
-    <div className="flex items-start gap-2.5">
-      <Icon name={icon} size={20} className="mt-0.5 text-aire-accent-text" />
-      <div>
-        <p className="aire-text-subhead font-semibold text-aire-ink">{label}</p>
-        <p className="aire-text-subhead text-aire-ink-2">{text}</p>
-      </div>
-    </div>
-  );
 }

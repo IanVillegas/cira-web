@@ -109,7 +109,7 @@ Interletrado negativo en todo texto de 15px o más; ya viene en cada clase.
 | `EmptyState` | `EmptyState` | `title`, `message`, `image` (`/images/empty_*.svg`), `action` |
 | `Loader`, `Spinner`, `Skeleton` | `Loader` | `Skeleton`: `width`, `height`, `radius`, `lines` |
 | `TabBar` | `BottomNav` | `items` (`{ key, label, icon, badge? }`), `value`, `onChange`, `floating`. `badge` pinta un contador rojo (mensajes sin leer) |
-| `Sheet` | `DistrictPickerSheet` y similares | `open`, `onClose`, `title`, `subtitle`, `contained` |
+| `Sheet` | `DistrictPickerSheet` y similares | `open`, `onClose`, `title`, `subtitle`, `contained`, `label` (nombre accesible sin título). En táctil se cierra deslizando hacia abajo desde cualquier parte cuando el contenido está arriba; con mouse, desde la barrita. El gesto no llega a la página |
 | `Toast` | nuevo | `open`, `message`, `tone`, `icon`, `onClose`, `duration`, `onPress` (tocar el aviso hace algo, p. ej. abrir un chat) |
 | `Dialog` | `SuccessModal` | `open`, `onClose`, `title`, `message`, `icon`, `tone` (`success`, `accent`, `danger`), `actions`, `contained`; el contenido extra va como `children` |
 | `CreditCard` | nuevo | `brand`, `number`, `holder`, `expiry`, `cvv`, `flipped`, `onClick`, `labels`; tarjeta realista con chip y reverso que gira 180° al cambiar `flipped` (en táctil: al tocarla o al enfocar el CVV) |

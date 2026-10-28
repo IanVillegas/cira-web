@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button, Card, Dialog, Field, FilterChip, Icon, Input, Loader, PageHeader, Reveal, Stagger, TextArea } from "@/components/aire";
 import { LocationPicker } from "@/components/LocationPicker";
 import { SalidaHuespedSheet } from "@/components/SalidaHuespedSheet";
@@ -25,7 +25,9 @@ const VACIA = {
 export function PropiedadesPage() {
   const navigate = useNavigate();
   const [lista, setLista] = useState<Propiedad[] | null>(null);
-  const [editando, setEditando] = useState<Propiedad | "nueva" | null>(null);
+  // /cuenta/propiedades?nueva=1 (botón "+" de la Agenda) abre directo el formulario de una propiedad nueva.
+  const [searchParams] = useSearchParams();
+  const [editando, setEditando] = useState<Propiedad | "nueva" | null>(() => (searchParams.get("nueva") ? "nueva" : null));
   const [form, setForm] = useState(VACIA);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);

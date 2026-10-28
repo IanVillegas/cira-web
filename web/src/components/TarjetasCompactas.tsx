@@ -9,34 +9,36 @@ import type { Trabajador, Trabajo } from "@/lib/types";
 // Tarjetas compactas para los carruseles de Explorar: todas del mismo tamaño y
 // con lo justo para decidir. Al tocarlas se abre la hoja con la información completa.
 
-/** Trabajo: foto de la categoría, título (2 líneas), pago, zona y distancia. */
+/**
+ * Trabajo: como la tarjeta grande, la foto de la categoría se funde en el tono de su
+ * categoría y el texto va encima en blanco. Título (2 líneas), pago, zona y distancia.
+ */
 export function TrabajoMini({ trabajo, onOpen }: { trabajo: Trabajo; onOpen: () => void }) {
   const visual = visualDeCategoria(trabajo.categoria);
   return (
     <button
       type="button"
-      className="ca-mini ca-mini--trabajo"
+      className={`ca-mini ca-mini--trabajo ${visual.imagen ? "" : "is-sinfoto"}`}
       style={{ "--ca-photo-tone": visual.tono } as CSSProperties}
       onClick={onOpen}
       aria-label={`${trabajo.titulo}, ${formatoColones.format(trabajo.pago)}`}
     >
-      <span className="ca-mini__media">
-        {visual.imagen ? (
+      {visual.imagen && (
+        <span className="ca-mini__media" aria-hidden="true">
           <img src={visual.imagen} alt="" loading="lazy" decoding="async" />
-        ) : (
-          <Icon name={visual.icono} size={40} />
-        )}
-        <span className="ca-mini__chips">
-          <span className="ca-mini__pill aire-text-eyebrow">
-            <Icon name={visual.icono} size={14} />
-            {tr(trabajo.categoria)}
-          </span>
-          {trabajo.urgente && (
-            <Badge tone="danger" dot pulse>
-              {tr("Urgente")}
-            </Badge>
-          )}
         </span>
+      )}
+      {visual.imagen && <span className="ca-mini__fade" aria-hidden="true" />}
+      <span className="ca-mini__chips">
+        <span className="ca-mini__pill aire-text-eyebrow">
+          <Icon name={visual.icono} size={14} />
+          {tr(trabajo.categoria)}
+        </span>
+        {trabajo.urgente && (
+          <Badge tone="danger" dot pulse>
+            {tr("Urgente")}
+          </Badge>
+        )}
       </span>
       <span className="ca-mini__body">
         <span className="ca-mini__title aire-text-headline">{trabajo.titulo}</span>

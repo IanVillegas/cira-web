@@ -153,7 +153,7 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 3. **Trabajos:** los 5 más cercanos, en una fila que se desliza a lo ancho.
 4. **Trabajadores:** 5, los disponibles primero y entre ellos los mejor calificados (tu propio perfil no aparece).
 
-Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **lista completa en vertical**, con sus filtros (*Cercanía* y *Trueques* en trabajos; *Disponibles* y *De confianza* en trabajadores). Las tarjetas de las filas son **compactas y del mismo tamaño**: al tocarlas se abre una **hoja desde abajo** con la información completa y todas las acciones (Postularme o Aceptar urgencia, chat, compartir, mapa; o Ver perfil y Contactar). Los links compartidos por WhatsApp, las alertas y el botón *Ver trabajo* del mapa abren directamente la hoja de ese trabajo.
+Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **lista completa en vertical**, con sus filtros (*Cercanía* y *Trueques* en trabajos; *Disponibles* y *De confianza* en trabajadores). Las tarjetas de las filas son **compactas y del mismo tamaño** (las de trabajo con la foto fundida en el tono de su categoría, como la tarjeta grande): al tocarlas se abre una **hoja desde abajo** (se cierra deslizando hacia abajo desde cualquier parte) con la información completa y todas las acciones (Postularme o Aceptar urgencia, chat, compartir, mapa; o Ver perfil y Contactar). Los links compartidos por WhatsApp, las alertas y el botón *Ver trabajo* del mapa abren directamente la hoja de ese trabajo.
 
 **Problema:** la lista vertical con tarjetas grandes obligaba a recorrer todo para descubrir trabajadores, y las secciones iban en un control con scroll horizontal donde "Mis publicaciones" quedaba cortada.
 
@@ -423,7 +423,7 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 2. **Recontratar con frecuencia:** al recontratar se elige *Una vez, Semanal, Quincenal o Mensual*. Arriba de la fecha aparece la **disponibilidad de la persona** en las próximas tres semanas (libre u ocupado, nunca qué ni con quién). Si se elige un día ocupado, la app lo advierte y no deja enviar la oferta.
 3. **La persona acepta una sola vez** y CIRA agenda las próximas visitas: siempre hay cuatro creadas por adelantado. Cada visita es un trabajo normal (seguimiento, pago, calificación). En *Mis trabajos* y *Mis publicaciones* se muestra solo la próxima visita; el resto está en la agenda.
 4. **Reemplazo:** si el trabajador toca *"No puedo ir a esta visita"*, la visita **no se publica para todos**: el cliente ve "Falta reemplazo" y sugerencias de personas del mismo oficio, **libres ese día**, con sus trabajadores **"De confianza" primero**. Al elegir una, le llega como oferta directa solo para esa visita; si dice que no, el cliente elige a otra. La serie sigue con el trabajador de siempre. También puede publicar esa visita para todos.
-5. **Mis propiedades** (Cuenta): direcciones con nombre ("Apartamento Escazú") e **instrucciones fijas** (dónde está la llave, qué revisar). Al publicar o recontratar se elige la propiedad en un toque y se llenan la dirección y el mapa. Las instrucciones **solo las ven el cliente y quien hace el trabajo**.
+5. **Mis propiedades** (Cuenta, el ícono de casa de la Agenda o el botón **+** junto a sus filtros de dirección): direcciones con nombre ("Apartamento Escazú") e **instrucciones fijas** (dónde está la llave, qué revisar). Al publicar o recontratar se elige la propiedad en un toque y se llenan la dirección y el mapa. Las instrucciones **solo las ven el cliente y quien hace el trabajo**.
 6. Cualquiera de los dos puede **terminar el servicio recurrente**: se cancelan las visitas que no han empezado.
 
 **Cambio de fondo: fechas reales.** Antes las fechas eran texto libre ("Sábado, 4:00 p.m."), con el que no se puede armar un calendario, y el rango de disponibilidad de la pantalla de Disponibilidad no se guardaba. Ahora cada trabajo tiene **fecha y hora reales** en hora de Costa Rica, o ninguna si es una urgencia ("lo antes posible"). La app las muestra de forma natural ("Mañana, 9:00 a. m.", "Viernes, 1:00 p. m.", "31 oct") en el idioma elegido, y *Mis trabajos* y *Mis publicaciones* se ordenan por lo más próximo. El rango que no se guardaba se reemplazó por los días bloqueados de la agenda.
@@ -593,6 +593,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | Hoja que se cierra deslizando desde cualquier parte, tarjetas con degradado y sin sombra cortada, "+" de propiedades en la Agenda | 4.3.2, 7.6 |
 | `f466b8b` | Explorar como inicio: accesos, filas de Urgentes, Trabajos y Trabajadores, Ver todos y detalle en hoja | 4.3.2 |
 | `d79ead1` | Secciones de Explorar como círculos con ícono (sin scroll) | 4.3.2 |
 | `4600a31` | Títulos en la misma fila que los botones de atrás y de acción | 4.3.1 |

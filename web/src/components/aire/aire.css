@@ -732,7 +732,12 @@
 .ca-sheet__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 12px; }
 .ca-sheet__head h2 { margin: 0; font: 600 20px/25px var(--aire-font-display); letter-spacing: -0.4px; }
 .ca-sheet__head p { margin: 2px 0 0; font: 400 15px/20px var(--aire-font-sans); letter-spacing: -0.24px; color: var(--aire-ink-2); }
-.ca-sheet__body { overflow-y: auto; }
+.ca-sheet__body { overflow-y: auto; overscroll-behavior: contain; }
+/* El gesto de la hoja no se encadena a la página (ni recarga ni la mueve detrás). */
+.ca-sheet__panel { overscroll-behavior: contain; }
+/* Dentro de la hoja de detalle las tarjetas no llevan sombra (el scroll la cortaba). */
+.ca-detalle .ca-photocard, .ca-detalle .ca-card { box-shadow: none; }
+.ca-detalle .ca-card { padding-inline: 0; background: transparent; }
 .ca-sheet.is-open .ca-sheet__body > * { animation: ca-fade-up var(--ca-dur-slow) var(--ca-ease-out) both; }
 .ca-sheet.is-open .ca-sheet__body > :nth-child(2) { animation-delay: 50ms; }
 .ca-sheet.is-open .ca-sheet__body > :nth-child(3) { animation-delay: 100ms; }
@@ -1015,14 +1020,20 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 .ca-mini:active { transform: scale(var(--ca-press)); transition-duration: var(--ca-dur-instant); }
 .ca-mini:focus-visible { outline: none; box-shadow: var(--aire-shadow-card), 0 0 0 3px var(--aire-focus); }
 .ca-mini .ca-icon { flex: none; }
-.ca-mini__media {
+/* Trabajo: la foto arriba se funde en el tono de su categoría y el texto va encima (como .ca-photocard). */
+.ca-mini--trabajo {
   --ca-photo-tone: var(--aire-cat-default);
-  position: relative; display: flex; align-items: center; justify-content: center; height: 124px;
-  background: var(--ca-photo-tone); color: var(--aire-on-photo);
+  position: relative; isolation: isolate; justify-content: flex-end; min-height: 232px;
+  background: var(--ca-photo-tone); color: var(--aire-on-photo); box-shadow: var(--aire-shadow-lift);
 }
-.ca-mini__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.ca-mini--trabajo .ca-mini__media { --ca-photo-tone: inherit; }
-.ca-mini__chips { position: absolute; inset: 10px 10px auto 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.ca-mini--trabajo:focus-visible { box-shadow: var(--aire-shadow-lift), 0 0 0 3px var(--aire-focus); }
+.ca-mini__media { position: absolute; inset: 0 0 auto 0; height: 168px; z-index: -2; }
+.ca-mini__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ca-mini__fade {
+  position: absolute; inset: 44px 0 auto 0; height: 125px; z-index: -1;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--ca-photo-tone) 0%, transparent), color-mix(in srgb, var(--ca-photo-tone) 72%, transparent) 55%, var(--ca-photo-tone));
+}
+.ca-mini__chips { position: absolute; inset: 10px 10px auto 10px; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px; }
 .ca-mini__chips .ca-badge { min-height: 26px; }
 .ca-mini__pill {
   display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 10px;
@@ -1035,6 +1046,9 @@ a.ca-photocard__iconbtn { text-decoration: none; }
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; min-height: 44px;
 }
 .ca-mini__price { display: inline-flex; align-items: center; gap: 4px; color: var(--aire-accent-text); }
+.ca-mini--trabajo .ca-mini__body { flex: none; padding-top: 0; }
+.ca-mini--trabajo .ca-mini__price { color: var(--aire-on-photo); }
+.ca-mini--trabajo .ca-mini__meta { color: var(--aire-on-photo-2); }
 .ca-mini__meta, .ca-mini__service { display: flex; align-items: center; gap: 4px; min-width: 0; color: var(--aire-ink-2); }
 .ca-mini__service { color: var(--aire-ink); }
 .ca-mini--trabajador .ca-mini__body { padding-top: 10px; gap: 6px; }

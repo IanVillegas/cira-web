@@ -126,12 +126,33 @@ export function AgendaPage() {
           ]}
         />
 
-        {propiedades.length > 0 && filtro !== "trabajador" && (
-          <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
-            <FilterChip label={tr("Todas las direcciones")} active={!propiedadId} onClick={() => setPropiedadId(null)} />
-            {propiedades.map((p) => (
-              <FilterChip key={p.id} label={p.nombre} active={propiedadId === p.id} onClick={() => setPropiedadId(propiedadId === p.id ? null : p.id)} />
-            ))}
+        {filtro !== "trabajador" && (
+          <div className="-mr-5 flex items-center gap-2">
+            {/* "+" siempre a la vista (fuera del scroll de los filtros): crea una propiedad nueva. */}
+            <button
+              type="button"
+              className="ca-iconbtn shrink-0"
+              aria-label={tr("Agregar propiedad")}
+              onClick={() => navigate("/cuenta/propiedades?nueva=1")}
+            >
+              <Icon name="add" size={22} />
+            </button>
+            {propiedades.length > 0 ? (
+              <div className="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto pr-5 pb-1">
+                <FilterChip label={tr("Todas las direcciones")} active={!propiedadId} onClick={() => setPropiedadId(null)} />
+                {propiedades.map((p) => (
+                  <FilterChip key={p.id} label={p.nombre} active={propiedadId === p.id} onClick={() => setPropiedadId(propiedadId === p.id ? null : p.id)} />
+                ))}
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="aire-text-subhead min-h-11 pr-5 text-left font-semibold text-aire-accent-text"
+                onClick={() => navigate("/cuenta/propiedades?nueva=1")}
+              >
+                {tr("Agrega una propiedad para filtrar por dirección")}
+              </button>
+            )}
           </div>
         )}
 
