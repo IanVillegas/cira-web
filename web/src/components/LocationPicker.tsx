@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { MapContainer, Marker, useMapEvents } from "react-leaflet";
+import { useEffect, useState } from "react";
 import { FieldCaption, Icon } from "@/components/aire";
-import { MapaTeselas } from "@/components/MapaTeselas";
-import { iconoSeleccionado } from "@/lib/leafletIcons";
+import { Map, MapMarker, MarkerContent } from "@/components/mapa/mapcn";
+import { useMap } from "@/components/mapa/mapContext";
+import { ANCLA_GOTA, PinSeleccionado } from "@/components/mapa/Pines";
 import { obtenerUbicacionActual, reverseGeocode } from "@/lib/geo";
 import { tr } from "@/lib/i18n";
 
@@ -15,12 +15,12 @@ interface LocationPickerProps {
   onChange: (coords: { lat: number; lng: number }, direccion: string) => void;
 }
 
-function ClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click(e) {
-      onClick(e.latlng.lat, e.latlng.lng);
-    },
-  });
+/** Lleva el mapa al punto elegido (también cuando llega de "Usar mi ubicación" o de una propiedad). */
+function SeguirSeleccion({ value }: { value: { lat: number; lng: number } | null }) {
+  const { map } = useMap();
+  useEffect(() => {
+    if (map && value) map.easeTo({ center: [value.lng, value.lat], zoom: Math.max(map.getZoom(), 14), duration: 500 });
+  }, [map, value]);
   return null;
 }
 
@@ -74,17 +74,21 @@ export function LocationPicker({ value, address, onChange }: LocationPickerProps
       </div>
 
       <div className="h-52 w-full overflow-hidden rounded-aire-md bg-aire-surface-3">
-        <MapContainer
-          center={value ?? CENTRO_DEFECTO}
-          zoom={value ? 16 : 13}
-          scrollWheelZoom={false}
-          className="h-full w-full"
-          attributionControl={false}
+        <Map
+          center={value ? [value.lng, value.lat] : [CENTRO_DEFECTO[1], CENTRO_DEFECTO[0]]}
+          zoom={value ? 15 : 12}
+          scrollZoom={false}
+          onClick={({ lat, lng }) => seleccionar(lat, lng)}
         >
-          <MapaTeselas />
-          <ClickHandler onClick={seleccionar} />
-          {value && <Marker position={value} icon={iconoSeleccionado} />}
-        </MapContainer>
+          <SeguirSeleccion value={value} />
+          {value && (
+            <MapMarker longitude={value.lng} latitude={value.lat} anchor={ANCLA_GOTA}>
+              <MarkerContent>
+                <PinSeleccionado />
+              </MarkerContent>
+            </MapMarker>
+          )}
+        </Map>
       </div>
 
       {error && <p className="aire-text-footnote font-semibold text-aire-danger-text">{error}</p>}

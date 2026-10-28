@@ -1,13 +1,13 @@
 import { useEffect } from "react";
-import { MapContainer, Marker, useMap } from "react-leaflet";
 import { Icon } from "@/components/aire";
-import { MapaTeselas } from "@/components/MapaTeselas";
-import { iconoSeleccionado } from "@/lib/leafletIcons";
+import { Map, MapMarker, MarkerContent } from "@/components/mapa/mapcn";
+import { useMap } from "@/components/mapa/mapContext";
+import { ANCLA_GOTA, PinSeleccionado } from "@/components/mapa/Pines";
 
 function Recenter({ center }: { center: [number, number] }) {
-  const map = useMap();
+  const { map } = useMap();
   useEffect(() => {
-    map.setView(center, 14);
+    map?.jumpTo({ center: [center[1], center[0]], zoom: 13 });
   }, [center, map]);
   return null;
 }
@@ -31,21 +31,14 @@ export function LocationPreview({ center, text }: LocationPreviewProps) {
 
       <div className="relative h-48 overflow-hidden rounded-aire-md bg-aire-surface-3">
         {center ? (
-          <MapContainer
-            center={center}
-            zoom={14}
-            className="h-full w-full"
-            zoomControl={false}
-            dragging={false}
-            scrollWheelZoom={false}
-            doubleClickZoom={false}
-            touchZoom={false}
-            attributionControl={false}
-          >
-            <MapaTeselas />
+          <Map center={[center[1], center[0]]} zoom={13} interactive={false}>
             <Recenter center={center} />
-            <Marker position={center} icon={iconoSeleccionado} />
-          </MapContainer>
+            <MapMarker longitude={center[1]} latitude={center[0]} anchor={ANCLA_GOTA}>
+              <MarkerContent>
+                <PinSeleccionado />
+              </MarkerContent>
+            </MapMarker>
+          </Map>
         ) : (
           <div className="flex h-full items-center justify-center">
             <Icon name="explore_nearby" size={44} className="text-aire-ink-3" />
