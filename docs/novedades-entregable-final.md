@@ -185,7 +185,7 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 
 **Qué decir en la exposición:** "Abrimos el mapa y en un segundo se ve lo urgente en rojo y quién está disponible en verde, con su calificación. Tocamos un trabajador y desde ahí mismo lo contactamos: del mapa al chat en dos toques."
 
-**Dónde está:** `web/src/components/mapa/` (`mapcn.tsx`: mapa, pines y popups; `Pines.tsx`: diseño de los pines y agrupación; `mapContext.ts`: estilos del mapa), `web/src/pages/MapaPage.tsx` (popups con acciones), sección "Mapa" de `web/src/components/aire/aire.css` · Commits `65f5d4d`, `980b0b3`, `PENDIENTE`
+**Dónde está:** `web/src/components/mapa/` (`mapcn.tsx`: mapa, pines y popups; `Pines.tsx`: diseño de los pines y agrupación; `mapContext.ts`: estilos del mapa), `web/src/pages/MapaPage.tsx` (popups con acciones), sección "Mapa" de `web/src/components/aire/aire.css` · Commits `65f5d4d`, `980b0b3`, `d383f6b`
 
 ---
 
@@ -570,7 +570,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | Mapa vectorial con MapLibre (núcleo de mapcn) y OpenFreeMap; pines agrupados | 4.6 |
+| `d383f6b` | Mapa vectorial con MapLibre (núcleo de mapcn) y OpenFreeMap; pines agrupados | 4.6 |
 | `4600a31` | Títulos en la misma fila que los botones de atrás y de acción | 4.3.1 |
 | `c94ab33` | El mapa vuelve a OpenStreetMap con filtro (CARTO pedía API key) | 4.6 |
 | `da749fb` | Corrige el campo del PIN del login, que tomaba los estilos de los pines del mapa | 4.6 |
