@@ -145,6 +145,18 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 
 ---
 
+### 4.3.2 Secciones de Explorar con íconos
+
+**Qué es:** las cuatro secciones de Explorar (**Trabajos, Trabajadores, Mis trabajos y Mis publicaciones**) son una fila de círculos con ícono y su nombre debajo. La sección activa se rellena con el azul suave del acento y un aro.
+
+**Problema:** antes eran un control segmentado con scroll horizontal; en el teléfono "Mis publicaciones" quedaba cortada en la orilla y había que deslizar para descubrirla.
+
+**Por qué así:** las cuatro se ven siempre, sin deslizar, y el ícono ayuda a reconocer cada una de un vistazo (maletín, trabajador, lista de tareas, megáfono). Es el patrón de categorías que usan las apps de servicios y marketplaces actuales.
+
+**Dónde está:** `web/src/components/aire/IconTabs.tsx` (componente nuevo de Aire), `web/src/components/ExploreTabs.tsx` · Commit `PENDIENTE`
+
+---
+
 ### 4.4 Modo oscuro
 
 **Qué es:** en **Cuenta → Apariencia** se elige *Automático* (igual que el teléfono), *Claro* u *Oscuro*. La app recuerda la elección.
@@ -569,6 +581,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | Secciones de Explorar como círculos con ícono (sin scroll) | 4.3.2 |
 | `4600a31` | Títulos en la misma fila que los botones de atrás y de acción | 4.3.1 |
 | `c94ab33` | El mapa vuelve a OpenStreetMap con filtro (CARTO pedía API key) | 4.6 |
 | `da749fb` | Corrige el campo del PIN del login, que tomaba los estilos de los pines del mapa | 4.6 |
