@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Dialog, Loader, PageHeader, Stagger } from "@/components/aire";
-import { ExploreTabs } from "@/components/ExploreTabs";
 import { Vacio } from "@/components/Vacio";
 import { PublicacionCard } from "@/components/PublicacionCard";
 import { RatingSheet } from "@/components/RatingSheet";
@@ -42,11 +41,12 @@ export function MisPublicacionesPage() {
   return (
     <div className="pb-6">
       <PageHeader
-        title={tr("Explorar")}
+        title={tr("Mis publicaciones")}
         subtitle={tr("Consulta y administra tus publicaciones.")}
-        action={{ icon: "notifications", label: tr("Alertas"), onClick: () => navigate("/alertas") }}
+        onBack={() => navigate("/explorar")}
+        backLabel={tr("Explorar")}
+        large={false}
       />
-      <ExploreTabs />
 
       <div className="grid gap-3 px-5 pt-4">
         <Button icon="add" onClick={() => navigate("/crear-trabajo")}>

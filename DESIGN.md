@@ -102,8 +102,8 @@ Interletrado negativo en todo texto de 15px o más; ya viene en cada clase.
 | `Switch` | `Switch` | `checked`, `onChange`, `label` |
 | `SelectableCard` | `SelectableCard` | `icon`, `text`, `selected`, `onClick` |
 | `FilterChip` | `FilterChip` | `label`, `active` |
-| `IconTabs` | nuevo | `items` (`{ value, label, icon }`), `value`, `onChange`, `label`. Fila de círculos con ícono y nombre debajo, repartida a lo ancho (sin scroll); la activa en `--aire-accent-soft` con aro de acento. Para secciones hermanas de una misma pantalla (Explorar) |
-| `SegmentedControl` | `ExploreTabs` | `items` (`{ value, label }`), `value`, `onChange`, `fullWidth`, `gutter` (margen lateral de 20px que se desplaza con el contenido) |
+| `IconTabs` | nuevo | `items` (`{ value, label, icon }`), `value`, `onChange`, `label`. Fila de círculos con ícono y nombre debajo, repartida a lo ancho (sin scroll); la activa en `--aire-accent-soft` con aro de acento. Para secciones hermanas o accesos rápidos (con `value=""` ninguno queda activo, como en el inicio de Explorar) |
+| `SegmentedControl` | — | `items` (`{ value, label }`), `value`, `onChange`, `fullWidth`, `gutter` (margen lateral de 20px que se desplaza con el contenido) |
 | `PinInput` | `PinInput` | igual que hoy + `error` |
 | `PageHeader` | `PageHeader` | `title`, `subtitle` (una sola línea), `onBack`, `backLabel` (nombre accesible), `action` (`{ icon, label, onClick }`), `large`. Una sola fila: botón atrás circular a la izquierda, título y botón de acción a la derecha; el subtítulo va debajo alineado con el título. `reserveBar` quedó obsoleto |
 | `EmptyState` | `EmptyState` | `title`, `message`, `image` (`/images/empty_*.svg`), `action` |
@@ -158,7 +158,7 @@ Tarjeta de trabajo típica:
 
 Única excepción a «sin degradados»: el degradado no decora, es el velo que hace legible el texto sobre la foto. Cada categoría tiene su foto en `web/public/images/categorias/<slug>.webp` (640×800, WebP) y su tono `--aire-cat-<slug>`; el mapeo está en `web/src/lib/categorias.ts` (las categorías sin foto, como Cerrajería, usan `--aire-cat-default`). Sobre la foto el texto usa `--aire-on-photo` / `--aire-on-photo-2`, los chips `--aire-photo-chip` y las píldoras `--aire-photo-glass`. La acción principal usa `Button variant="photo"` (o `"photo-soft"` para retirar la postulación); las secundarias son botones de ícono de 44px (`.ca-photocard__iconbtn`). Para sumar una foto: agrega la imagen, el token `--aire-cat-<slug>` y la entrada en `categorias.ts`.
 
-En las listas de gestión (Mis publicaciones, Mis trabajos, Historial) la foto aparece como miniatura de 48px con `CategoriaThumb` (`apagado` la pone en gris para el historial), y en Trabajadores los servicios se muestran con `CategoriaChip`; ambos están en `web/src/components/CategoriaThumb.tsx`. La tarjeta grande con foto se reserva para Explorar.
+En las listas de gestión (Mis publicaciones, Mis trabajos, Historial) la foto aparece como miniatura de 48px con `CategoriaThumb` (`apagado` la pone en gris para el historial), y en Trabajadores los servicios se muestran con `CategoriaChip`; ambos están en `web/src/components/CategoriaThumb.tsx`. La tarjeta grande con foto se reserva para Explorar: la hoja de detalle y la lista completa (`/explorar/trabajos`); en los carruseles del inicio va la versión compacta (`TrabajoMini`).
 
 ### De confianza y Recontratar
 
@@ -224,7 +224,10 @@ Viven en `web/src/components/` (no en `aire/`) porque dependen de la lógica de 
 |---|---|
 | `SelectSheet` | Selector de una opción: campo de solo lectura que abre una `Sheet` con la lista (categorías) |
 | `Vacio` | `EmptyState` con la ilustración elegida por nombre (`empty_no_signal`, …) |
-| `ExploreTabs` | `IconTabs` de Explorar atado a la ruta: Trabajos, Trabajadores, Mis trabajos y Mis publicaciones |
+| `AccesosExplorar` | `IconTabs` con los accesos del inicio de Explorar: Mis trabajos, Mis publicaciones, Agenda y De confianza |
+| `Carrusel` | Fila con título, *Ver todos* y tarjetas que se deslizan a lo ancho (imán por tarjeta, 248px cada una, tarjeta final "Ver los N") |
+| `TrabajoMini`, `TrabajadorMini` | Tarjetas compactas de los carruseles, todas del mismo alto (`TarjetasCompactas.tsx`); al tocarlas abren la hoja de detalle |
+| `TrabajoSheet`, `TrabajadorSheet` | Hojas de detalle (`DetalleSheets.tsx`) con la tarjeta completa y sus acciones (postularse, trueque, urgencia, contactar) |
 | `ToastHost` y `lib/toast.ts` | `mostrarToast(texto, tipo, accion?)` desde cualquier lugar; el host muestra el aviso más reciente con `Toast` |
 | `JobCard`, `WorkerCard`, `PublicacionCard`, `JobStatusCard` | Tarjetas de trabajo y personas (una acción principal por tarjeta) |
 | `PagarSheet`, `RatingSheet`, `ReportSheet`, `DistrictPickerSheet` | Hojas de pago con propina, calificación, reporte y distrito |

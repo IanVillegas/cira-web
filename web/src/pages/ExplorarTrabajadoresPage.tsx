@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FilterChip, Loader, PageHeader, Stagger } from "@/components/aire";
-import { ExploreTabs } from "@/components/ExploreTabs";
 import { Vacio } from "@/components/Vacio";
 import { WorkerCard } from "@/components/WorkerCard";
 import { api } from "@/lib/api";
@@ -28,13 +27,14 @@ export function ExplorarTrabajadoresPage() {
   return (
     <div className="pb-6">
       <PageHeader
-        title={tr("Explorar")}
+        title={tr("Trabajadores")}
         subtitle={tr("Encuentra a quién contratar hoy.")}
-        action={{ icon: "notifications", label: tr("Alertas"), onClick: () => navigate("/alertas") }}
+        onBack={() => navigate("/explorar")}
+        backLabel={tr("Explorar")}
+        large={false}
       />
-      <ExploreTabs />
 
-      <div className="no-scrollbar mt-4 flex items-center gap-2 overflow-x-auto px-5 pb-1">
+      <div className="no-scrollbar mt-1 flex items-center gap-2 overflow-x-auto px-5 pb-1">
         <FilterChip label={tr("Disponibles")} active={soloDisponibles} onClick={() => setSoloDisponibles((v) => !v)} />
         <FilterChip label={tr("De confianza")} active={soloConfianza} onClick={() => setSoloConfianza((v) => !v)} />
       </div>

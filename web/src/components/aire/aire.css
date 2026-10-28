@@ -971,6 +971,81 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 }
 .leaflet-control-attribution a { color: var(--aire-ink-2); }
 
+/* ── Carruseles de Explorar (components/Carrusel.tsx) ─────
+   Filas que se deslizan a lo ancho con imán por tarjeta; todas las tarjetas miden lo mismo
+   (248px) y se asoma la siguiente para invitar a deslizar. */
+.ca-carrusel { display: grid; gap: 10px; }
+.ca-carrusel__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 0 20px; }
+.ca-carrusel__head h2 { margin: 0; }
+.ca-carrusel__head p { margin: 2px 0 0; }
+.ca-carrusel__more {
+  display: inline-flex; flex: none; align-items: center; gap: 0; min-height: var(--ca-hit); margin-right: -6px; padding: 0 6px;
+  border: 0; background: transparent; color: var(--aire-accent-text); font: 600 15px/20px var(--aire-font-sans); letter-spacing: -0.24px;
+  cursor: pointer; transition: opacity var(--ca-dur-fast);
+}
+.ca-carrusel__more:active { opacity: 0.5; }
+.ca-carrusel__more:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--aire-focus); border-radius: var(--aire-radius-sm); }
+.ca-carrusel__rail {
+  display: flex; align-items: stretch; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain;
+  padding: 4px 20px 14px; scroll-snap-type: x mandatory; scroll-padding-inline: 20px;
+}
+.ca-carrusel__rail > * { flex: none; width: 248px; scroll-snap-align: start; }
+.ca-carrusel__vacio { width: auto !important; flex: 1 !important; margin: 0; padding: 16px; border-radius: var(--aire-radius-lg); background: var(--aire-surface-2); color: var(--aire-ink-2); }
+/* Tarjeta final "Ver los N": mismo alto que las demás, más angosta. */
+.ca-carrusel__rail > .ca-carrusel__fin { width: 132px; }
+.ca-carrusel__fin {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px;
+  border: 0; border-radius: var(--aire-radius-lg); background: var(--aire-accent-soft); color: var(--aire-accent-text);
+  text-align: center; cursor: pointer; transition: transform var(--ca-dur-base) var(--ca-ease-pop);
+}
+.ca-carrusel__fin:active { transform: scale(var(--ca-press)); transition-duration: var(--ca-dur-instant); }
+.ca-carrusel__fin:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--aire-focus); }
+.ca-carrusel__fin-icon {
+  display: flex; align-items: center; justify-content: center; width: 48px; height: 48px;
+  border-radius: var(--aire-radius-full); background: var(--aire-accent); color: var(--aire-on-accent);
+}
+
+/* ── Tarjetas compactas (components/TarjetasCompactas.tsx) ── */
+.ca-mini {
+  display: flex; flex-direction: column; overflow: hidden; padding: 0; border: 0; text-align: left;
+  border-radius: var(--aire-radius-lg); background: var(--aire-surface); color: var(--aire-ink);
+  box-shadow: var(--aire-shadow-card); cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform var(--ca-dur-base) var(--ca-ease-pop);
+}
+.ca-mini:active { transform: scale(var(--ca-press)); transition-duration: var(--ca-dur-instant); }
+.ca-mini:focus-visible { outline: none; box-shadow: var(--aire-shadow-card), 0 0 0 3px var(--aire-focus); }
+.ca-mini .ca-icon { flex: none; }
+.ca-mini__media {
+  --ca-photo-tone: var(--aire-cat-default);
+  position: relative; display: flex; align-items: center; justify-content: center; height: 124px;
+  background: var(--ca-photo-tone); color: var(--aire-on-photo);
+}
+.ca-mini__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ca-mini--trabajo .ca-mini__media { --ca-photo-tone: inherit; }
+.ca-mini__chips { position: absolute; inset: 10px 10px auto 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.ca-mini__chips .ca-badge { min-height: 26px; }
+.ca-mini__pill {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 10px;
+  border-radius: var(--aire-radius-full); background: var(--aire-photo-glass); color: var(--aire-on-photo);
+  -webkit-backdrop-filter: blur(var(--ca-blur)); backdrop-filter: blur(var(--ca-blur));
+}
+.ca-mini__body { display: flex; flex: 1; flex-direction: column; gap: 4px; padding: 12px 14px 14px; min-width: 0; }
+/* Título siempre de 2 líneas de alto: así todas las tarjetas de la fila miden igual. */
+.ca-mini__title {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; min-height: 44px;
+}
+.ca-mini__price { display: inline-flex; align-items: center; gap: 4px; color: var(--aire-accent-text); }
+.ca-mini__meta, .ca-mini__service { display: flex; align-items: center; gap: 4px; min-width: 0; color: var(--aire-ink-2); }
+.ca-mini__service { color: var(--aire-ink); }
+.ca-mini--trabajador .ca-mini__body { padding-top: 10px; gap: 6px; }
+.ca-mini__top { position: relative; display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 14px 0; }
+.ca-mini__avatar {
+  display: flex; align-items: center; justify-content: center; width: 56px; height: 56px;
+  border-radius: var(--aire-radius-full); background: var(--aire-accent-soft); color: var(--aire-accent-text);
+}
+.ca-mini__fav { color: var(--aire-danger); }
+.ca-mini__name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
 /* ── Píldora de día (disponibilidad al contratar) ──────── */
 .ca-daypill {
   flex: none; display: grid; justify-items: center; gap: 1px; width: 52px; min-height: 66px; padding: 8px 0 6px;

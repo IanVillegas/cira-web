@@ -16,11 +16,13 @@ interface WorkerCardProps {
   onChange?: (trabajador: Trabajador) => void;
   /** "confianza": la acción principal es Recontratar (lista De confianza). */
   modo?: "explorar" | "confianza";
+  /** Abre ya desplegada (en la hoja de detalle de Explorar). */
+  defaultExpanded?: boolean;
 }
 
 /** Tarjeta de trabajador: reputación, insignias y acciones para ver el perfil o contactar. */
-export function WorkerCard({ trabajador, onChange, modo = "explorar" }: WorkerCardProps) {
-  const [expanded, setExpanded] = useState(false);
+export function WorkerCard({ trabajador, onChange, modo = "explorar", defaultExpanded = false }: WorkerCardProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const [abriendoChat, setAbriendoChat] = useState(false);
   const navigate = useNavigate();
 

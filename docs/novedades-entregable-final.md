@@ -32,7 +32,7 @@ En esta etapa CIRA pasó de un **mockup interactivo de un solo usuario** a una *
 
 | Bloque | Qué incorporamos | Por qué importa en la exposición |
 |---|---|---|
-| **Experiencia** | Sistema de diseño CIRA Aire, tarjetas con foto por categoría, barra flotante, modo oscuro, español/inglés, mapa con pines que informan | La app se ve y se siente como un producto real, no como un prototipo |
+| **Experiencia** | Sistema de diseño CIRA Aire, Explorar como inicio con filas que se deslizan, tarjetas con foto por categoría, barra flotante, modo oscuro, español/inglés, mapa con pines que informan | La app se ve y se siente como un producto real, no como un prototipo |
 | **Confianza** | Calificaciones en ambas direcciones, reportes, verificación de cédula y hoja de delincuencia, "De confianza" | Contratar a un desconocido es el mayor freno del mercado informal |
 | **Monetización** | Comisión por pago con tarjeta, tarifa de urgencia, Plan Plus, propina, "Ingresos de CIRA" | El profesor pidió que el modelo de negocio **se vea funcionando**, no solo en el Canvas |
 | **Operación** | Multiusuario, Modo Urgencia con alertas, seguimiento tipo Uber, ofertas directas, trueque, **agenda con servicios recurrentes, reemplazos, propiedades y limpieza entre huéspedes** | Cubre el ciclo completo: necesidad → contacto → trabajo → pago → reputación → **siguiente visita** |
@@ -65,7 +65,7 @@ Esa última condición guió casi todas las decisiones de este documento.
 Orden sugerido. Cada paso responde a una pregunta del público:
 
 1. **¿Qué problema hay?** Contratar servicios del hogar a alguien que no conoces da miedo, y el trabajador independiente no tiene cómo demostrar que es confiable.
-2. **¿Cómo lo resuelve CIRA?** Explorar trabajos y trabajadores cerca ([§4.2](#42-tarjetas-con-la-foto-de-cada-categoría)), con reputación y verificación visibles ([§5](#5-confianza-entre-desconocidos)).
+2. **¿Cómo lo resuelve CIRA?** Explorar trabajos y trabajadores cerca ([§4.3.2](#432-explorar-como-pantalla-de-inicio-filas-que-se-deslizan-y-detalle-en-hoja)), con reputación y verificación visibles ([§5](#5-confianza-entre-desconocidos)).
 3. **¿Y si es una emergencia?** Modo Urgencia + seguimiento tipo Uber ([§7.2](#72-modo-urgencia-y-alertas), [§7.3](#73-seguimiento-del-trabajo-tipo-uber)).
 4. **¿Cómo gana dinero?** Comisión, urgencia y Plan Plus, mostrados en vivo ([§6](#6-cómo-gana-dinero-cira)).
 5. **¿Por qué la gente vuelve?** "De confianza", recontratar y los servicios recurrentes de la agenda ([§5.3](#53-de-confianza-y-recontratar), [§7.6](#76-cira-agenda-servicios-recurrentes-reemplazos-y-propiedades)).
@@ -101,7 +101,7 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 
 ### 4.2 Tarjetas con la foto de cada categoría
 
-**Qué es:** en Explorar, cada trabajo se muestra con una foto de su categoría (limpieza, plomería, electricidad, jardinería, mudanzas, transporte, mascotas, reparaciones) que se funde en un degradado del color de la foto, con el texto encima.
+**Qué es:** en Explorar (la hoja de detalle y la lista completa), cada trabajo se muestra con una foto de su categoría (limpieza, plomería, electricidad, jardinería, mudanzas, transporte, mascotas, reparaciones) que se funde en un degradado del color de la foto, con el texto encima.
 
 **Problema que resuelve:** una lista de textos iguales no invita a explorar. La foto permite reconocer el tipo de trabajo de un vistazo, sin leer.
 
@@ -145,15 +145,27 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 
 ---
 
-### 4.3.2 Secciones de Explorar con íconos
+### 4.3.2 Explorar como pantalla de inicio: filas que se deslizan y detalle en hoja
 
-**Qué es:** las cuatro secciones de Explorar (**Trabajos, Trabajadores, Mis trabajos y Mis publicaciones**) son una fila de círculos con ícono y su nombre debajo. La sección activa se rellena con el azul suave del acento y un aro.
+**Qué es:** Explorar dejó de ser una lista larga y pasó a ser una **pantalla de inicio**:
+1. **Accesos rápidos** en círculos con ícono: *Mis trabajos, Mis publicaciones, Agenda* y *De confianza*.
+2. **Urgentes** (solo si hay): las urgencias más cercanas, con la etiqueta roja. "Se lo queda quien acepte primero".
+3. **Trabajos:** los 5 más cercanos, en una fila que se desliza a lo ancho.
+4. **Trabajadores:** 5, los disponibles primero y entre ellos los mejor calificados (tu propio perfil no aparece).
 
-**Problema:** antes eran un control segmentado con scroll horizontal; en el teléfono "Mis publicaciones" quedaba cortada en la orilla y había que deslizar para descubrirla.
+Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **lista completa en vertical**, con sus filtros (*Cercanía* y *Trueques* en trabajos; *Disponibles* y *De confianza* en trabajadores). Las tarjetas de las filas son **compactas y del mismo tamaño**: al tocarlas se abre una **hoja desde abajo** con la información completa y todas las acciones (Postularme o Aceptar urgencia, chat, compartir, mapa; o Ver perfil y Contactar). Los links compartidos por WhatsApp, las alertas y el botón *Ver trabajo* del mapa abren directamente la hoja de ese trabajo.
 
-**Por qué así:** las cuatro se ven siempre, sin deslizar, y el ícono ayuda a reconocer cada una de un vistazo (maletín, trabajador, lista de tareas, megáfono). Es el patrón de categorías que usan las apps de servicios y marketplaces actuales.
+**Problema:** la lista vertical con tarjetas grandes obligaba a recorrer todo para descubrir trabajadores, y las secciones iban en un control con scroll horizontal donde "Mis publicaciones" quedaba cortada.
 
-**Dónde está:** `web/src/components/aire/IconTabs.tsx` (componente nuevo de Aire), `web/src/components/ExploreTabs.tsx` · Commit `d79ead1`
+**Por qué así:**
+- Es el patrón de inicio de las apps de servicios (Airbnb, Rappi, Uber): se ve un poco de todo sin desplazarse y cada fila invita a deslizar (se asoma la siguiente tarjeta).
+- **Las urgencias van de primero** porque son una fuente de ingreso (tarifa del 15 %, [§6.1](#61-las-fuentes-de-ingreso)) y la propuesta más fuerte para el cliente.
+- **Hoja y no modal centrado:** en el teléfono se cierra deslizando hacia abajo y cabe toda la tarjeta con sus botones.
+- **Trabajos y Trabajadores ya no son pestañas:** están en la misma pantalla, así que los accesos quedan para lo propio (lo que hago, lo que publiqué, mi agenda, mi gente de confianza).
+
+**Qué decir en la exposición:** "Al abrir CIRA ves lo urgente, lo que hay cerca y quién está libre, sin desplazarte. Tocás una tarjeta y tenés todo para postularte o contactar."
+
+**Dónde está:** `web/src/pages/ExplorarPage.tsx` (inicio), `web/src/components/Carrusel.tsx` (filas), `web/src/components/TarjetasCompactas.tsx`, `web/src/components/DetalleSheets.tsx` (hojas de detalle), `web/src/components/AccesosExplorar.tsx` y `web/src/components/aire/IconTabs.tsx`; las listas completas en `ExplorarTrabajosPage.tsx` (`/explorar/trabajos`) y `ExplorarTrabajadoresPage.tsx` · Commits `d79ead1`, `PENDIENTE`
 
 ---
 
@@ -339,7 +351,7 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 **Cómo funciona:**
 - Disponible para cualquier categoría; al principio solo eran plomería, electricidad y cerrajería, y lo abrimos tras la primera revisión.
 - Alerta dentro de la app (banner y pantalla de Alertas), con un radio de 15 km. Primero a los Plus (los mejor calificados antes) y 2 minutos después al resto.
-- La tarifa de urgencia (15 %) se muestra en el resumen. Las urgencias aparecen siempre arriba en Explorar.
+- La tarifa de urgencia (15 %) se muestra en el resumen. Las urgencias tienen su propia fila de primero en Explorar y van arriba en la lista completa.
 - Para aceptar una urgencia hay que tener la **cédula verificada** ([§5.2](#52-verificación-de-cédula-y-hoja-de-delincuencia)).
 
 **Por qué así:** la urgencia es donde el cliente más valora la rapidez y donde más dispuesto está a pagar. Por eso concentra una fuente de ingreso y la exigencia de verificación.
@@ -523,7 +535,7 @@ Unos 8 minutos. Cada integrante con su teléfono conectado (`npm run demo` en `s
 
 | # | Quién | Qué mostrar | Sección |
 |---|---|---|---|
-| 1 | Cualquiera | Explorar: tarjetas con foto, filtros y modo oscuro desde Cuenta → Apariencia | 4.2, 4.4 |
+| 1 | Cualquiera | Explorar: filas de Urgentes, Trabajos y Trabajadores; tocar una tarjeta abre su hoja; *Ver todos* con filtros; modo oscuro desde Cuenta → Apariencia | 4.2, 4.3.2, 4.4 |
 | 2 | Eduardo (cliente) | Registra su tarjeta en Cuenta → Mi tarjeta (número de prueba `4242 4242 4242 4242`) y publica una **urgencia de plomería** pagando con tarjeta: el resumen muestra la tarifa de urgencia y la comisión | 6.1, 6.2, 7.2 |
 | 3 | Bayron (Plus, plomero) | Recibe la alerta primero, acepta la urgencia y avanza el seguimiento hasta "Terminado" | 6.3, 7.3 |
 | 4 | Marisol (sin cédula verificada) | En Explorar, las urgencias le piden "Verifica tu cédula"; verifica en vivo desde el recordatorio del Perfil y queda habilitada | 5.2, 7.2 |
@@ -581,6 +593,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | Explorar como inicio: accesos, filas de Urgentes, Trabajos y Trabajadores, Ver todos y detalle en hoja | 4.3.2 |
 | `d79ead1` | Secciones de Explorar como círculos con ícono (sin scroll) | 4.3.2 |
 | `4600a31` | Títulos en la misma fila que los botones de atrás y de acción | 4.3.1 |
 | `c94ab33` | El mapa vuelve a OpenStreetMap con filtro (CARTO pedía API key) | 4.6 |

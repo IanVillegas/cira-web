@@ -11,6 +11,8 @@ export interface SheetProps {
   children: ReactNode;
   /** Contenedor posicionado donde vive la hoja (por defecto, la ventana). */
   contained?: boolean;
+  /** Nombre accesible cuando la hoja no lleva título visible (p. ej. el detalle de un trabajo). */
+  label?: string;
 }
 
 /**
@@ -18,7 +20,7 @@ export interface SheetProps {
  * curva de resorte de iOS, el fondo se oscurece y se puede cerrar
  * arrastrándola hacia abajo, tocando el velo o con Escape.
  */
-export function Sheet({ open, onClose, title, subtitle, children, contained = false }: SheetProps) {
+export function Sheet({ open, onClose, title, subtitle, children, contained = false, label }: SheetProps) {
   const [mounted, setMounted] = useState(open);
   const [shown, setShown] = useState(false);
   // Al abrir se monta en el mismo render (patrón de "ajustar estado cuando cambia una prop").
@@ -83,7 +85,7 @@ export function Sheet({ open, onClose, title, subtitle, children, contained = fa
         style={drag ? { transform: `translateY(${drag}px)` } : undefined}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-label={title ?? label}
         tabIndex={-1}
       >
         <div className="ca-sheet__grab" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>

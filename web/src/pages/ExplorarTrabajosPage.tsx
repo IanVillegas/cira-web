@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Fab, FilterChip, Loader, PageHeader, Stagger } from "@/components/aire";
-import { ExploreTabs } from "@/components/ExploreTabs";
 import { JobCard } from "@/components/JobCard";
 import { PostularTruequeSheet } from "@/components/PostularTruequeSheet";
 import { Vacio } from "@/components/Vacio";
@@ -12,7 +11,7 @@ import type { Trabajo } from "@/lib/types";
 
 export function ExplorarTrabajosPage() {
   const navigate = useNavigate();
-  // Link compartido por WhatsApp (/explorar?trabajo=ID): ese trabajo va primero y abierto.
+  // Con ?trabajo=ID ese trabajo va primero y abierto (los links compartidos ahora abren la hoja en /explorar).
   const [searchParams] = useSearchParams();
   const destacado = searchParams.get("trabajo");
   const [trabajos, setTrabajos] = useState<Trabajo[] | null>(null);
@@ -71,13 +70,14 @@ export function ExplorarTrabajosPage() {
   return (
     <div className="pb-6">
       <PageHeader
-        title={tr("Explorar")}
-        subtitle={tr("Encuentra tu próximo servicio hoy.")}
-        action={{ icon: "notifications", label: tr("Alertas"), onClick: () => navigate("/alertas") }}
+        title={tr("Trabajos")}
+        subtitle={tr("Todos los trabajos publicados, las urgencias primero.")}
+        onBack={() => navigate("/explorar")}
+        backLabel={tr("Explorar")}
+        large={false}
       />
-      <ExploreTabs />
 
-      <div className="no-scrollbar mt-4 flex items-center gap-2 overflow-x-auto px-5 pb-1">
+      <div className="no-scrollbar mt-1 flex items-center gap-2 overflow-x-auto px-5 pb-1">
         <FilterChip label={tr("Cercanía")} active={ordenPorCercania} onClick={() => setOrdenPorCercania((v) => !v)} />
         <FilterChip label={tr("Trueques")} active={soloTrueques} onClick={() => setSoloTrueques((v) => !v)} />
       </div>

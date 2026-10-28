@@ -7,6 +7,7 @@ import { PinLoginPage } from "@/pages/auth/PinLoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { RecoverAccessPage } from "@/pages/auth/RecoverAccessPage";
 
+import { ExplorarPage } from "@/pages/ExplorarPage";
 import { ExplorarTrabajosPage } from "@/pages/ExplorarTrabajosPage";
 import { ExplorarTrabajadoresPage } from "@/pages/ExplorarTrabajadoresPage";
 import { MapaPage } from "@/pages/MapaPage";
@@ -46,7 +47,8 @@ export default function App() {
 
           {/* App autenticada */}
           <Route element={<AppShell />}>
-            <Route path="/explorar" element={<ExplorarTrabajosPage />} />
+            <Route path="/explorar" element={<ExplorarPage />} />
+            <Route path="/explorar/trabajos" element={<ExplorarTrabajosPage />} />
             <Route path="/trabajadores" element={<ExplorarTrabajadoresPage />} />
             <Route path="/mapa" element={<MapaPage />} />
             <Route path="/crear-trabajo" element={<CrearTrabajoPage />} />
