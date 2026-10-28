@@ -104,7 +104,7 @@ Interletrado negativo en todo texto de 15px o más; ya viene en cada clase.
 | `FilterChip` | `FilterChip` | `label`, `active` |
 | `SegmentedControl` | `ExploreTabs` | `items` (`{ value, label }`), `value`, `onChange`, `fullWidth`, `gutter` (margen lateral de 20px que se desplaza con el contenido) |
 | `PinInput` | `PinInput` | igual que hoy + `error` |
-| `PageHeader` | `PageHeader` | `title`, `subtitle` (una sola línea), `onBack`, `backLabel`, `action` (`{ icon, label, onClick }`), `large`, `reserveBar` (reserva la barra superior para que los títulos de sección queden a la misma altura) |
+| `PageHeader` | `PageHeader` | `title`, `subtitle` (una sola línea), `onBack`, `backLabel` (nombre accesible), `action` (`{ icon, label, onClick }`), `large`. Una sola fila: botón atrás circular a la izquierda, título y botón de acción a la derecha; el subtítulo va debajo alineado con el título. `reserveBar` quedó obsoleto |
 | `EmptyState` | `EmptyState` | `title`, `message`, `image` (`/images/empty_*.svg`), `action` |
 | `Loader`, `Spinner`, `Skeleton` | `Loader` | `Skeleton`: `width`, `height`, `radius`, `lines` |
 | `TabBar` | `BottomNav` | `items` (`{ key, label, icon, badge? }`), `value`, `onChange`, `floating`. `badge` pinta un contador rojo (mensajes sin leer) |

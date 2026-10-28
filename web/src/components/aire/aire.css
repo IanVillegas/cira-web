@@ -598,28 +598,25 @@
 @keyframes ca-blink { 50% { opacity: 0; } }
 
 /* ── Encabezado ────────────────────────────────────────── */
-.ca-header { display: flex; flex-direction: column; gap: 4px; padding: 12px 20px 12px; }
-.ca-header__bar { display: flex; align-items: center; justify-content: space-between; min-height: var(--ca-hit); margin: 0 -8px 4px; }
-.ca-header__back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  min-height: var(--ca-hit);
-  padding: 0 8px 0 0;
-  border: 0;
-  background: transparent;
-  color: var(--aire-accent-text);
-  font: 400 17px/22px var(--aire-font-sans);
-  letter-spacing: -0.43px;
-  cursor: pointer;
-  transition: opacity var(--ca-dur-fast);
+/* Una sola fila: [atrás] título [acción]; el subtítulo va debajo, alineado con el título. */
+.ca-header { display: flex; flex-direction: column; gap: 2px; padding: 12px 20px 12px; }
+.ca-header__row { display: flex; align-items: center; gap: 12px; min-height: var(--ca-hit); }
+.ca-header__title {
+  flex: 1; min-width: 0; margin: 0;
+  font: 600 22px/28px var(--aire-font-display); letter-spacing: -0.45px; color: var(--aire-ink);
+  overflow-wrap: anywhere;
 }
-.ca-header__back:active { opacity: 0.5; }
-.ca-header__titles { animation: ca-fade-up var(--ca-dur-slow) var(--ca-ease-out) both; }
-.ca-header h1 { margin: 0; font: 600 22px/28px var(--aire-font-display); letter-spacing: -0.45px; color: var(--aire-ink); }
-.ca-header--large h1 { font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: -0.9px; }
-.ca-header p { margin: 2px 0 0; font: 400 15px/20px var(--aire-font-sans); letter-spacing: -0.24px; color: var(--aire-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ca-header__titles { min-width: 0; }
+.ca-header--large .ca-header__title { font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: -0.9px; }
+.ca-header__back, .ca-header__action { flex: none; }
+.ca-header__back { margin-left: -4px; }
+.ca-header__action { margin-right: -4px; }
+.ca-header__subtitle {
+  margin: 0; font: 400 15px/20px var(--aire-font-sans); letter-spacing: -0.24px; color: var(--aire-ink-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Con botón atrás, el subtítulo empieza donde empieza el título (44px del botón - 4px + 12px de espacio). */
+.ca-header--back .ca-header__subtitle { padding-left: calc(var(--ca-hit) + 8px); }
+.ca-header__title, .ca-header__subtitle { animation: ca-fade-up var(--ca-dur-slow) var(--ca-ease-out) both; }
 
 /* ── Estado vacío ──────────────────────────────────────── */
 .ca-empty { display: flex; flex-direction: column; align-items: center; padding: 32px 32px; text-align: center; }
