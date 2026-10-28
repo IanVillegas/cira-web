@@ -56,7 +56,7 @@ export function PerfilPage() {
 
   return (
     <div className="pb-6">
-      <PageHeader title={tr("Perfil")} action={{ icon: "settings", label: tr("Cuenta"), onClick: () => navigate("/cuenta") }} />
+      <PageHeader title={tr("Perfil")} variante="simple" action={{ icon: "settings", label: tr("Cuenta"), onClick: () => navigate("/cuenta") }} />
 
       <div className="grid gap-6 px-5">
         <Reveal effect="scale">

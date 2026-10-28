@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Dialog, Loader, PageHeader, Stagger } from "@/components/aire";
+import { Button, Dialog, Fab, Loader, PageHeader, Stagger } from "@/components/aire";
 import { Vacio } from "@/components/Vacio";
 import { PublicacionCard } from "@/components/PublicacionCard";
 import { RatingSheet } from "@/components/RatingSheet";
@@ -44,14 +44,10 @@ export function MisPublicacionesPage() {
         title={tr("Mis publicaciones")}
         subtitle={tr("Consulta y administra tus publicaciones.")}
         onBack={() => navigate("/explorar")}
-        backLabel={tr("Explorar")}
-        large={false}
+        backLabel={tr("Atrás")}
       />
 
-      <div className="grid gap-3 px-5 pt-4">
-        <Button icon="add" onClick={() => navigate("/crear-trabajo")}>
-          {tr("Crear publicación")}
-        </Button>
+      <div className="grid gap-3 px-5 pt-2">
 
         {publicaciones === null ? (
           <Loader label={tr("Cargando publicaciones...")} />
@@ -64,6 +60,13 @@ export function MisPublicacionesPage() {
             ))}
           </Stagger>
         )}
+      </div>
+
+      {/* Mismo botón flotante que antes estaba en Explorar: crea una publicación. */}
+      <div className="pointer-events-none sticky bottom-3 mt-4 flex justify-end px-5">
+        <span className="pointer-events-auto">
+          <Fab icon="add" label={tr("Crear publicación")} onClick={() => navigate("/crear-trabajo")} />
+        </span>
       </div>
 
       <RatingSheet

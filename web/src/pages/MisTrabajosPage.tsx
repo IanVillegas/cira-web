@@ -71,12 +71,11 @@ export function MisTrabajosPage() {
         title={tr("Mis trabajos")}
         subtitle={tr("Consulta y gestiona tus trabajos activos.")}
         onBack={() => navigate("/explorar")}
-        backLabel={tr("Explorar")}
-        large={false}
+        backLabel={tr("Atrás")}
         action={{ icon: "history", label: tr("Ver historial"), onClick: () => navigate("/historial") }}
       />
 
-      <div className="grid gap-3 px-5 pt-4">
+      <div className="grid gap-3 px-5 pt-2">
         {error && (
           <p role="alert" className="aire-text-subhead rounded-aire-md bg-aire-danger-soft p-3 font-semibold text-aire-danger-text">
             {error}

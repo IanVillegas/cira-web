@@ -141,6 +141,8 @@ Orden sugerido. Cada paso responde a una pregunta del público:
 
 **Por qué así:** se gana espacio vertical para el contenido (en el teléfono se ve una tarjeta más) y el encabezado se lee de un vistazo. Es el mismo patrón en las 23 pantallas porque todas usan el mismo componente.
 
+**Franja de color (después):** el encabezado va sobre una **franja del azul de CIRA** con el título, el subtítulo y los botones (círculos blancos) encima; el contenido empieza en una lámina redondeada que "sube" sobre la franja, y la barra del navegador del teléfono toma el mismo azul. Va en todas las pantallas menos **Perfil** (que lleva su foto y datos arriba) y **Mapa** (que es pantalla completa). Así cada pantalla tiene una identidad clara y la marca está presente sin recargar el contenido. *Mis trabajos* y *Mis publicaciones* usan el mismo encabezado que *Agenda* y *De confianza* (título grande y botón atrás).
+
 **Dónde está:** `web/src/components/aire/PageHeader.tsx`, sección "Encabezado" de `web/src/components/aire/aire.css` · Commit `4600a31`
 
 ---
@@ -161,6 +163,7 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 - Es el patrón de inicio de las apps de servicios (Airbnb, Rappi, Uber): se ve un poco de todo sin desplazarse y cada fila invita a deslizar (se asoma la siguiente tarjeta).
 - **Las urgencias van de primero** porque son una fuente de ingreso (tarifa del 15 %, [§6.1](#61-las-fuentes-de-ingreso)) y la propuesta más fuerte para el cliente.
 - **Hoja y no modal centrado:** en el teléfono se cierra deslizando hacia abajo y cabe toda la tarjeta con sus botones.
+- **El botón "+" para crear una publicación** está ahora en *Mis publicaciones* (donde se gestionan), no en el inicio de Explorar.
 - **Trabajos y Trabajadores ya no son pestañas:** están en la misma pantalla, así que los accesos quedan para lo propio (lo que hago, lo que publiqué, mi agenda, mi gente de confianza).
 
 **Qué decir en la exposición:** "Al abrir CIRA ves lo urgente, lo que hay cerca y quién está libre, sin desplazarte. Tocás una tarjeta y tenés todo para postularte o contactar."
@@ -595,6 +598,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | Encabezado sobre franja azul en todas las pantallas (menos Perfil y Mapa); botón + de crear publicación en Mis publicaciones | 4.3.1, 4.3.2 |
 | `ff2e1cf` | "Ver en mapa" abre el mapa en el trabajo con su globo; la hoja ya no hace saltar la pantalla al abrirse | 4.6, 4.3.2 |
 | `ddcb8ee` | Hoja que se cierra deslizando desde cualquier parte, tarjetas con degradado y sin sombra cortada, "+" de propiedades en la Agenda | 4.3.2, 7.6 |
 | `f466b8b` | Explorar como inicio: accesos, filas de Urgentes, Trabajos y Trabajadores, Ver todos y detalle en hoja | 4.3.2 |

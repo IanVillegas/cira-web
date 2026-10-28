@@ -646,6 +646,16 @@
 /* Con botón atrás, el subtítulo empieza donde empieza el título (44px del botón - 4px + 12px de espacio). */
 .ca-header--back .ca-header__subtitle { padding-left: calc(var(--ca-hit) + 8px); }
 .ca-header__title, .ca-header__subtitle { animation: ca-fade-up var(--ca-dur-slow) var(--ca-ease-out) both; }
+/* Franja de color: título, subtítulo y botones sobre el acento; abajo, el contenido empieza en una
+   lámina redondeada del color del fondo (el ::after), como una tarjeta que sube sobre la franja. */
+.ca-header--banda { position: relative; padding-bottom: calc(12px + var(--aire-radius-xl)); background: var(--aire-accent); color: var(--aire-on-accent); }
+.ca-header--banda::after {
+  content: ""; position: absolute; inset: auto 0 -1px 0; height: var(--aire-radius-xl);
+  border-radius: var(--aire-radius-xl) var(--aire-radius-xl) 0 0; background: var(--aire-bg);
+}
+.ca-header--banda .ca-header__title, .ca-header--banda .ca-header__subtitle { color: var(--aire-on-accent); }
+.ca-header--banda .ca-iconbtn { background: var(--aire-surface); color: var(--aire-ink); box-shadow: var(--aire-shadow-thumb); }
+.ca-header--banda .ca-iconbtn:focus-visible { box-shadow: 0 0 0 3px var(--aire-on-accent); }
 
 /* ── Estado vacío ──────────────────────────────────────── */
 .ca-empty { display: flex; flex-direction: column; align-items: center; padding: 32px 32px; text-align: center; }

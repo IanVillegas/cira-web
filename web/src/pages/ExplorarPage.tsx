@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Fab, Loader, PageHeader, Reveal } from "@/components/aire";
+import { Loader, PageHeader, Reveal } from "@/components/aire";
 import { AccesosExplorar } from "@/components/AccesosExplorar";
 import { Carrusel } from "@/components/Carrusel";
 import { TrabajadorSheet, TrabajoSheet } from "@/components/DetalleSheets";
@@ -148,12 +148,6 @@ export function ExplorarPage() {
         </div>
       )}
 
-      {/* El área con scroll ya reserva el alto de la barra: el botón solo se separa 12px de ella. */}
-      <div className="pointer-events-none sticky bottom-3 mt-4 flex justify-end px-5">
-        <span className="pointer-events-auto">
-          <Fab icon="add" label={tr("Crear publicación")} onClick={() => navigate("/crear-trabajo")} />
-        </span>
-      </div>
 
       <TrabajoSheet
         trabajo={trabajoSel}
