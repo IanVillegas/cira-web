@@ -595,7 +595,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | "Ver en mapa" abre el mapa en el trabajo con su globo; la hoja ya no hace saltar la pantalla al abrirse | 4.6, 4.3.2 |
+| `ff2e1cf` | "Ver en mapa" abre el mapa en el trabajo con su globo; la hoja ya no hace saltar la pantalla al abrirse | 4.6, 4.3.2 |
 | `ddcb8ee` | Hoja que se cierra deslizando desde cualquier parte, tarjetas con degradado y sin sombra cortada, "+" de propiedades en la Agenda | 4.3.2, 7.6 |
 | `f466b8b` | Explorar como inicio: accesos, filas de Urgentes, Trabajos y Trabajadores, Ver todos y detalle en hoja | 4.3.2 |
 | `d79ead1` | Secciones de Explorar como círculos con ícono (sin scroll) | 4.3.2 |
