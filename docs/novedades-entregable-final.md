@@ -373,7 +373,8 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 
 **Cómo funciona:**
 - Disponible para cualquier categoría; al principio solo eran plomería, electricidad y cerrajería, y lo abrimos tras la primera revisión.
-- Alerta dentro de la app (banner y pantalla de Alertas), con un radio de 15 km. Primero a los Plus (los mejor calificados antes) y 2 minutos después al resto.
+- Alerta dentro de la app (banner y pantalla de Alertas), con un radio de 15 km.
+- **El aviso dura 30 segundos, como una oferta de viaje en Uber:** el botón *Aceptar* se vacía como una barra y cambia de azul a naranja (a la mitad) y a rojo (último tercio), con los segundos que quedan y un latido en los últimos 5. Si no se acepta, el aviso se va solo, pero la urgencia **sigue en la pantalla de Alertas** para aceptarla después (si nadie la tomó). La ventaja de 2 minutos del plan Plus no cambia. Primero a los Plus (los mejor calificados antes) y 2 minutos después al resto.
 - La tarifa de urgencia (15 %) se muestra en el resumen. Las urgencias tienen su propia fila de primero en Explorar y van arriba en la lista completa.
 - Para aceptar una urgencia hay que tener la **cédula verificada** ([§5.2](#52-verificación-de-cédula-y-hoja-de-delincuencia)).
 
@@ -616,6 +617,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | Aviso de urgencia con cuenta regresiva de 30 s en el botón Aceptar (azul → naranja → rojo) | 7.2 |
 | `c5671fe` | El manifiesto se pide con cookies para que la instalación funcione detrás de Dev Tunnels | 4.5.1 |
 | `fced335` | CIRA instalable como app a pantalla completa (manifiesto, íconos y service worker sin caché) | 4.5.1 |
 | `7dcb6ba` | Mis trabajos, Mis publicaciones, Agenda y De confianza como una sección con pestañas y título dinámico | 4.3.2 |
