@@ -7,7 +7,9 @@
     <title>CIRA</title>
     <meta name="theme-color" content="#f5f5f7" />
     <!-- App instalable (PWA): sin el manifiesto, "Instalar app" de Chrome abre con la barra de la URL. -->
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- use-credentials: el túnel (Dev Tunnels) solo entrega archivos a quien ya aceptó su aviso (cookie);
+         sin esto Chrome pide el manifiesto sin cookie, recibe la página de aviso y no deja instalar. -->
+    <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
