@@ -617,7 +617,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | Cuenta regresiva del aviso siempre en azul (estilo Uber), sin naranja ni rojo | 7.2 |
+| `9297146` | Cuenta regresiva del aviso siempre en azul (estilo Uber), sin naranja ni rojo | 7.2 |
 | `7c77d05` | Aviso de urgencia con cuenta regresiva de 30 s en el botón Aceptar (azul → naranja → rojo) | 7.2 |
 | `c5671fe` | El manifiesto se pide con cookies para que la instalación funcione detrás de Dev Tunnels | 4.5.1 |
 | `fced335` | CIRA instalable como app a pantalla completa (manifiesto, íconos y service worker sin caché) | 4.5.1 |
