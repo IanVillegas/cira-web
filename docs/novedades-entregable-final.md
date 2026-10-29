@@ -207,6 +207,8 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 
 **Cómo funciona:** `manifest.webmanifest` con nombre, íconos (normal y *maskable* para Android), modo `standalone` y el azul de CIRA; un *service worker* mínimo que **no guarda nada en caché** (todo va a la red, así nunca se ve una versión vieja). Chrome la reporta instalable sin errores.
 
+**Detalle con Dev Tunnels:** el túnel muestra una página de aviso a quien no la aceptó todavía, y Chrome pide el manifiesto sin cookies; por eso el manifiesto se pide con `crossorigin="use-credentials"` (si no, Chrome dice "no se puede instalar" y pone un ícono genérico). Hay que abrir CIRA y aceptar el aviso **antes** de instalar. Con `cloudflared` ese aviso no existe.
+
 **Ojo en la demo:** la app instalada queda atada a la URL del túnel. Si el túnel cambia de URL (por ejemplo, un túnel nuevo), hay que borrar el ícono e instalarla de nuevo desde la URL nueva.
 
 **Dónde está:** `web/public/manifest.webmanifest`, `web/public/sw.js`, íconos `web/public/icon-*.png` y `apple-touch-icon.png`, `web/index.html`, registro en `web/src/main.tsx` · Commit `fced335`
@@ -614,6 +616,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `c5671fe` | El manifiesto se pide con cookies para que la instalación funcione detrás de Dev Tunnels | 4.5.1 |
 | `fced335` | CIRA instalable como app a pantalla completa (manifiesto, íconos y service worker sin caché) | 4.5.1 |
 | `7dcb6ba` | Mis trabajos, Mis publicaciones, Agenda y De confianza como una sección con pestañas y título dinámico | 4.3.2 |
 | `ab6ca0e` | Modo oscuro con fondo `#121212` en vez de negro puro | 4.4 |
