@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Badge, Button, Icon, cx } from "@/components/aire";
+import { Badge, Button, Icon } from "@/components/aire";
 import { api } from "@/lib/api";
 import { formatoColones } from "@/lib/format";
 import { limiteTexto } from "@/lib/fechas";
@@ -26,7 +26,7 @@ function leerVencidas(): Set<string> {
 /**
  * Aviso de vidrio sobre la app: urgencias y trabajos nuevos de mi oficio cerca de mí.
  * Los trabajadores Plus lo reciben primero; el plan gratis, unos minutos después.
- * El botón principal se vacía en 30 s (azul → naranja → rojo); al terminar, el aviso se
+ * El botón principal se vacía en 30 s (un azul más intenso se retira); al terminar, el aviso se
  * va solo pero la alerta sigue en la pantalla de Alertas (y la prioridad Plus no cambia).
  */
 export function AlertBanner() {
@@ -155,10 +155,8 @@ function BotonCuenta({ inicio, segundos, urgente, onClick }: { inicio: number; s
   const [adelanto] = useState(() => Math.min(DURACION_AVISO_MS, Math.max(0, Date.now() - inicio)));
   const estilo = { "--ca-cuenta-dur": `${DURACION_AVISO_MS}ms`, "--ca-cuenta-delay": `-${adelanto}ms` } as CSSProperties;
   return (
-    <button type="button" className={cx("ca-cuenta", segundos <= 5 && "is-final")} style={estilo} onClick={onClick}>
+    <button type="button" className="ca-cuenta" style={estilo} onClick={onClick}>
       <span className="ca-cuenta__relleno" aria-hidden="true" />
-      <span className="ca-cuenta__relleno ca-cuenta__relleno--medio" aria-hidden="true" />
-      <span className="ca-cuenta__relleno ca-cuenta__relleno--final" aria-hidden="true" />
       {urgente && <Icon name="bolt" filled size={18} />}
       <span>{urgente ? tr("Aceptar") : tr("Ver trabajo")}</span>
       <span className="ca-cuenta__seg" aria-label={tr("{n} segundos para aceptar", { n: segundos })}>

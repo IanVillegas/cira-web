@@ -1027,41 +1027,25 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 [data-theme="dark"] .ca-map .maplibregl-ctrl-attrib-button { filter: invert(1); }
 
 /* ── Cuenta regresiva del aviso de urgencia (components/AlertBanner.tsx) ──
-   Como una oferta de viaje en Uber: el relleno del botón se vacía en --ca-cuenta-dur
-   (scaleX) y cambia de azul a naranja a la mitad y a rojo en el último tercio (capas
-   que aparecen con opacity). Solo se animan transform y opacity. */
+   Como la oferta de viaje de Uber: el botón es del azul de CIRA y encima un azul más
+   intenso se retira de derecha a izquierda (scaleX) en --ca-cuenta-dur. Siempre azul:
+   texto blanco con contraste de 4.5:1 o más sobre los dos tonos. */
 .ca-cuenta {
   position: relative; isolation: isolate; overflow: hidden; flex: 1;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: var(--ca-hit); padding: 0 16px;
-  border: 0; border-radius: var(--aire-radius-full); background: var(--aire-photo-ink); color: var(--aire-on-photo);
+  border: 0; border-radius: var(--aire-radius-full); background: var(--aire-accent); color: var(--aire-on-accent);
   font: 600 15px/20px var(--aire-font-sans); letter-spacing: -0.24px; cursor: pointer;
   transition: transform var(--ca-dur-base) var(--ca-ease-pop);
 }
 .ca-cuenta:active { transform: scale(var(--ca-press)); transition-duration: var(--ca-dur-instant); }
 .ca-cuenta:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--aire-focus); }
 .ca-cuenta__relleno {
-  position: absolute; inset: 0; z-index: -1; transform-origin: left center; background: var(--aire-accent);
+  position: absolute; inset: 0; z-index: -1; transform-origin: left center;
+  background: color-mix(in srgb, var(--aire-accent) 72%, var(--aire-photo-ink));
   animation: ca-cuenta-vaciar var(--ca-cuenta-dur, 30s) linear var(--ca-cuenta-delay, 0s) both;
 }
-/* Naranja y rojo oscurecidos (con la tinta de foto, igual en claro y oscuro) para que el texto
-   blanco del botón se lea con contraste de 4.5:1 o más. */
-.ca-cuenta__relleno--medio {
-  background: color-mix(in srgb, var(--aire-warning) 55%, var(--aire-photo-ink));
-  animation: ca-cuenta-vaciar var(--ca-cuenta-dur, 30s) linear var(--ca-cuenta-delay, 0s) both,
-    ca-cuenta-medio var(--ca-cuenta-dur, 30s) linear var(--ca-cuenta-delay, 0s) both;
-}
-.ca-cuenta__relleno--final {
-  background: color-mix(in srgb, var(--aire-danger) 80%, var(--aire-photo-ink));
-  animation: ca-cuenta-vaciar var(--ca-cuenta-dur, 30s) linear var(--ca-cuenta-delay, 0s) both,
-    ca-cuenta-final var(--ca-cuenta-dur, 30s) linear var(--ca-cuenta-delay, 0s) both;
-}
-.ca-cuenta__seg { min-width: 30px; font-variant-numeric: tabular-nums; opacity: 0.85; }
-/* Últimos 5 segundos: un latido suave para llamar la atención. */
-.ca-cuenta.is-final { animation: ca-cuenta-latido 1s var(--aire-ease-out) infinite; }
+.ca-cuenta__seg { min-width: 30px; font-variant-numeric: tabular-nums; opacity: 0.9; }
 @keyframes ca-cuenta-vaciar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
-@keyframes ca-cuenta-medio { 0%, 45% { opacity: 0; } 55%, 100% { opacity: 1; } }
-@keyframes ca-cuenta-final { 0%, 62% { opacity: 0; } 72%, 100% { opacity: 1; } }
-@keyframes ca-cuenta-latido { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
 
 /* ── Mis secciones (layouts/GestionLayout.tsx) ───────────
    Franja y círculos quietos; al cambiar de opción solo entra el contenido nuevo. */
@@ -1195,8 +1179,7 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   .ca-mappin, .ca-mappin-avatar, .ca-mappin-grupo, .ca-map__popup, .ca-gestion__contenido { animation: none !important; }
   /* Sin animación, la barra queda llena y el tiempo se ve en los segundos del botón. */
-  .ca-cuenta, .ca-cuenta .ca-cuenta__relleno { animation: none !important; }
-  .ca-cuenta .ca-cuenta__relleno--medio, .ca-cuenta .ca-cuenta__relleno--final { opacity: 0; }
+  .ca-cuenta .ca-cuenta__relleno { animation: none !important; }
   .ca-mappin--urgente::after, .ca-mappin-yo::after { animation: none !important; opacity: 0.25; transform: scale(1.5); }
   .ca-root *, .ca-root *::before, .ca-root *::after,
   [class^="ca-"], [class^="ca-"] *, [class*=" ca-"] {
