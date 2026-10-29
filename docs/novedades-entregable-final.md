@@ -199,6 +199,20 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 
 ---
 
+### 4.5.1 CIRA se instala como app (PWA)
+
+**Qué es:** desde Chrome en el teléfono, *Instalar app* (o *Agregar a pantalla de inicio*) deja a CIRA con su ícono y la abre a **pantalla completa**, sin la barra de la URL del túnel, como una app nativa.
+
+**Problema:** faltaba el **manifiesto web** (el archivo que le dice al navegador "esto es una app"). Sin él, Chrome creaba un acceso directo común, que abre en una ventana del navegador con la URL del túnel arriba.
+
+**Cómo funciona:** `manifest.webmanifest` con nombre, íconos (normal y *maskable* para Android), modo `standalone` y el azul de CIRA; un *service worker* mínimo que **no guarda nada en caché** (todo va a la red, así nunca se ve una versión vieja). Chrome la reporta instalable sin errores.
+
+**Ojo en la demo:** la app instalada queda atada a la URL del túnel. Si el túnel cambia de URL (por ejemplo, un túnel nuevo), hay que borrar el ícono e instalarla de nuevo desde la URL nueva.
+
+**Dónde está:** `web/public/manifest.webmanifest`, `web/public/sw.js`, íconos `web/public/icon-*.png` y `apple-touch-icon.png`, `web/index.html`, registro en `web/src/main.tsx` · Commit `PENDIENTE`
+
+---
+
 ### 4.6 Mapa con estilo propio y pines que informan
 
 **Qué es:** el mapa dejó de verse como el OpenStreetMap genérico. Ahora es un **mapa vectorial** (MapLibre GL, con componentes adaptados de mapcn): zoom suave, calles nítidas en cualquier nivel, un estilo claro sobrio y un **modo oscuro de verdad**. Los pines están diseñados con CIRA Aire:
@@ -600,6 +614,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | CIRA instalable como app a pantalla completa (manifiesto, íconos y service worker sin caché) | 4.5.1 |
 | `7dcb6ba` | Mis trabajos, Mis publicaciones, Agenda y De confianza como una sección con pestañas y título dinámico | 4.3.2 |
 | `ab6ca0e` | Modo oscuro con fondo `#121212` en vez de negro puro | 4.4 |
 | `388ae6e` | Encabezado sobre franja azul en todas las pantallas (menos Perfil y Mapa); botón + de crear publicación en Mis publicaciones | 4.3.1, 4.3.2 |
