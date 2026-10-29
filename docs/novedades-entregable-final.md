@@ -209,7 +209,7 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 
 **Ojo en la demo:** la app instalada queda atada a la URL del túnel. Si el túnel cambia de URL (por ejemplo, un túnel nuevo), hay que borrar el ícono e instalarla de nuevo desde la URL nueva.
 
-**Dónde está:** `web/public/manifest.webmanifest`, `web/public/sw.js`, íconos `web/public/icon-*.png` y `apple-touch-icon.png`, `web/index.html`, registro en `web/src/main.tsx` · Commit `PENDIENTE`
+**Dónde está:** `web/public/manifest.webmanifest`, `web/public/sw.js`, íconos `web/public/icon-*.png` y `apple-touch-icon.png`, `web/index.html`, registro en `web/src/main.tsx` · Commit `fced335`
 
 ---
 
@@ -614,7 +614,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | CIRA instalable como app a pantalla completa (manifiesto, íconos y service worker sin caché) | 4.5.1 |
+| `fced335` | CIRA instalable como app a pantalla completa (manifiesto, íconos y service worker sin caché) | 4.5.1 |
 | `7dcb6ba` | Mis trabajos, Mis publicaciones, Agenda y De confianza como una sección con pestañas y título dinámico | 4.3.2 |
 | `ab6ca0e` | Modo oscuro con fondo `#121212` en vez de negro puro | 4.4 |
 | `388ae6e` | Encabezado sobre franja azul en todas las pantallas (menos Perfil y Mapa); botón + de crear publicación en Mis publicaciones | 4.3.1, 4.3.2 |
