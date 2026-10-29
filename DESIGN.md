@@ -226,6 +226,7 @@ Viven en `web/src/components/` (no en `aire/`) porque dependen de la lógica de 
 |---|---|
 | `SelectSheet` | Selector de una opción: campo de solo lectura que abre una `Sheet` con la lista (categorías) |
 | `Vacio` | `EmptyState` con la ilustración elegida por nombre (`empty_no_signal`, …) |
+| `GestionLayout` | Layout (`layouts/`) de Mis trabajos, Mis publicaciones, Agenda y De confianza: `PageHeader` con título, subtítulo y acción según la ruta, `IconTabs` con la opción marcada y la pantalla en `<Outlet>`. Las pestañas navegan con `replace` (el atrás sale de la sección); esas pantallas no llevan su propio `PageHeader` |
 | `AccesosExplorar` | `IconTabs` con los accesos del inicio de Explorar: Mis trabajos, Mis publicaciones, Agenda y De confianza |
 | `Carrusel` | Fila con título, *Ver todos* y tarjetas que se deslizan a lo ancho (imán por tarjeta, 248px cada una, tarjeta final "Ver los N") |
 | `TrabajoMini`, `TrabajadorMini` | Tarjetas compactas de los carruseles, todas del mismo alto (`TarjetasCompactas.tsx`); al tocarlas abren la hoja de detalle |

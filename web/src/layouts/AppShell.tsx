@@ -15,10 +15,10 @@ const TABS = [
     key: "/explorar",
     label: "Explorar",
     icon: "explore",
-    matches: ["/explorar", "/trabajadores", "/publicaciones", "/mis-trabajos", "/crear-trabajo", "/alertas", "/usuarios"],
+    matches: ["/explorar", "/trabajadores", "/publicaciones", "/mis-trabajos", "/agenda", "/de-confianza", "/crear-trabajo", "/alertas", "/usuarios"],
   },
   { key: "/chats", label: "Chats", icon: "chat_bubble", matches: ["/chats"] },
-  { key: "/perfil", label: "Perfil", icon: "person", matches: ["/perfil", "/cuenta", "/historial", "/agenda", "/de-confianza"] },
+  { key: "/perfil", label: "Perfil", icon: "person", matches: ["/perfil", "/cuenta", "/historial"] },
 ];
 
 /** Pantallas autenticadas: contenido con scroll, barra inferior de vidrio flotando encima y avisos. */

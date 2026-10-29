@@ -13,6 +13,7 @@ export const EN: Record<string, string> = {
   "Se centrará el mapa en esa zona.": "The map will center on that area.",
   "Sin resultados.": "No results.",
   "Cerrar": "Close",
+  "Mis secciones": "My sections",
   "Agrega una propiedad para filtrar por dirección": "Add a property to filter by address",
   "Ver todos": "See all",
   "Ver los {n}": "See all {n}",

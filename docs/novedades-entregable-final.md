@@ -163,12 +163,13 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 - Es el patrón de inicio de las apps de servicios (Airbnb, Rappi, Uber): se ve un poco de todo sin desplazarse y cada fila invita a deslizar (se asoma la siguiente tarjeta).
 - **Las urgencias van de primero** porque son una fuente de ingreso (tarifa del 15 %, [§6.1](#61-las-fuentes-de-ingreso)) y la propuesta más fuerte para el cliente.
 - **Hoja y no modal centrado:** en el teléfono se cierra deslizando hacia abajo y cabe toda la tarjeta con sus botones.
+- **Mis trabajos, Mis publicaciones, Agenda y De confianza son una sola sección con pestañas:** la franja azul y los cuatro círculos se quedan quietos, el elegido se marca y solo cambian el contenido, el título, el subtítulo y el botón de la franja (historial en Mis trabajos, propiedades en la Agenda). Cambiar de opción no suma pasos al botón atrás, que vuelve a donde estabas (Explorar o Perfil). Antes cada una era una pantalla aparte y se sentía como saltar de un lado a otro.
 - **El botón "+" para crear una publicación** está ahora en *Mis publicaciones* (donde se gestionan), no en el inicio de Explorar.
 - **Trabajos y Trabajadores ya no son pestañas:** están en la misma pantalla, así que los accesos quedan para lo propio (lo que hago, lo que publiqué, mi agenda, mi gente de confianza).
 
 **Qué decir en la exposición:** "Al abrir CIRA ves lo urgente, lo que hay cerca y quién está libre, sin desplazarte. Tocás una tarjeta y tenés todo para postularte o contactar."
 
-**Dónde está:** `web/src/pages/ExplorarPage.tsx` (inicio), `web/src/components/Carrusel.tsx` (filas), `web/src/components/TarjetasCompactas.tsx`, `web/src/components/DetalleSheets.tsx` (hojas de detalle), `web/src/components/AccesosExplorar.tsx` y `web/src/components/aire/IconTabs.tsx`; las listas completas en `ExplorarTrabajosPage.tsx` (`/explorar/trabajos`) y `ExplorarTrabajadoresPage.tsx` · Commits `d79ead1`, `f466b8b`
+**Dónde está:** `web/src/pages/ExplorarPage.tsx` (inicio), `web/src/components/Carrusel.tsx` (filas), `web/src/components/TarjetasCompactas.tsx`, `web/src/components/DetalleSheets.tsx` (hojas de detalle), `web/src/components/AccesosExplorar.tsx`, `web/src/layouts/GestionLayout.tsx` (las cuatro secciones con pestañas) y `web/src/components/aire/IconTabs.tsx`; las listas completas en `ExplorarTrabajosPage.tsx` (`/explorar/trabajos`) y `ExplorarTrabajadoresPage.tsx` · Commits `d79ead1`, `f466b8b`
 
 ---
 
@@ -599,6 +600,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | Mis trabajos, Mis publicaciones, Agenda y De confianza como una sección con pestañas y título dinámico | 4.3.2 |
 | `ab6ca0e` | Modo oscuro con fondo `#121212` en vez de negro puro | 4.4 |
 | `388ae6e` | Encabezado sobre franja azul en todas las pantallas (menos Perfil y Mapa); botón + de crear publicación en Mis publicaciones | 4.3.1, 4.3.2 |
 | `ff2e1cf` | "Ver en mapa" abre el mapa en el trabajo con su globo; la hoja ya no hace saltar la pantalla al abrirse | 4.6, 4.3.2 |

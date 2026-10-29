@@ -1026,6 +1026,10 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 .ca-map .maplibregl-ctrl-attrib-button { background-color: transparent; }
 [data-theme="dark"] .ca-map .maplibregl-ctrl-attrib-button { filter: invert(1); }
 
+/* ── Mis secciones (layouts/GestionLayout.tsx) ───────────
+   Franja y círculos quietos; al cambiar de opción solo entra el contenido nuevo. */
+.ca-gestion__contenido { padding-top: 8px; animation: ca-fade-in var(--aire-dur-base) var(--aire-ease-out) both; }
+
 /* ── Carruseles de Explorar (components/Carrusel.tsx) ─────
    Filas que se deslizan a lo ancho con imán por tarjeta; todas las tarjetas miden lo mismo
    (248px) y se asoma la siguiente para invitar a deslizar. */
@@ -1152,7 +1156,7 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 
 /* ── Movimiento reducido: sin desplazamientos, solo cambios de opacidad breves ── */
 @media (prefers-reduced-motion: reduce) {
-  .ca-mappin, .ca-mappin-avatar, .ca-mappin-grupo, .ca-map__popup { animation: none !important; }
+  .ca-mappin, .ca-mappin-avatar, .ca-mappin-grupo, .ca-map__popup, .ca-gestion__contenido { animation: none !important; }
   .ca-mappin--urgente::after, .ca-mappin-yo::after { animation: none !important; opacity: 0.25; transform: scale(1.5); }
   .ca-root *, .ca-root *::before, .ca-root *::after,
   [class^="ca-"], [class^="ca-"] *, [class*=" ca-"] {

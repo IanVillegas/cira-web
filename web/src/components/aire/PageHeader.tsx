@@ -50,14 +50,21 @@ export function PageHeader({ title, subtitle, onBack, backLabel = "Atrás", acti
             <Icon name="chevron_backward" size={24} />
           </button>
         )}
-        <h1 className="ca-header__title">{title}</h1>
+        {/* key: al cambiar el título (pestañas de Mis secciones) el texto vuelve a entrar suave. */}
+        <h1 key={title} className="ca-header__title">
+          {title}
+        </h1>
         {action && (
           <button type="button" className="ca-iconbtn ca-header__action" aria-label={action.label} onClick={action.onClick}>
             <Icon name={action.icon} size={22} />
           </button>
         )}
       </div>
-      {subtitle && <p className="ca-header__subtitle">{subtitle}</p>}
+      {subtitle && (
+        <p key={subtitle} className="ca-header__subtitle">
+          {subtitle}
+        </p>
+      )}
       {children}
     </header>
   );

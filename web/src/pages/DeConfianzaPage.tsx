@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Loader, PageHeader, Stagger } from "@/components/aire";
+import { Button, Loader, Stagger } from "@/components/aire";
 import { Vacio } from "@/components/Vacio";
 import { WorkerCard } from "@/components/WorkerCard";
 import { api } from "@/lib/api";
@@ -25,13 +25,7 @@ export function DeConfianzaPage() {
     setLista((prev) => (t.deConfianza ? prev?.map((x) => (x.id === t.id ? t : x)) : prev?.filter((x) => x.id !== t.id)) ?? prev);
 
   return (
-    <div className="pb-6">
-      <PageHeader
-        title={tr("De confianza")}
-        subtitle={tr("Tus trabajadores guardados para volver a contratar.")}
-        onBack={() => navigate(-1)}
-        backLabel={tr("Atrás")}
-      />
+    <div>
 
       <div className="grid gap-3 px-5 pt-2">
         {error ? (

@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { AppShell } from "@/layouts/AppShell";
+import { GestionLayout } from "@/layouts/GestionLayout";
 
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { PinLoginPage } from "@/pages/auth/PinLoginPage";
@@ -52,14 +53,17 @@ export default function App() {
             <Route path="/trabajadores" element={<ExplorarTrabajadoresPage />} />
             <Route path="/mapa" element={<MapaPage />} />
             <Route path="/crear-trabajo" element={<CrearTrabajoPage />} />
-            <Route path="/publicaciones" element={<MisPublicacionesPage />} />
             <Route path="/publicaciones/:id/editar" element={<CrearTrabajoPage />} />
             <Route path="/alertas" element={<AlertasPage />} />
             <Route path="/usuarios/:id" element={<PerfilPublicoPage />} />
-            <Route path="/de-confianza" element={<DeConfianzaPage />} />
-            <Route path="/agenda" element={<AgendaPage />} />
             <Route path="/cuenta/propiedades" element={<PropiedadesPage />} />
-            <Route path="/mis-trabajos" element={<MisTrabajosPage />} />
+            {/* Mis trabajos, Mis publicaciones, Agenda y De confianza comparten franja y pestañas. */}
+            <Route element={<GestionLayout />}>
+              <Route path="/mis-trabajos" element={<MisTrabajosPage />} />
+              <Route path="/publicaciones" element={<MisPublicacionesPage />} />
+              <Route path="/agenda" element={<AgendaPage />} />
+              <Route path="/de-confianza" element={<DeConfianzaPage />} />
+            </Route>
             <Route path="/historial" element={<HistorialTrabajosPage />} />
             <Route path="/chats" element={<ChatsPage />} />
             <Route path="/chats/:id" element={<ConversacionPage />} />

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Icon, Loader, PageHeader, Stagger } from "@/components/aire";
+import { Button, Icon, Loader, Stagger } from "@/components/aire";
 import { AcuerdoTrueque } from "@/components/AcuerdoTrueque";
 import { VisitaInfo } from "@/components/VisitaInfo";
 import { CardAction, JobStatusCard, type EstadoTono } from "@/components/JobStatusCard";
@@ -66,14 +66,7 @@ export function MisTrabajosPage() {
   };
 
   return (
-    <div className="pb-6">
-      <PageHeader
-        title={tr("Mis trabajos")}
-        subtitle={tr("Consulta y gestiona tus trabajos activos.")}
-        onBack={() => navigate("/explorar")}
-        backLabel={tr("Atrás")}
-        action={{ icon: "history", label: tr("Ver historial"), onClick: () => navigate("/historial") }}
-      />
+    <div>
 
       <div className="grid gap-3 px-5 pt-2">
         {error && (

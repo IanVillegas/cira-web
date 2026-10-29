@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Badge, Button, Calendar, Card, FilterChip, Icon, PageHeader, SegmentedControl, Spinner, Stagger, type CalendarMark } from "@/components/aire";
+import { Badge, Button, Calendar, Card, FilterChip, Icon, SegmentedControl, Spinner, Stagger, type CalendarMark } from "@/components/aire";
 import { CategoriaThumb } from "@/components/CategoriaThumb";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -104,14 +104,7 @@ export function AgendaPage() {
   };
 
   return (
-    <div className="pb-6">
-      <PageHeader
-        title={tr("Mi agenda")}
-        subtitle={tr("Lo que harás y lo que contrataste.")}
-        onBack={() => navigate(-1)}
-        backLabel={tr("Atrás")}
-        action={{ icon: "home_work", label: tr("Mis propiedades"), onClick: () => navigate("/cuenta/propiedades") }}
-      />
+    <div>
 
       <div className="grid gap-3 px-5 pt-2">
         <SegmentedControl

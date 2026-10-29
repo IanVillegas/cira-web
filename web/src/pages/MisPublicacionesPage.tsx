@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Dialog, Fab, Loader, PageHeader, Stagger } from "@/components/aire";
+import { Button, Dialog, Fab, Loader, Stagger } from "@/components/aire";
 import { Vacio } from "@/components/Vacio";
 import { PublicacionCard } from "@/components/PublicacionCard";
 import { RatingSheet } from "@/components/RatingSheet";
@@ -39,13 +39,7 @@ export function MisPublicacionesPage() {
     );
 
   return (
-    <div className="pb-6">
-      <PageHeader
-        title={tr("Mis publicaciones")}
-        subtitle={tr("Consulta y administra tus publicaciones.")}
-        onBack={() => navigate("/explorar")}
-        backLabel={tr("Atrás")}
-      />
+    <div>
 
       <div className="grid gap-3 px-5 pt-2">
 
