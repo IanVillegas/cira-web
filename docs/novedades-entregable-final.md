@@ -600,7 +600,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | Mis trabajos, Mis publicaciones, Agenda y De confianza como una sección con pestañas y título dinámico | 4.3.2 |
+| `7dcb6ba` | Mis trabajos, Mis publicaciones, Agenda y De confianza como una sección con pestañas y título dinámico | 4.3.2 |
 | `ab6ca0e` | Modo oscuro con fondo `#121212` en vez de negro puro | 4.4 |
 | `388ae6e` | Encabezado sobre franja azul en todas las pantallas (menos Perfil y Mapa); botón + de crear publicación en Mis publicaciones | 4.3.1, 4.3.2 |
 | `ff2e1cf` | "Ver en mapa" abre el mapa en el trabajo con su globo; la hoja ya no hace saltar la pantalla al abrirse | 4.6, 4.3.2 |
