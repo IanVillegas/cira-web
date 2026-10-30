@@ -7,6 +7,8 @@ import { InsigniaChips } from "@/components/InsigniaChips";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
+import { Avatar } from "@/components/Avatar";
+import { AvatarSheet } from "@/components/AvatarSheet";
 
 function serviceIcon(categoria: string) {
   const v = categoria.toLowerCase();
@@ -25,6 +27,7 @@ export function PerfilPage() {
   const { usuario, refrescarUsuario } = useAuth();
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
+  const [eligiendoFoto, setEligiendoFoto] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
   if (!usuario) return <Loader label={tr("Cargando perfil...")} />;
@@ -61,9 +64,17 @@ export function PerfilPage() {
       <div className="grid gap-6 px-5">
         <Reveal effect="scale">
           <div className="grid justify-items-center gap-2 text-center">
-            <span className="flex h-28 w-28 items-center justify-center rounded-aire-full bg-aire-accent-soft">
-              <Icon name="account_circle" filled size={66} className="text-aire-accent-text" />
-            </span>
+            <button
+              type="button"
+              className="ca-avatar-editar"
+              aria-label={tr("Cambiar foto de perfil")}
+              onClick={() => setEligiendoFoto(true)}
+            >
+              <Avatar nombre={usuario.nombre} src={usuario.avatar} size={112} />
+              <span className="ca-avatar-editar__badge" aria-hidden="true">
+                <Icon name="photo_camera" filled size={18} />
+              </span>
+            </button>
             <p className="aire-text-title-1 text-aire-ink">{usuario.nombre}</p>
             <p className="aire-text-subhead text-aire-ink-2">{usuario.zona || tr("Sin ubicación")}</p>
             <Calificacion valor={usuario.calificacion} total={usuario.numCalificaciones} />
@@ -202,6 +213,7 @@ export function PerfilPage() {
           </Button>
         </div>
       </Sheet>
+      <AvatarSheet open={eligiendoFoto} onClose={() => setEligiendoFoto(false)} />
     </div>
   );
 }

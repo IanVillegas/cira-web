@@ -23,7 +23,8 @@ export interface Usuario {
   correo?: string;
   descripcion: string;
   zona: string;
-  fotoUrl?: string;
+  /** Foto elegida del catálogo de avatares (demo); null = iniciales. */
+  avatar: string | null;
   lat?: number;
   lng?: number;
   metodosPago: MetodoPago[];
@@ -217,6 +218,7 @@ export interface NoLeidos {
 export interface Trabajador {
   id: string;
   nombre: string;
+  avatar: string | null;
   servicios: string[];
   lat?: number;
   lng?: number;
@@ -286,6 +288,7 @@ export interface Mensaje {
 export interface Conversacion {
   id: string;
   nombre: string;
+  avatar: string | null;
   contraparteId: string;
   ultimoMensaje: string;
   hora: string;

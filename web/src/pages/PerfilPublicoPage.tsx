@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { compartirPerfil } from "@/lib/compartir";
 import { tr } from "@/lib/i18n";
 import type { PerfilPublico } from "@/lib/types";
+import { Avatar } from "@/components/Avatar";
 
 /** Perfil visible para otros usuarios: reputación, insignias, comentarios y botón de reporte. */
 export function PerfilPublicoPage() {
@@ -55,9 +56,7 @@ export function PerfilPublicoPage() {
       <div className="grid gap-5 px-5">
         <Reveal effect="scale">
           <div className="grid justify-items-center gap-2 text-center">
-            <span className="flex h-24 w-24 items-center justify-center rounded-aire-full bg-aire-accent-soft">
-              <Icon name="account_circle" filled size={58} className="text-aire-accent-text" />
-            </span>
+            <Avatar nombre={perfil.nombre} src={perfil.avatar} size={96} />
             <div className="flex items-center gap-1.5">
               <p className="aire-text-title-1 text-aire-ink">{perfil.nombre}</p>
               {!esYo && (

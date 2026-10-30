@@ -215,6 +215,18 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 
 ---
 
+### 4.5.2 Foto de perfil desde un catálogo (solo para la demo)
+
+**Qué es:** en *Perfil* (tocando la foto) o en *Editar perfil*, cada usuario elige su foto de un **catálogo de avatares** y puede volver a sus iniciales. La foto se ve en el perfil, las tarjetas de trabajadores, el mapa, los chats y el perfil público; quien no eligió una sigue con sus iniciales.
+
+**Por qué así:** es una solución **de desarrollo** para que la demo se vea como una app real sin manejar fotos subidas por usuarios. En producción cada persona subiría su propia foto (con almacenamiento en la nube y moderación).
+
+**Cómo funciona:** el servidor lista las imágenes de `web/public/images/cira-avatars/` (basta con agregar o quitar archivos) y solo acepta fotos de ese catálogo. La columna `avatar` se agrega sin recrear la base, así no se pierden los datos de prueba.
+
+**Dónde está:** `web/src/components/Avatar.tsx`, `web/src/components/AvatarSheet.tsx`, endpoints `GET /api/avatares` y `PUT /api/usuario/avatar` en `server/src/routes.js` · Commit `7ff06f0`
+
+---
+
 ### 4.6 Mapa con estilo propio y pines que informan
 
 **Qué es:** el mapa dejó de verse como el OpenStreetMap genérico. Ahora es un **mapa vectorial** (MapLibre GL, con componentes adaptados de mapcn): zoom suave, calles nítidas en cualquier nivel, un estilo claro sobrio y un **modo oscuro de verdad**. Los pines están diseñados con CIRA Aire:
@@ -619,6 +631,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `7ff06f0` | Foto de perfil elegida de un catálogo de avatares (solo demo) | 4.5.2 |
 | `c446546` | Reparto de la tarifa de urgencia: 10 % al trabajador (bono) y 5 % a CIRA | 6.1, 7.2 |
 | `9297146` | Cuenta regresiva del aviso siempre en azul (estilo Uber), sin naranja ni rojo | 7.2 |
 | `7c77d05` | Aviso de urgencia con cuenta regresiva de 30 s en el botón Aceptar (azul → naranja → rojo) | 7.2 |

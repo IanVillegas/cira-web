@@ -945,6 +945,7 @@ a.ca-photocard__iconbtn { text-decoration: none; }
   animation: ca-pop-in var(--aire-dur-base) var(--aire-ease-pop) both;
 }
 .ca-mappin-avatar--ocupado { box-shadow: 0 0 0 2.5px var(--aire-surface-3), var(--aire-shadow-thumb); color: var(--aire-ink-2); }
+.ca-mappin-avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--aire-radius-full); }
 .ca-mappin-avatar-ini { font-family: var(--aire-font-sans); font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
 .ca-mappin-avatar-dot {
   position: absolute; right: -1px; bottom: -1px; width: 12px; height: 12px; border-radius: var(--aire-radius-full);
@@ -1047,6 +1048,44 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 .ca-cuenta__seg { min-width: 30px; font-variant-numeric: tabular-nums; opacity: 0.9; }
 @keyframes ca-cuenta-vaciar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
+/* ── Avatar (components/Avatar.tsx) ───────────────────────
+   Foto del catálogo recortada en círculo, o las iniciales sobre el azul suave. */
+.ca-avatar {
+  position: relative; display: inline-flex; flex: none; align-items: center; justify-content: center; overflow: hidden;
+  border-radius: var(--aire-radius-full); background: var(--aire-accent-soft); color: var(--aire-accent-text);
+  font-family: var(--aire-font-sans); font-weight: 600; letter-spacing: -0.3px; line-height: 1;
+}
+.ca-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Foto que se toca para cambiarla (Perfil, Editar perfil): insignia de cámara abajo a la derecha. */
+.ca-avatar-editar {
+  position: relative; display: inline-flex; padding: 0; border: 0; border-radius: var(--aire-radius-full);
+  background: transparent; cursor: pointer; transition: transform var(--ca-dur-base) var(--ca-ease-pop);
+}
+.ca-avatar-editar:active { transform: scale(var(--ca-press)); transition-duration: var(--ca-dur-instant); }
+.ca-avatar-editar:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--aire-focus); }
+.ca-avatar-editar__badge {
+  position: absolute; right: 2px; bottom: 2px; display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: var(--aire-radius-full); background: var(--aire-accent); color: var(--aire-on-accent);
+  box-shadow: 0 0 0 3px var(--aire-bg);
+}
+.ca-avatar-editar__badge--sm { right: -2px; bottom: -2px; width: 26px; height: 26px; box-shadow: 0 0 0 2px var(--aire-surface); }
+/* Catálogo en la hoja: cuadrícula de 4 círculos; el elegido con aro de acento y check. */
+.ca-avatargrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.ca-avatargrid__item {
+  position: relative; aspect-ratio: 1; padding: 0; border: 0; border-radius: var(--aire-radius-full); overflow: visible;
+  background: var(--aire-surface-2); cursor: pointer; transition: transform var(--ca-dur-base) var(--ca-ease-pop);
+}
+.ca-avatargrid__item img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--aire-radius-full); display: block; }
+.ca-avatargrid__item:active { transform: scale(0.92); transition-duration: var(--ca-dur-instant); }
+.ca-avatargrid__item:disabled { opacity: 0.6; }
+.ca-avatargrid__item:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--aire-focus); }
+.ca-avatargrid__item.is-selected { box-shadow: 0 0 0 3px var(--aire-surface), 0 0 0 5px var(--aire-accent); }
+.ca-avatargrid__check {
+  position: absolute; right: -2px; bottom: -2px; display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: var(--aire-radius-full); background: var(--aire-accent); color: var(--aire-on-accent);
+  box-shadow: 0 0 0 2px var(--aire-surface);
+}
+
 /* ── Mis secciones (layouts/GestionLayout.tsx) ───────────
    Franja y círculos quietos; al cambiar de opción solo entra el contenido nuevo. */
 .ca-gestion__contenido { padding-top: 8px; animation: ca-fade-in var(--aire-dur-base) var(--aire-ease-out) both; }
@@ -1128,10 +1167,6 @@ a.ca-photocard__iconbtn { text-decoration: none; }
 .ca-mini__service { color: var(--aire-ink); }
 .ca-mini--trabajador .ca-mini__body { padding-top: 10px; gap: 6px; }
 .ca-mini__top { position: relative; display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 14px 0; }
-.ca-mini__avatar {
-  display: flex; align-items: center; justify-content: center; width: 56px; height: 56px;
-  border-radius: var(--aire-radius-full); background: var(--aire-accent-soft); color: var(--aire-accent-text);
-}
 .ca-mini__fav { color: var(--aire-danger); }
 .ca-mini__name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 

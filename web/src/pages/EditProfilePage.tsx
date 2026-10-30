@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Card, Icon, Input, Loader, PageHeader, SelectableCard } from "@/components/aire";
+import { Avatar } from "@/components/Avatar";
+import { AvatarSheet } from "@/components/AvatarSheet";
 import { DistrictPickerSheet } from "@/components/DistrictPickerSheet";
 import { LocationPreview } from "@/components/LocationPreview";
 import { DISTRITOS, type Distrito } from "@/lib/districts";
@@ -33,6 +35,7 @@ function distritoDe(zona: string): Distrito | null {
 /** Réplica de EditProfilePage.xaml: vista previa, nombre, contacto, ubicación y métodos de pago. */
 export function EditProfilePage() {
   const { usuario, refrescarUsuario } = useAuth();
+  const [eligiendoFoto, setEligiendoFoto] = useState(false);
   const navigate = useNavigate();
   const [nombres, setNombres] = useState({ nombre: "", nombre2: "", apellido: "", apellido2: "" });
   const [contacto, setContacto] = useState({ telefono: "", correo: "", cedula: "" });
@@ -104,9 +107,12 @@ export function EditProfilePage() {
 
       <div className="grid gap-4 px-5 pt-2">
         <Card className="flex items-center gap-3.5">
-          <span className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-aire-lg bg-aire-accent-soft">
-            <Icon name="person" filled size={38} className="text-aire-accent-text" />
-          </span>
+          <button type="button" className="ca-avatar-editar shrink-0" aria-label={tr("Cambiar foto de perfil")} onClick={() => setEligiendoFoto(true)}>
+            <Avatar nombre={nombreCompleto || usuario?.nombre || ""} src={usuario?.avatar} size={72} />
+            <span className="ca-avatar-editar__badge ca-avatar-editar__badge--sm" aria-hidden="true">
+              <Icon name="photo_camera" filled size={14} />
+            </span>
+          </button>
           <div className="grid min-w-0 gap-0.5">
             <span className="aire-text-eyebrow text-aire-ink-2">{tr("PERFIL PUBLICO")}</span>
             <span className="aire-text-title-3 truncate text-aire-ink">{nombreCompleto || tr("Tus datos")}</span>
@@ -186,6 +192,7 @@ export function EditProfilePage() {
           setError(null);
         }}
       />
+      <AvatarSheet open={eligiendoFoto} onClose={() => setEligiendoFoto(false)} />
     </div>
   );
 }

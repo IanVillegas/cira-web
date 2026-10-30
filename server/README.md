@@ -84,6 +84,8 @@ Todos (salvo `auth` y `config`) requieren la cabecera `X-Cira-User`.
 | Método | Ruta | Descripción |
 | --- | --- | --- |
 | POST | `/api/auth/existe`, `/login`, `/registro` (`/api/auth/…`) | Verifica la cuenta, inicia sesión, crea cuenta |
+| GET | `/api/avatares` | Catálogo de fotos de perfil (archivos de `web/public/images/cira-avatars`, solo demo) |
+| PUT | `/api/usuario/avatar` | Elige la foto (`avatar`: una URL del catálogo, o `null` para las iniciales) |
 | GET | `/api/config` | Comisión, tarifa de urgencia, precio Plus |
 | GET/PUT | `/api/usuario` | Perfil del usuario actual |
 | GET/POST | `/api/usuario/verificacion`, `/cedula`, `/antecedentes` | Verificación simulada: estado de cada documento; enviar cédula (fotos + número) u hoja de delincuencia (archivo + fecha de emisión). Pasa "En revisión" `CIRA_REVISION_SEG` segundos (6 por defecto) y se aprueba sola; la hoja vale 3 meses |

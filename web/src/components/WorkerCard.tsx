@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import { compartirPerfil } from "@/lib/compartir";
 import { tr } from "@/lib/i18n";
 import type { Trabajador } from "@/lib/types";
+import { Avatar } from "@/components/Avatar";
 
 interface WorkerCardProps {
   trabajador: Trabajador;
@@ -37,9 +38,7 @@ export function WorkerCard({ trabajador, onChange, modo = "explorar" }: WorkerCa
     <Card className="grid gap-4">
       <div className="flex items-start gap-2">
         <div className="flex min-w-0 flex-1 items-start gap-3">
-          <span className="aire-text-headline flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-full bg-aire-accent-soft text-aire-accent-text">
-            {iniciales(trabajador.nombre)}
-          </span>
+          <Avatar nombre={trabajador.nombre} src={trabajador.avatar} size={48} />
           <span className="min-w-0 flex-1 self-center">
             <span className="flex items-center gap-2">
               <span className="aire-text-headline truncate text-aire-ink">{trabajador.nombre}</span>
@@ -104,12 +103,3 @@ export function WorkerCard({ trabajador, onChange, modo = "explorar" }: WorkerCa
   );
 }
 
-/** "Douglas Solano" → "DS". */
-function iniciales(nombre: string) {
-  return nombre
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-}

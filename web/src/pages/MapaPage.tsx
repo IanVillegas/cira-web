@@ -204,7 +204,7 @@ export function MapaPage() {
   const pinDeTrabajador = (w: Trabajador) => (
     <MapMarker key={`w-${w.id}`} longitude={w.lng!} latitude={w.lat!} anchor={ANCLA_CENTRO}>
       <MarkerContent>
-        <PinTrabajador nombre={w.nombre} disponible={w.disponible} calificacion={w.calificacion} />
+        <PinTrabajador nombre={w.nombre} avatar={w.avatar} disponible={w.disponible} calificacion={w.calificacion} />
       </MarkerContent>
       <MarkerPopup offset={28}>
         <p className="aire-text-headline">{w.nombre}</p>

@@ -1,3 +1,6 @@
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import fs from "node:fs";
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
 import { db } from "./db.js";
@@ -175,6 +178,33 @@ router.post("/usuario/verificacion/antecedentes", (req, res) => {
     "UPDATE usuario SET antecedentes = 0, antecedentes_emision = ?, antecedentes_enviada_en = datetime('now') WHERE id = ?",
   ).run(emision, req.usuarioId);
   res.json(mapVerificacion(obtenerUsuario(req.usuarioId)));
+});
+
+// ── Catálogo de avatares (solo para la demo) ────────────────────────
+// Lee las imágenes de web/public/images/cira-avatars: basta con agregar o quitar archivos.
+const CARPETA_AVATARES = ["public", "dist"]
+  .map((d) => path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "web", d, "images", "cira-avatars"))
+  .find((d) => fs.existsSync(d));
+
+function catalogoAvatares() {
+  if (!CARPETA_AVATARES) return [];
+  return fs
+    .readdirSync(CARPETA_AVATARES)
+    .filter((f) => /\.(png|jpe?g|webp|svg|gif|avif)$/i.test(f))
+    .sort((a, b) => a.localeCompare(b, "es", { numeric: true }))
+    .map((f) => `/images/cira-avatars/${encodeURIComponent(f)}`);
+}
+
+router.get("/avatares", (_req, res) => {
+  res.json(catalogoAvatares());
+});
+
+/** Elige una foto del catálogo (o null para volver a las iniciales). */
+router.put("/usuario/avatar", (req, res) => {
+  const avatar = req.body.avatar ?? null;
+  if (avatar !== null && !catalogoAvatares().includes(avatar)) return error(res, 400, "Esa imagen no está en el catálogo.");
+  db.prepare("UPDATE usuario SET avatar = ? WHERE id = ?").run(avatar, req.usuarioId);
+  res.json(mapUsuario(obtenerUsuario(req.usuarioId)));
 });
 
 router.put("/usuario", (req, res) => {

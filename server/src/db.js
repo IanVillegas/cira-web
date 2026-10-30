@@ -66,7 +66,9 @@ db.exec(`
     tarjeta_marca TEXT,
     tarjeta_ultimos4 TEXT,
     tarjeta_titular TEXT,
-    tarjeta_vence TEXT
+    tarjeta_vence TEXT,
+    -- Foto de perfil elegida del catálogo de avatares (URL dentro de /images/cira-avatars/).
+    avatar TEXT
   );
 
   CREATE TABLE IF NOT EXISTS servicio (
@@ -248,5 +250,9 @@ db.exec(`
     PRIMARY KEY (usuario_id, trabajo_id)
   );
 `);
+
+// Columnas agregadas después: se suman sin recrear la base (así no se pierden los datos de prueba).
+const columnasUsuario = db.prepare("PRAGMA table_info(usuario)").all().map((c) => c.name);
+if (!columnasUsuario.includes("avatar")) db.exec("ALTER TABLE usuario ADD COLUMN avatar TEXT");
 
 db.exec(`PRAGMA user_version = ${VERSION_ESQUEMA}`);
