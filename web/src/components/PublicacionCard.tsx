@@ -1,0 +1,322 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Badge, Button, Card, Icon } from "@/components/aire";
+import type { BadgeTone } from "@/components/aire/Badge";
+import { AcuerdoTrueque } from "./AcuerdoTrueque";
+import { CategoriaThumb } from "./CategoriaThumb";
+import { Calificacion } from "./Estrellas";
+import { InsigniaChips } from "./InsigniaChips";
+import { PagoResumen } from "./PagoResumen";
+import { ReemplazoVisita } from "./ReemplazoVisita";
+import { VisitaInfo } from "./VisitaInfo";
+import { SeguimientoTrabajo } from "./SeguimientoTrabajo";
+import { api } from "@/lib/api";
+import { fechaTrabajo } from "@/lib/fechas";
+import { formatoColones } from "@/lib/format";
+import { tr } from "@/lib/i18n";
+import { mostrarToast } from "@/lib/toast";
+import type { Trabajador, Trabajo } from "@/lib/types";
+
+interface PublicacionCardProps {
+  trabajo: Trabajo;
+  onChange: (trabajo: Trabajo) => void;
+  onRate: (trabajo: Trabajo) => void;
+  onPay: (trabajo: Trabajo) => void;
+}
+
+const ESTADO_TONO: Record<string, BadgeTone> = {
+  Pendiente: "accent",
+  Asignado: "warning",
+  "En progreso": "success",
+  Finalizado: "success",
+};
+
+/** Tarjeta de "Mis publicaciones": edita, elige postulante, sigue el trabajo, paga y califica. */
+export function PublicacionCard({ trabajo, onChange, onRate, onPay }: PublicacionCardProps) {
+  const navigate = useNavigate();
+  const [postulantes, setPostulantes] = useState<Trabajador[] | null>(null);
+  const [verPostulantes, setVerPostulantes] = useState(false);
+  const [ocupado, setOcupado] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const ejecutar = async (accion: () => Promise<Trabajo>, aviso?: string) => {
+    setOcupado(true);
+    setError(null);
+    try {
+      onChange(await accion());
+      if (aviso) mostrarToast(aviso);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tr("No se pudo completar la acción."));
+    } finally {
+      setOcupado(false);
+    }
+  };
+
+  const togglePostulantes = async () => {
+    const abrir = !verPostulantes;
+    setVerPostulantes(abrir);
+    if (abrir) setPostulantes(await api.trabajos.postulantes(trabajo.id).catch(() => []));
+  };
+
+  const cancelar = () => {
+    if (window.confirm(tr("¿Cancelar esta publicación?"))) ejecutar(() => api.trabajos.cancelar(trabajo.id), tr("Publicación cancelada"));
+  };
+
+  const abrirChat = async (usuarioId: string) => {
+    const conversacion = await api.conversaciones.con(usuarioId);
+    navigate(`/chats/${conversacion.id}`);
+  };
+
+  const terminarSerie = async () => {
+    if (!trabajo.serie || !window.confirm(tr("¿Terminar este servicio recurrente? Se cancelan las próximas visitas."))) return;
+    setOcupado(true);
+    try {
+      await api.agenda.terminarSerie(trabajo.serie.id);
+      mostrarToast(tr("Terminaste el servicio recurrente"), "info");
+      onChange({ ...trabajo, estado: "Cancelado" });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tr("No se pudo completar la acción."));
+    } finally {
+      setOcupado(false);
+    }
+  };
+
+  const pendiente = trabajo.estado === "Pendiente";
+  const sinReemplazo = trabajo.reemplazo === "pendiente";
+  // Oferta directa sin respuesta todavía: no recibe postulantes.
+  const esperandoInvitado = pendiente && !!trabajo.invitadoId && !trabajo.invitacionRechazada;
+  const enCurso = trabajo.estado === "Asignado" || trabajo.estado === "En progreso";
+
+  return (
+    <Card className="grid gap-4">
+      <div className="flex items-start gap-3">
+        <CategoriaThumb categoria={trabajo.categoria} />
+        <div className="min-w-0 flex-1">
+          <p className="flex flex-wrap items-center gap-1.5">
+            <span className="aire-text-eyebrow text-aire-accent-text">{tr(trabajo.categoria)}</span>
+            {trabajo.urgente && (
+              <Badge tone="danger" dot pulse>
+                {tr("Urgente")}
+              </Badge>
+            )}
+          </p>
+          <p className="aire-text-headline text-aire-ink">{trabajo.titulo}</p>
+          <p className="aire-text-footnote text-aire-ink-2">
+            {fechaTrabajo(trabajo.fecha)} ·{" "}
+            {trabajo.trueque
+              ? trabajo.pago > 0
+                ? tr("Trueque + {monto}", { monto: formatoColones.format(trabajo.pago) })
+                : tr("Trueque")
+              : formatoColones.format(trabajo.pago)}
+          </p>
+        </div>
+        <Badge tone={sinReemplazo ? "warning" : (ESTADO_TONO[trabajo.estado] ?? "neutral")}>
+          {sinReemplazo ? tr("Falta reemplazo") : tr(trabajo.estado)}
+        </Badge>
+      </div>
+
+      <VisitaInfo trabajo={trabajo} />
+
+      {sinReemplazo && <ReemplazoVisita trabajo={trabajo} onChange={onChange} />}
+
+      {pendiente && trabajo.trueque && (
+        <p className="aire-text-subhead flex items-start gap-2 rounded-aire-md bg-aire-surface-2 p-3 text-aire-ink">
+          <Icon name="handshake" size={20} className="mt-px shrink-0 text-aire-accent-text" />
+          <span>
+            <span className="font-semibold">{tr("Ofreces a cambio:")}</span> {trabajo.trueque.ofrece}
+          </span>
+        </p>
+      )}
+
+      {pendiente && trabajo.urgente && (
+        <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-danger-soft p-3 text-aire-danger-text">
+          <Icon name="notifications_active" size={20} />
+          {tr("Buscando al trabajador más cercano disponible…")}
+        </p>
+      )}
+
+      {esperandoInvitado && trabajo.turno && !trabajo.turno.escalado && (
+        <div className="grid gap-2.5 rounded-aire-md bg-aire-accent-soft p-3">
+          <p className="aire-text-subhead flex items-start gap-2 text-aire-accent-text">
+            <Icon name="hourglass_top" size={20} className="mt-px shrink-0" />
+            {trabajo.turno.escalaEnSeg
+              ? tr("Se la ofrecimos a {nombre}, tu limpiador habitual. Si no responde en {min} min, pasa a urgencia.", {
+                  nombre: trabajo.invitadoNombre ?? "",
+                  min: Math.max(1, Math.ceil(trabajo.turno.escalaEnSeg / 60)),
+                })
+              : tr("Pasando a urgencia…")}
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="bolt"
+            disabled={ocupado}
+            onClick={() => ejecutar(() => api.trabajos.escalar(trabajo.id), tr("Ahora es urgencia: avisamos a los trabajadores cercanos"))}
+          >
+            {tr("Pasar a urgencia ahora")}
+          </Button>
+        </div>
+      )}
+
+      {pendiente && trabajo.turno?.escalado && trabajo.urgente && (
+        <p className="aire-text-footnote text-aire-ink-2">{tr("Ahora es urgencia: ya no espera a tu limpiador habitual.")}</p>
+      )}
+
+      {esperandoInvitado && !trabajo.turno && (
+        <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-accent-soft p-3 text-aire-accent-text">
+          <Icon name="favorite" filled size={20} />
+          {tr("Oferta directa para {nombre}. Esperando su respuesta…", { nombre: trabajo.invitadoNombre ?? "" })}
+        </p>
+      )}
+
+      {pendiente && trabajo.invitacionRechazada && (
+        <p className="aire-text-subhead flex items-center gap-2 rounded-aire-md bg-aire-surface-2 p-3 text-aire-ink-2">
+          <Icon name="info" size={20} />
+          {tr("{nombre} no pudo tomarlo. Tu publicación ahora está abierta para todos.", { nombre: trabajo.invitadoNombre ?? "" })}
+        </p>
+      )}
+
+      {pendiente && (
+        <>
+          {!esperandoInvitado && !sinReemplazo && (
+            <button
+              type="button"
+              aria-expanded={verPostulantes}
+              onClick={togglePostulantes}
+              className="aire-text-headline flex min-h-12 items-center justify-between rounded-aire-md bg-aire-surface-2 px-4 text-left text-aire-ink transition-transform duration-[100ms] ease-aire-pop active:scale-[0.98]"
+            >
+              <span className="flex items-center gap-2">
+                <Icon name="groups" size={20} className="text-aire-accent-text" />
+                {tr("{n} postulante(s)", { n: trabajo.postulantes })}
+              </span>
+              <Icon
+                name="expand_more"
+                size={22}
+                className={`text-aire-ink-2 transition-transform duration-[320ms] ease-aire-spring ${verPostulantes ? "rotate-180" : ""}`}
+              />
+            </button>
+          )}
+
+          {!esperandoInvitado && !sinReemplazo && verPostulantes &&
+            (postulantes === null ? null : postulantes.length === 0 ? (
+              <p className="aire-text-subhead text-center text-aire-ink-2">{tr("Aún no hay postulantes.")}</p>
+            ) : (
+              postulantes.map((p) => (
+                <Card key={p.id} inset padding="sm" className="grid gap-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="aire-text-headline min-w-0 flex-1 truncate text-aire-ink">{p.nombre}</span>
+                    <Calificacion valor={p.calificacion} total={p.numCalificaciones} />
+                  </div>
+                  <InsigniaChips insignias={p.insignias} compact />
+                  {trabajo.trueque && (
+                    <p className="aire-text-footnote flex items-start gap-1.5 text-aire-ink-2">
+                      <Icon name={p.propuesta ? "swap_horiz" : "handshake"} size={16} className="mt-px shrink-0 text-aire-accent-text" />
+                      {p.propuesta ? (
+                        <span>
+                          <span className="font-semibold text-aire-ink">{tr("Propone a cambio:")}</span> {p.propuesta}
+                        </span>
+                      ) : (
+                        tr("Acepta lo que ofreces")
+                      )}
+                    </p>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="secondary" size="sm" onClick={() => navigate(`/usuarios/${p.id}`)}>
+                      {tr("Ver perfil")}
+                    </Button>
+                    <Button size="sm" disabled={ocupado} onClick={() => ejecutar(() => api.trabajos.asignar(trabajo.id, p.id), tr("Trabajador elegido"))}>
+                      {tr("Elegir")}
+                    </Button>
+                  </div>
+                </Card>
+              ))
+            ))}
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <Button variant="secondary" icon="edit" onClick={() => navigate(`/publicaciones/${trabajo.id}/editar`)}>
+              {tr("Editar")}
+            </Button>
+            <Button variant="destructive" disabled={ocupado} onClick={cancelar}>
+              {tr("Cancelar")}
+            </Button>
+          </div>
+        </>
+      )}
+
+      {(enCurso || trabajo.estado === "Finalizado") && (
+        <>
+          <button
+            type="button"
+            onClick={() => trabajo.trabajadorId && abrirChat(trabajo.trabajadorId)}
+            className="aire-text-headline flex min-h-12 items-center gap-2 rounded-aire-md bg-aire-surface-2 px-4 text-left text-aire-ink transition-transform duration-[100ms] ease-aire-pop active:scale-[0.98]"
+          >
+            <Icon name="person" size={20} className="text-aire-accent-text" />
+            <span className="grid min-w-0 flex-1">
+              <span className="truncate">{trabajo.trabajadorNombre}</span>
+              {trabajo.reemplazo === "cubierto" && (
+                <span className="aire-text-caption font-normal text-aire-ink-2">
+                  {tr("Reemplaza a {nombre} en esta visita", { nombre: trabajo.serie?.trabajadorNombre ?? "" })}
+                </span>
+              )}
+            </span>
+            <Icon name="chat_bubble" size={20} className="text-aire-accent-text" />
+          </button>
+          {trabajo.trueque && <AcuerdoTrueque trabajo={trabajo} rol="publicador" />}
+          {trabajo.trueque && enCurso && <EstadoTrueque trabajo={trabajo} />}
+          {(!trabajo.trueque || trabajo.trueque.acuerdoAceptado) && <SeguimientoTrabajo etapa={trabajo.etapa} />}
+        </>
+      )}
+
+      {enCurso && trabajo.trueque?.etapa !== "primera" && (
+        <Button variant="destructive" disabled={ocupado} onClick={cancelar}>
+          {tr("Cancelar trabajo")}
+        </Button>
+      )}
+
+      {trabajo.estado === "Finalizado" && !trabajo.pagado && (
+        <>
+          <PagoResumen resumen={trabajo.resumenPago} trueque={!!trabajo.trueque} />
+          <Button icon="credit_card" onClick={() => onPay(trabajo)}>
+            {trabajo.trueque
+              ? tr("Pagar el diferencial")
+              : trabajo.metodoPago === "Tarjeta"
+                ? tr("Pagar con tarjeta")
+                : tr("Pagar el trabajo")}
+          </Button>
+        </>
+      )}
+
+      {trabajo.estado === "Finalizado" && trabajo.pagado && !trabajo.calificadoPorMi && (
+        <Button icon="star" onClick={() => onRate(trabajo)}>
+          {tr("Calificar a {nombre}", { nombre: trabajo.trabajadorNombre ?? "" })}
+        </Button>
+      )}
+
+      {trabajo.serie?.activa && trabajo.serie.aceptada && trabajo.estado !== "Finalizado" && (
+        <Button variant="plain" icon="event_repeat" disabled={ocupado} onClick={terminarSerie}>
+          {tr("Terminar el servicio recurrente")}
+        </Button>
+      )}
+
+      {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
+    </Card>
+  );
+}
+
+/** Qué falta en un trueque, visto por quien lo publicó. */
+function EstadoTrueque({ trabajo }: { trabajo: Trabajo }) {
+  const t = trabajo.trueque;
+  if (!t) return null;
+  const nombre = trabajo.trabajadorNombre ?? "";
+  const [icon, texto] = !t.acuerdoAceptado
+    ? ["hourglass_top", tr("Esperando que {nombre} acepte el acuerdo.", { nombre })]
+    : t.etapa === "primera"
+      ? ["sync_alt", tr("{nombre} ya entregó su parte. Te toca cumplir la tuya; {nombre} cerrará el trueque al recibirla.", { nombre })]
+      : ["schedule", tr("{nombre} está haciendo su parte del trueque.", { nombre })];
+  return (
+    <p className="aire-text-subhead flex items-start gap-2 rounded-aire-md bg-aire-accent-soft p-3 text-aire-accent-text">
+      <Icon name={icon} size={20} className="mt-px shrink-0" />
+      {texto}
+    </p>
+  );
+}

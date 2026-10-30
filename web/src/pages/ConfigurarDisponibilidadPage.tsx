@@ -1,21 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
-import { Loader } from "@/components/ui/Loader";
-import { Switch } from "@/components/ui/Switch";
-import { DateTimeField } from "@/components/ui/DateTimeField";
+import { Button, Card, Icon, Loader, PageHeader, Switch } from "@/components/aire";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { tr } from "@/lib/i18n";
 
-/** Réplica de ConfigurarDisponibilidadPage.xaml: estado actual + rango opcional + guardar. */
+/** Disponibilidad general (sí/no) y acceso a la agenda para bloquear días concretos. */
 export function ConfigurarDisponibilidadPage() {
   const { usuario, refrescarUsuario } = useAuth();
   const navigate = useNavigate();
   const [disponible, setDisponible] = useState(true);
-  const [usarRango, setUsarRango] = useState(false);
-  const [rango, setRango] = useState({ desdeFecha: "", desdeHora: "", hastaFecha: "", hastaHora: "" });
   const [guardando, setGuardando] = useState(false);
   const [estado, setEstado] = useState<string | null>(null);
 
@@ -23,16 +17,9 @@ export function ConfigurarDisponibilidadPage() {
     if (usuario) setDisponible(usuario.disponible);
   }, [usuario]);
 
-  if (!usuario) return <Loader label="Cargando disponibilidad..." />;
+  if (!usuario) return <Loader label={tr("Cargando disponibilidad...")} />;
 
   const guardar = async () => {
-    if (usarRango) {
-      const desde = new Date(`${rango.desdeFecha}T${rango.desdeHora || "00:00"}`);
-      const hasta = new Date(`${rango.hastaFecha}T${rango.hastaHora || "00:00"}`);
-      if (Number.isNaN(desde.getTime()) || Number.isNaN(hasta.getTime()) || hasta <= desde) {
-        return setEstado("El rango de disponibilidad no es válido.");
-      }
-    }
     setGuardando(true);
     setEstado(null);
     try {
@@ -40,78 +27,54 @@ export function ConfigurarDisponibilidadPage() {
       await refrescarUsuario();
       navigate("/perfil");
     } catch {
-      setEstado("No se pudo guardar. Verifica que el servidor esté corriendo.");
+      setEstado(tr("No se pudo guardar. Verifica que el servidor esté corriendo."));
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <div>
+    <div className="pb-6">
       <PageHeader
-        title="Disponibilidad"
-        subtitle="Indica cuándo puedes recibir solicitudes."
-        icon="event_available"
-        showBack
+        title={tr("Disponibilidad")}
+        subtitle={tr("Indica cuándo puedes recibir solicitudes.")}
+        onBack={() => navigate(-1)}
+        backLabel={tr("Atrás")}
+        large={false}
       />
 
-      <div className="flex flex-col gap-[18px] px-5 pt-2 pb-7">
-        <div className="flex flex-col gap-3.5 rounded-[14px] bg-cira-card p-4">
-          <h2 className="text-base font-semibold text-cira-text-primary">Estado actual</h2>
+      <div className="grid gap-4 px-5 pt-2">
+        <Card className="grid gap-3.5">
+          <h2 className="aire-text-title-3 text-aire-ink">{tr("Estado actual")}</h2>
           <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cira-nav-selected-bg">
-              <Icon
-                name={disponible ? "check_circle" : "cancel"}
-                size={26}
-                className={disponible ? "text-cira-accent" : "text-cira-text-helper"}
-              />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+              <Icon name={disponible ? "check_circle" : "cancel"} filled size={26} className={disponible ? "text-aire-accent-text" : "text-aire-ink-3"} />
             </span>
             <div className="flex-1">
-              <p className="text-lg font-semibold text-cira-text-primary">
-                {disponible ? "Disponible" : "No disponible"}
-              </p>
-              <p className="text-[13px] text-cira-text-secondary">
-                {usarRango ? "Rango configurado" : "Sin rango configurado"}
+              <p className="aire-text-headline text-aire-ink">{disponible ? tr("Disponible") : tr("No disponible")}</p>
+              <p className="aire-text-footnote text-aire-ink-2">
+                {disponible ? tr("Recibes alertas y ofertas de trabajo.") : tr("No recibes alertas ni ofertas nuevas.")}
               </p>
             </div>
-            <Switch checked={disponible} onChange={setDisponible} label="Disponibilidad" />
+            <Switch checked={disponible} onChange={setDisponible} label={tr("Disponibilidad")} />
           </div>
-        </div>
+        </Card>
 
-        <div className="flex flex-col gap-3.5 rounded-[14px] bg-cira-card p-4">
-          <label className="flex items-center gap-2.5">
-            <input
-              type="checkbox"
-              checked={usarRango}
-              onChange={(e) => setUsarRango(e.target.checked)}
-              className="h-5 w-5 shrink-0 accent-cira-accent"
-            />
-            <span className="flex flex-col gap-0.5">
-              <span className="text-[15px] font-semibold text-cira-text-primary">Usar rango opcional</span>
-              <span className="text-[13px] text-cira-text-secondary">
-                Define una fecha y hora de inicio y fin.
-              </span>
-            </span>
-          </label>
+        <Card interactive onClick={() => navigate("/agenda")} className="flex items-center gap-3.5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+            <Icon name="event_busy" size={24} className="text-aire-accent-text" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="aire-text-headline text-aire-ink">{tr("Días que no puedes trabajar")}</p>
+            <p className="aire-text-footnote text-aire-ink-2">{tr("Márcalos en tu agenda: nadie te ofrecerá trabajo directo esos días.")}</p>
+          </div>
+          <Icon name="chevron_forward" size={22} className="shrink-0 text-aire-ink-2" />
+        </Card>
 
-          {usarRango && (
-            <div className="flex flex-col gap-3.5">
-              <div className="grid grid-cols-2 gap-3">
-                <DateTimeField label="Desde" icon="calendar_month" type="date" value={rango.desdeFecha} onChange={(v) => setRango({ ...rango, desdeFecha: v })} />
-                <DateTimeField label="Hora" icon="schedule" type="time" value={rango.desdeHora} onChange={(v) => setRango({ ...rango, desdeHora: v })} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <DateTimeField label="Hasta" icon="calendar_month" type="date" value={rango.hastaFecha} onChange={(v) => setRango({ ...rango, hastaFecha: v })} />
-                <DateTimeField label="Hora" icon="schedule" type="time" value={rango.hastaHora} onChange={(v) => setRango({ ...rango, hastaHora: v })} />
-              </div>
-            </div>
-          )}
-        </div>
+        {estado && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{estado}</p>}
 
-        {estado && <p className="text-[13px] text-cira-accent">{estado}</p>}
-
-        <Button onClick={guardar} disabled={guardando}>
-          GUARDAR DISPONIBILIDAD
+        <Button loading={guardando} onClick={guardar}>
+          {tr("Guardar disponibilidad")}
         </Button>
       </div>
     </div>

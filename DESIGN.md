@@ -28,7 +28,7 @@ Esta guía es la fuente de verdad para cualquier interfaz nueva o rediseñada de
 
 | Token (`--aire-…` / Tailwind `…-aire-…`) | Claro | Oscuro | Uso |
 |---|---|---|---|
-| `bg` | `#f5f5f7` | `#000000` | Fondo de la app |
+| `bg` | `#f5f5f7` | `#121212` | Fondo de la app (en oscuro, gris muy oscuro y no negro puro) |
 | `surface` | `#ffffff` | `#1c1c1e` | Tarjetas, hojas, campos |
 | `surface-2` | `#fafafc` | `#2c2c2e` | Bloques dentro de una tarjeta, celdas |
 | `surface-3` | `#e8e8ed` | `#3a3a3c` | Rellenos neutros, pista del segmentado, skeleton |
@@ -102,17 +102,21 @@ Interletrado negativo en todo texto de 15px o más; ya viene en cada clase.
 | `Switch` | `Switch` | `checked`, `onChange`, `label` |
 | `SelectableCard` | `SelectableCard` | `icon`, `text`, `selected`, `onClick` |
 | `FilterChip` | `FilterChip` | `label`, `active` |
-| `SegmentedControl` | `ExploreTabs` | `items` (`{ value, label }`), `value`, `onChange`, `fullWidth` |
+| `IconTabs` | nuevo | `items` (`{ value, label, icon }`), `value`, `onChange`, `label`. Fila de círculos con ícono y nombre debajo, repartida a lo ancho (sin scroll); la activa en `--aire-accent-soft` con aro de acento. Para secciones hermanas o accesos rápidos (con `value=""` ninguno queda activo, como en el inicio de Explorar) |
+| `SegmentedControl` | — | `items` (`{ value, label }`), `value`, `onChange`, `fullWidth`, `gutter` (margen lateral de 20px que se desplaza con el contenido) |
 | `PinInput` | `PinInput` | igual que hoy + `error` |
-| `PageHeader` | `PageHeader` | `title`, `subtitle`, `onBack`, `backLabel`, `action` (`{ icon, label, onClick }`), `large` |
+| `PageHeader` | `PageHeader` | `title`, `subtitle` (una sola línea), `onBack`, `backLabel` (nombre accesible), `action` (`{ icon, label, onClick }`), `large`. Una sola fila: botón atrás circular a la izquierda, título y botón de acción a la derecha; el subtítulo va debajo alineado con el título. `variante`: `"banda"` (por defecto: franja `--aire-accent` con texto `--aire-on-accent`, botones en círculos `--aire-surface`, lámina redondeada abajo y la barra del navegador en el mismo color) o `"simple"` (solo Perfil). `reserveBar` quedó obsoleto |
 | `EmptyState` | `EmptyState` | `title`, `message`, `image` (`/images/empty_*.svg`), `action` |
 | `Loader`, `Spinner`, `Skeleton` | `Loader` | `Skeleton`: `width`, `height`, `radius`, `lines` |
-| `TabBar` | `BottomNav` | `items` (`{ key, label, icon }`), `value`, `onChange`, `floating` |
-| `Sheet` | `DistrictPickerSheet` y similares | `open`, `onClose`, `title`, `subtitle`, `contained` |
-| `Toast` | nuevo | `open`, `message`, `tone`, `icon`, `onClose`, `duration` |
+| `TabBar` | `BottomNav` | `items` (`{ key, label, icon, badge? }`), `value`, `onChange`, `floating`. `badge` pinta un contador rojo (mensajes sin leer) |
+| `Sheet` | `DistrictPickerSheet` y similares | `open`, `onClose`, `title`, `subtitle`, `contained`, `label` (nombre accesible sin título). En táctil se cierra deslizando hacia abajo desde cualquier parte cuando el contenido está arriba; con mouse, desde la barrita. El gesto no llega a la página |
+| `Toast` | nuevo | `open`, `message`, `tone`, `icon`, `onClose`, `duration`, `onPress` (tocar el aviso hace algo, p. ej. abrir un chat) |
+| `Dialog` | `SuccessModal` | `open`, `onClose`, `title`, `message`, `icon`, `tone` (`success`, `accent`, `danger`), `actions`, `contained`; el contenido extra va como `children` |
+| `CreditCard` | nuevo | `brand`, `number`, `holder`, `expiry`, `cvv`, `flipped`, `onClick`, `labels`; tarjeta realista con chip y reverso que gira 180° al cambiar `flipped` (en táctil: al tocarla o al enfocar el CVV) |
+| `Fab` | nuevo | `icon`, `label` (accesible, obligatoria), `onClick`; círculo de 56px para la acción principal de una lista |
 | `Reveal`, `Stagger` | nuevos | `effect` (`up`, `scale`, `fade`), `delay`, `step` |
 | `Icon` | `Icon` | `name` (Material Symbols Rounded), `filled`, `size` |
-| `PhotoJobCard` | `JobCard` (en Explorar) | `trabajo`, `onApply`, `onContact`, `onMap` |
+| `Calendar` | nuevo | `year`, `month`, `value`, `onChange`, `onMonthChange`, `marks`, `blocked`, `today`, `locale`, `labels` |
 
 Con React Router:
 
@@ -150,9 +154,56 @@ Tarjeta de trabajo típica:
 </Card>
 ```
 
-### Tarjeta con foto (`PhotoJobCard`)
+### Tarjeta de trabajo con foto (`JobCard`)
 
-Única excepción a «sin degradados»: el degradado no decora, es el velo que hace legible el texto sobre la foto. Cada categoría tiene su foto en `web/public/images/categorias/<slug>.webp` (640×800, WebP) y su tono `--aire-cat-<slug>`; el mapeo está en `web/src/lib/categorias.ts`. Sobre la foto el texto usa `--aire-on-photo` / `--aire-on-photo-2`, los chips `--aire-photo-chip` y las píldoras `--aire-photo-glass`. La acción principal usa `Button variant="photo"` (o `"photo-soft"` para retirar la postulación); las secundarias son botones de ícono de 44px. Para una categoría nueva: agrega la foto, el token `--aire-cat-<slug>` y la entrada en `categorias.ts`.
+Única excepción a «sin degradados»: el degradado no decora, es el velo que hace legible el texto sobre la foto. Cada categoría tiene su foto en `web/public/images/categorias/<slug>.webp` (640×800, WebP) y su tono `--aire-cat-<slug>`; el mapeo está en `web/src/lib/categorias.ts` (las categorías sin foto, como Cerrajería, usan `--aire-cat-default`). Sobre la foto el texto usa `--aire-on-photo` / `--aire-on-photo-2`, los chips `--aire-photo-chip` y las píldoras `--aire-photo-glass`. La acción principal usa `Button variant="photo"` (o `"photo-soft"` para retirar la postulación); las secundarias son botones de ícono de 44px (`.ca-photocard__iconbtn`). Para sumar una foto: agrega la imagen, el token `--aire-cat-<slug>` y la entrada en `categorias.ts`.
+
+En las listas de gestión (Mis publicaciones, Mis trabajos, Historial) la foto aparece como miniatura de 48px con `CategoriaThumb` (`apagado` la pone en gris para el historial), y en Trabajadores los servicios se muestran con `CategoriaChip`; ambos están en `web/src/components/CategoriaThumb.tsx`. La tarjeta grande con foto se reserva para Explorar: la hoja de detalle y la lista completa (`/explorar/trabajos`); en los carruseles del inicio va la versión compacta (`TrabajoMini`).
+
+### De confianza y Recontratar
+
+- `ConfianzaButton` (corazón, `components/`): agrega o quita a alguien de "De confianza"; va en `WorkerCard` y en el perfil público. El corazón activo usa `accent-text` sobre `accent-soft`.
+- `WorkerCard modo="confianza"` (pantalla `/de-confianza`): la acción principal es **Recontratar**; Chatear y Recomendar son secundarias.
+- `GuardadoPor`: "Guardado por N clientes" en el perfil (solo el número, nunca quiénes).
+- Recomendar usa `compartirPerfil` (`lib/compartir.ts`): menú nativo de compartir con el link al perfil en CIRA; nunca expone el teléfono.
+- Recontratar abre `/crear-trabajo?para=<id>`: la publicación es una oferta directa que solo ve esa persona (en Mis trabajos, con Aceptar / No puedo). Si la rechaza, queda abierta para todos.
+
+### Modo oscuro
+
+La app elige el tema con `lib/tema.ts` (Cuenta → Apariencia: Automático, Claro u Oscuro; se guarda en `cira.tema`). El tema se aplica con `data-theme` en `<html>`, así que los tokens `--aire-*` cambian solos: cualquier pantalla hecha solo con tokens ya funciona en oscuro. Un script en `index.html` lo aplica antes de pintar para que no parpadee. Excepciones: el mapa carga otro estilo vectorial (`ESTILOS_MAPA` en `components/mapa/mapContext.ts`) y el patrón del login se atenúa (`index.css`). Los tonos de categoría y los textos sobre foto (`--aire-cat-*`, `--aire-on-photo*`) son iguales en ambos temas.
+
+### Mapa
+
+Los mapas son vectoriales: **MapLibre GL** con componentes adaptados de [mapcn](https://github.com/AnmolSaini16/mapcn) (MIT) en `components/mapa/`. El estilo es de **OpenFreeMap** (gratis, sin API key): Positron en claro y Dark en oscuro, y cambia solo con el tema (`ESTILOS_MAPA` en `mapContext.ts`). CARTO ya no sirve sin API key.
+
+- `<Map center={[lng, lat]} zoom>`: contenedor; `interactive={false}` para vistas previas, `scrollZoom={false}` dentro de formularios, `onClick` para elegir un punto. Ojo: MapLibre usa `[lng, lat]` y teselas de 512px (un nivel de zoom menos que Leaflet para ver la misma zona).
+- `<MapMarker longitude latitude anchor className>` + `<MarkerContent>` (el pin) + `<MarkerPopup offset abrirAlInicio>` (el globo, con la piel de Aire y botón para cerrar; `abrirAlInicio` lo abre al montarse y acomoda el mapa). `/mapa?trabajo=ID` abre el mapa en ese trabajo.
+- `useMap()` (de `mapContext.ts`) da la instancia para `flyTo`/`easeTo`.
+- Pines en `components/mapa/Pines.tsx`, con estilos `.ca-mappin*` en `aire.css`: `PinTrabajo` (gota con el ícono de la categoría; urgente en rojo con halo), `PinTrabajador` (avatar con iniciales, disponibilidad y nota), `PinSeleccionado` (gota grande) y `PinUsuario` (punto con halo). Las gotas usan `anchor={ANCLA_GOTA}`; los círculos, `ANCLA_CENTRO`.
+- `PinesAgrupados` junta los pines encimados (supercluster) en un círculo con la cantidad (rojo si adentro hay una urgencia); al tocarlo el mapa se acerca hasta separarlos.
+
+El contenido de los popups usa clases `aire-text-*` y termina en `AccionesPopup` (Ver como secundaria y Contactar como principal; si es tuyo, solo Ver). Los halos y entradas se detienen con `prefers-reduced-motion`.
+
+### Verificación de documentos
+
+Cuenta → Verificación (`/cuenta/verificacion`). Cada documento es una tarjeta con su estado en `Badge`: Sin enviar (`neutral`), En revisión (`warning`, con `pulse`), Verificada (`success`) y Vencida (`danger`). Los flujos van en `Sheet`: la cédula pide fotos del frente y del reverso (en el teléfono abre la cámara), simula la lectura y muestra los datos para confirmar; la hoja de delincuencia pide el archivo y la fecha de emisión. Las imágenes solo se ven en el teléfono (vista previa local) y nunca se envían. Las insignias «Cédula verificada» y «Hoja de delincuencia al día» salen de aquí; sin cédula verificada, la tarjeta de una urgencia muestra «Verifica tu cédula» en lugar de «Aceptar urgencia». El Perfil muestra un recordatorio si la hoja venció o falta la cédula.
+
+### Trueque
+
+- Al publicar, **Trueque** es una tercera `SelectableCard` junto a Efectivo y Tarjeta; abre «¿Qué ofreces a cambio?» y el diferencial opcional. El plan gratis ve su cupo del mes; sin cupo, el aviso va en `warning-soft` con el enlace al Plan Plus.
+- En `JobCard`, la píldora del precio dice «Trueque» (+ diferencial) y lo ofrecido va en un bloque `.ca-photocard__swap`. Postularse abre `PostularTruequeSheet` (aceptar lo ofrecido o proponer otra cosa).
+- `AcuerdoTrueque` muestra las dos partes del trato (quién hace qué y cuándo) con un check por parte cumplida; lo ven el publicador y el trabajador.
+- En `RatingSheet`, un trueque pide además «¿Cumplió su parte?»; en el perfil público el comentario lleva la insignia «Cumplió / No cumplió el trueque».
+
+### Agenda
+
+- `Calendar` (`components/aire/Calendar.tsx`, clases `.ca-cal*`): calendario mensual, semanas de lunes a domingo, días de 44px. Props: `year`, `month`, `value`, `onChange`, `onMonthChange`, `marks` (hasta tres puntos por día: `accent` trabajo propio, `success` servicio contratado, `warning` falta reemplazo, `neutral` hecho), `blocked` (días con fondo `surface-3`), `today`, `locale`, `labels`. El día elegido lleva `accent`.
+- `DisponibilidadStrip` (`components/`): las próximas tres semanas de otra persona como píldoras `.ca-daypill` (punto `success` libre, `danger` ocupado); nunca muestra qué ni con quién.
+- `VisitaInfo`: insignias de hora límite (`warning`, «Listo antes de 3:00 p. m.»), limpieza entre huéspedes, servicio recurrente («Cada viernes») y propiedad; con `instrucciones`, el bloque de instrucciones para quien hace el trabajo.
+- `SalidaHuespedSheet`: registrar la salida de un huésped (salida, entrada del próximo, monto y método) desde *Mis propiedades*.
+- La hora límite se muestra siempre con `limiteTexto()` de `lib/fechas.ts`.
+- `ReemplazoVisita`: aviso en `warning-soft` y sugerencias de reemplazo (los «De confianza» primero) cuando el trabajador cancela una visita.
+- Fechas: siempre con `fechaTrabajo()` / `fechaDia()` / `diaLargo()` de `lib/fechas.ts` («Mañana, 9:00 a. m.»); nunca muestres la fecha ISO cruda.
 
 ## Voz y contenido
 
@@ -167,6 +218,27 @@ Tarjeta de trabajo típica:
 - Material Symbols Rounded (ya cargada en `index.html` con los ejes de relleno y peso). Contorno en estado normal y relleno en activo o seleccionado.
 - Isotipo: `web/public/images/cira_isotipo_outline_blue.svg`. Ilustraciones de estados vacíos: `web/public/images/empty_*.svg`.
 
+## Componentes de la app construidos sobre Aire
+
+Viven en `web/src/components/` (no en `aire/`) porque dependen de la lógica de CIRA, pero solo usan componentes y tokens de Aire:
+
+| Componente | Para qué |
+|---|---|
+| `SelectSheet` | Selector de una opción: campo de solo lectura que abre una `Sheet` con la lista (categorías) |
+| `Vacio` | `EmptyState` con la ilustración elegida por nombre (`empty_no_signal`, …) |
+| `GestionLayout` | Layout (`layouts/`) de Mis trabajos, Mis publicaciones, Agenda y De confianza: `PageHeader` con título, subtítulo y acción según la ruta, `IconTabs` con la opción marcada y la pantalla en `<Outlet>`. Las pestañas navegan con `replace` (el atrás sale de la sección); esas pantallas no llevan su propio `PageHeader` |
+| `Avatar` | Foto de perfil redonda (`nombre`, `src`, `size`); sin foto o si no carga, las iniciales sobre `--aire-accent-soft`. Úsalo en vez de dibujar iniciales a mano |
+| `AvatarSheet` | Hoja para elegir la foto del catálogo (`public/images/cira-avatars`, solo demo) o volver a las iniciales |
+| `AccesosExplorar` | `IconTabs` con los accesos del inicio de Explorar: Mis trabajos, Mis publicaciones, Agenda y De confianza |
+| `Carrusel` | Fila con título, *Ver todos* y tarjetas que se deslizan a lo ancho (imán por tarjeta, 248px cada una, tarjeta final "Ver los N") |
+| `TrabajoMini`, `TrabajadorMini` | Tarjetas compactas de los carruseles, todas del mismo alto (`TarjetasCompactas.tsx`); al tocarlas abren la hoja de detalle |
+| `TrabajoSheet`, `TrabajadorSheet` | Hojas de detalle (`DetalleSheets.tsx`) con la tarjeta completa y sus acciones (postularse, trueque, urgencia, contactar) |
+| `ToastHost` y `lib/toast.ts` | `mostrarToast(texto, tipo, accion?)` desde cualquier lugar; el host muestra el aviso más reciente con `Toast` |
+| `JobCard`, `WorkerCard`, `PublicacionCard`, `JobStatusCard` | Tarjetas de trabajo y personas (una acción principal por tarjeta) |
+| `PagarSheet`, `RatingSheet`, `ReportSheet`, `DistrictPickerSheet` | Hojas de pago con propina, calificación, reporte y distrito |
+
+- Las rejillas `grid` de una columna miden como mucho el ancho disponible (regla global en `index.css`): un texto con `truncate` no ensancha la tarjeta.
+
 ## Migración
 
-Las pantallas actuales siguen con `components/ui/` y los tokens `cira-*`. Aire convive con ellos: no hace falta migrar todo de una vez. Cuando rediseñes o crees una pantalla, hazla completa con Aire (no mezcles un `Button` de `ui/` con uno de `aire/` en la misma pantalla) y envuélvela en `ca-root`.
+Toda la interfaz de `web/` ya usa Aire: se eliminó `components/ui/` y los tokens `cira-*`. Si agregas una pantalla o un componente nuevo, usa Aire y envuélvelo en el marco `ca-root` que ya pone `PhoneFrame`. Las hojas y diálogos se montan con `contained` para quedar dentro del marco del teléfono.

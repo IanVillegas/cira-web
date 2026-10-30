@@ -1,49 +1,113 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { ExploreTabs } from "@/components/ui/ExploreTabs";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Loader } from "@/components/ui/Loader";
-import { Button } from "@/components/ui/Button";
-import { JobCard } from "@/components/JobCard";
+import { Button, Dialog, Fab, Loader, Stagger } from "@/components/aire";
+import { Vacio } from "@/components/Vacio";
+import { PublicacionCard } from "@/components/PublicacionCard";
+import { RatingSheet } from "@/components/RatingSheet";
+import { PagarSheet } from "@/components/PagarSheet";
+import { PagoResumen } from "@/components/PagoResumen";
+import { mostrarToast } from "@/lib/toast";
 import { api } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { usePolling } from "@/lib/usePolling";
 import type { Trabajo } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 export function MisPublicacionesPage() {
   const navigate = useNavigate();
-  const { usuario } = useAuth();
   const [publicaciones, setPublicaciones] = useState<Trabajo[] | null>(null);
+  const [aCalificar, setACalificar] = useState<Trabajo | null>(null);
+  const [aPagar, setAPagar] = useState<Trabajo | null>(null);
+  const [pagado, setPagado] = useState<Trabajo | null>(null);
+
+  const cargar = useCallback(
+    () => api.trabajos.listar({ publicadas: true }).then(setPublicaciones).catch(() => setPublicaciones((p) => p ?? [])),
+    [],
+  );
 
   useEffect(() => {
-    if (!usuario) return;
-    api.trabajos
-      .listar({ publicador: usuario.nombre })
-      .then(setPublicaciones)
-      .catch(() => setPublicaciones([]));
-  }, [usuario]);
+    cargar();
+  }, [cargar]);
+  // Para ver el seguimiento (En camino, Llegó…) sin recargar.
+  usePolling(cargar, 5000);
+
+  // Una calificación enviada saca el trabajo de la lista si ya estaba pagado.
+  const actualizar = (t: Trabajo) =>
+    setPublicaciones((prev) =>
+      (prev ?? [])
+        .map((p) => (p.id === t.id ? t : p))
+        .filter((p) => p.estado !== "Cancelado" && (p.estado !== "Finalizado" || !p.pagado || !p.calificadoPorMi)),
+    );
 
   return (
-    <div className="pb-4">
-      <PageHeader title="Explorar" subtitle="Consulta y administra tus publicaciones." icon="article" />
-      <ExploreTabs />
+    <div>
 
-      <div className="px-5 pt-4">
-        <Button className="mb-4" onClick={() => navigate("/crear-trabajo")}>
-          Crear publicación
-        </Button>
+      <div className="grid gap-3 px-5 pt-2">
 
         {publicaciones === null ? (
-          <Loader label="Cargando publicaciones..." />
+          <Loader label={tr("Cargando publicaciones...")} />
         ) : publicaciones.length === 0 ? (
-          <EmptyState
-            title="No tienes publicaciones todavía"
-            message="Crea tu primera publicación para recibir postulantes."
-          />
+          <Vacio title={tr("No tienes publicaciones todavía")} message={tr("Crea tu primera publicación para recibir postulantes.")} />
         ) : (
-          publicaciones.map((trabajo) => <JobCard key={trabajo.id} trabajo={trabajo} />)
+          <Stagger className="grid gap-3">
+            {publicaciones.map((trabajo) => (
+              <PublicacionCard key={trabajo.id} trabajo={trabajo} onChange={actualizar} onRate={setACalificar} onPay={setAPagar} />
+            ))}
+          </Stagger>
         )}
       </div>
+
+      {/* Mismo botón flotante que antes estaba en Explorar: crea una publicación. */}
+      <div className="pointer-events-none sticky bottom-3 mt-4 flex justify-end px-5">
+        <span className="pointer-events-auto">
+          <Fab icon="add" label={tr("Crear publicación")} onClick={() => navigate("/crear-trabajo")} />
+        </span>
+      </div>
+
+      <RatingSheet
+        trabajo={aCalificar}
+        onClose={() => setACalificar(null)}
+        onDone={(t) => {
+          setACalificar(null);
+          actualizar(t);
+          mostrarToast(tr("¡Gracias por tu calificación!"));
+        }}
+      />
+
+      <PagarSheet
+        trabajo={aPagar}
+        onClose={() => setAPagar(null)}
+        onPaid={(t) => {
+          setAPagar(null);
+          actualizar(t);
+          setPagado(t);
+        }}
+      />
+
+      <Dialog
+        open={pagado !== null}
+        contained
+        onClose={() => setPagado(null)}
+        title={tr("¡Pago realizado!")}
+        message={tr("Le pagaste a {nombre}.", { nombre: pagado?.trabajadorNombre ?? "" })}
+        actions={
+          <>
+            <Button
+              onClick={() => {
+                const t = pagado;
+                setPagado(null);
+                if (t && !t.calificadoPorMi) setACalificar(t);
+              }}
+            >
+              {tr("Calificar ahora")}
+            </Button>
+            <Button variant="plain" onClick={() => setPagado(null)}>
+              {tr("Ahora no")}
+            </Button>
+          </>
+        }
+      >
+        {pagado && <PagoResumen resumen={pagado.resumenPago} trueque={!!pagado.trueque} />}
+      </Dialog>
     </div>
   );
 }

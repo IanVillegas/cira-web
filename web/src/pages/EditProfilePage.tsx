@@ -1,22 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
-import { Loader } from "@/components/ui/Loader";
-import { Card } from "@/components/ui/Card";
+import { Button, Card, Icon, Input, Loader, PageHeader, SelectableCard } from "@/components/aire";
+import { Avatar } from "@/components/Avatar";
+import { AvatarSheet } from "@/components/AvatarSheet";
 import { DistrictPickerSheet } from "@/components/DistrictPickerSheet";
 import { LocationPreview } from "@/components/LocationPreview";
 import { DISTRITOS, type Distrito } from "@/lib/districts";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { MetodoPago } from "@/lib/types";
+import { tr } from "@/lib/i18n";
+import { mostrarToast } from "@/lib/toast";
+import { formatearTelefono, soloDigitosTelefono } from "@/lib/format";
 
 const METODOS: { value: MetodoPago; icon: string }[] = [
-  { value: "SINPE", icon: "smartphone" },
   { value: "Efectivo", icon: "payments" },
-  { value: "Transferencia", icon: "account_balance" },
+  { value: "Tarjeta", icon: "credit_card" },
 ];
 
 // El backend guarda un solo "nombre"; el formulario lo reparte en 4 campos como MAUI.
@@ -36,6 +35,7 @@ function distritoDe(zona: string): Distrito | null {
 /** Réplica de EditProfilePage.xaml: vista previa, nombre, contacto, ubicación y métodos de pago. */
 export function EditProfilePage() {
   const { usuario, refrescarUsuario } = useAuth();
+  const [eligiendoFoto, setEligiendoFoto] = useState(false);
   const navigate = useNavigate();
   const [nombres, setNombres] = useState({ nombre: "", nombre2: "", apellido: "", apellido2: "" });
   const [contacto, setContacto] = useState({ telefono: "", correo: "", cedula: "" });
@@ -49,13 +49,13 @@ export function EditProfilePage() {
   useEffect(() => {
     if (!usuario) return;
     setNombres(separarNombre(usuario.nombre));
-    setContacto({ telefono: usuario.telefono, correo: usuario.correo ?? "", cedula: usuario.cedula });
+    setContacto({ telefono: soloDigitosTelefono(usuario.telefono), correo: usuario.correo ?? "", cedula: usuario.cedula });
     setDistrito(distritoDe(usuario.zona));
     setZonaTexto(usuario.zona);
     setMetodos(usuario.metodosPago);
   }, [usuario]);
 
-  if (!usuario) return <Loader label="Cargando perfil..." />;
+  if (!usuario) return <Loader label={tr("Cargando perfil...")} />;
 
   const nombreCompleto = [nombres.nombre, nombres.nombre2, nombres.apellido, nombres.apellido2]
     .map((n) => n.trim())
@@ -67,10 +67,10 @@ export function EditProfilePage() {
 
   const guardar = async () => {
     if (!nombres.nombre.trim() || !nombres.apellido.trim())
-      return setError("El primer nombre y el primer apellido son obligatorios.");
-    if (!/^\d{8}$/.test(contacto.telefono)) return setError("El teléfono debe tener 8 dígitos.");
-    if (!zonaTexto) return setError("Selecciona tu distrito.");
-    if (metodos.length === 0) return setError("Selecciona al menos un método de pago.");
+      return setError(tr("El primer nombre y el primer apellido son obligatorios."));
+    if (!/^\d{8}$/.test(contacto.telefono)) return setError(tr("El teléfono debe tener 8 dígitos."));
+    if (!zonaTexto) return setError(tr("Selecciona tu distrito."));
+    if (metodos.length === 0) return setError(tr("Selecciona al menos un método de pago."));
 
     setGuardando(true);
     setError(null);
@@ -81,135 +81,104 @@ export function EditProfilePage() {
         correo: contacto.correo.trim(),
         cedula: contacto.cedula.trim(),
         zona: zonaTexto,
+        lat: distrito?.lat,
+        lng: distrito?.lng,
         metodosPago: metodos,
       });
       await refrescarUsuario();
+      mostrarToast(tr("Perfil actualizado"));
       navigate("/perfil");
     } catch {
-      setError("No se pudo guardar. Verifica que el servidor esté corriendo.");
+      setError(tr("No se pudo guardar. Verifica que el servidor esté corriendo."));
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <div>
+    <div className="pb-6">
       <PageHeader
-        title="Editar perfil"
-        subtitle="Mantén tu información visible para clientes."
-        icon="person"
-        showBack
+        title={tr("Editar perfil")}
+        subtitle={tr("Mantén tu información visible para clientes.")}
+        onBack={() => navigate(-1)}
+        backLabel={tr("Atrás")}
+        large={false}
       />
 
-      <div className="flex flex-col gap-4 px-5 pt-2 pb-9">
+      <div className="grid gap-4 px-5 pt-2">
         <Card className="flex items-center gap-3.5">
-          <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-3xl border-2 border-cira-card bg-cira-header-icon-bg">
-            <Icon name="person" size={38} className="text-cira-accent" />
-          </div>
-          <div className="flex min-w-0 flex-col gap-1">
-            <span className="text-[11px] text-cira-text-secondary">PERFIL PUBLICO</span>
-            <span className="truncate text-[21px] font-semibold text-cira-text-primary">
-              {nombreCompleto || "Tus datos"}
+          <button type="button" className="ca-avatar-editar shrink-0" aria-label={tr("Cambiar foto de perfil")} onClick={() => setEligiendoFoto(true)}>
+            <Avatar nombre={nombreCompleto || usuario?.nombre || ""} src={usuario?.avatar} size={72} />
+            <span className="ca-avatar-editar__badge ca-avatar-editar__badge--sm" aria-hidden="true">
+              <Icon name="photo_camera" filled size={14} />
             </span>
-            <span className="truncate text-[13px] text-cira-text-secondary">{zonaTexto}</span>
+          </button>
+          <div className="grid min-w-0 gap-0.5">
+            <span className="aire-text-eyebrow text-aire-ink-2">{tr("PERFIL PUBLICO")}</span>
+            <span className="aire-text-title-3 truncate text-aire-ink">{nombreCompleto || tr("Tus datos")}</span>
+            <span className="aire-text-footnote truncate text-aire-ink-2">{zonaTexto}</span>
           </div>
         </Card>
 
-        <Card className="flex flex-col gap-3.5">
-          <h2 className="text-base font-semibold text-cira-text-primary">Nombre</h2>
-          <Input placeholder="Primer nombre" value={nombres.nombre} onChange={(e) => setNombres({ ...nombres, nombre: e.target.value })} />
-          <Input placeholder="Segundo nombre" value={nombres.nombre2} onChange={(e) => setNombres({ ...nombres, nombre2: e.target.value })} />
-          <Input placeholder="Primer apellido" value={nombres.apellido} onChange={(e) => setNombres({ ...nombres, apellido: e.target.value })} />
-          <Input placeholder="Segundo apellido" value={nombres.apellido2} onChange={(e) => setNombres({ ...nombres, apellido2: e.target.value })} />
+        <Card className="grid gap-3">
+          <h2 className="aire-text-title-3 text-aire-ink">{tr("Nombre")}</h2>
+          <Input placeholder={tr("Primer nombre")} value={nombres.nombre} onChange={(e) => setNombres({ ...nombres, nombre: e.target.value })} />
+          <Input placeholder={tr("Segundo nombre")} value={nombres.nombre2} onChange={(e) => setNombres({ ...nombres, nombre2: e.target.value })} />
+          <Input placeholder={tr("Primer apellido")} value={nombres.apellido} onChange={(e) => setNombres({ ...nombres, apellido: e.target.value })} />
+          <Input placeholder={tr("Segundo apellido")} value={nombres.apellido2} onChange={(e) => setNombres({ ...nombres, apellido2: e.target.value })} />
         </Card>
 
-        <Card className="flex flex-col gap-3.5">
-          <h2 className="text-base font-semibold text-cira-text-primary">Contacto</h2>
+        <Card className="grid gap-3">
+          <h2 className="aire-text-title-3 text-aire-ink">{tr("Contacto")}</h2>
           <Input
             type="tel"
             inputMode="numeric"
-            maxLength={8}
-            placeholder="Telefono"
-            value={contacto.telefono}
-            onChange={(e) => setContacto({ ...contacto, telefono: e.target.value.replace(/\D/g, "") })}
+            icon="call"
+            maxLength={9}
+            placeholder={tr("Teléfono")}
+            value={formatearTelefono(contacto.telefono)}
+            onChange={(e) => setContacto({ ...contacto, telefono: soloDigitosTelefono(e.target.value) })}
           />
-          <Input
-            type="email"
-            placeholder="Correo"
-            value={contacto.correo}
-            onChange={(e) => setContacto({ ...contacto, correo: e.target.value })}
-          />
-          <Input
-            placeholder="Cedula opcional"
-            value={contacto.cedula}
-            onChange={(e) => setContacto({ ...contacto, cedula: e.target.value })}
-          />
+          <Input type="email" icon="mail" placeholder={tr("Correo")} value={contacto.correo} onChange={(e) => setContacto({ ...contacto, correo: e.target.value })} />
+          <Input icon="badge" placeholder={tr("Cédula (opcional)")} value={contacto.cedula} onChange={(e) => setContacto({ ...contacto, cedula: e.target.value })} />
         </Card>
 
-        <Card className="flex flex-col gap-3.5">
-          <div className="flex flex-col gap-[3px]">
-            <h2 className="text-base font-semibold text-cira-text-primary">Ubicacion</h2>
-            <p className="text-xs text-cira-text-secondary">
-              Selecciona el distrito y ajusta el pin si necesitas una ubicación más exacta.
-            </p>
+        <Card className="grid gap-3">
+          <div>
+            <h2 className="aire-text-title-3 text-aire-ink">{tr("Ubicación")}</h2>
+            <p className="aire-text-footnote text-aire-ink-2">{tr("Selecciona el distrito y ajusta el pin si necesitas una ubicación más exacta.")}</p>
           </div>
-          <button
-            type="button"
+          <Input
+            readOnly
+            icon="location_on"
+            placeholder={tr("Selecciona tu distrito")}
+            value={distrito ? `${distrito.nombre}, ${distrito.canton}` : zonaTexto}
             onClick={() => setPickerOpen(true)}
-            className="flex min-h-14 items-center justify-between rounded-cira-input bg-cira-input-bg px-3.5 text-left text-cira-control"
-          >
-            <span className={zonaTexto ? "text-cira-text-primary" : "text-cira-text-helper"}>
-              {distrito ? `${distrito.nombre}, ${distrito.canton}` : zonaTexto || "Selecciona tu distrito"}
-            </span>
-            <Icon name="keyboard_arrow_down" size={24} className="text-cira-text-secondary" />
-          </button>
-          <LocationPreview
-            center={distrito ? [distrito.lat, distrito.lng] : null}
-            text={zonaTexto || "Ajusta tu ubicación en el mapa"}
+            trailing={<Icon name="expand_more" size={22} />}
+            style={{ cursor: "pointer" }}
           />
+          <LocationPreview center={distrito ? [distrito.lat, distrito.lng] : null} text={zonaTexto || tr("Ajusta tu ubicación en el mapa")} />
         </Card>
 
-        <Card className="flex flex-col gap-3">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col gap-0.5">
-              <h2 className="text-base font-semibold text-cira-text-primary">Métodos de pago</h2>
-              <p className="text-xs text-cira-text-secondary">Elige como prefieres recibir pagos.</p>
+        <Card className="grid gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="aire-text-title-3 text-aire-ink">{tr("Métodos de pago")}</h2>
+              <p className="aire-text-footnote text-aire-ink-2">{tr("Elige como prefieres recibir pagos.")}</p>
             </div>
-            <span className="self-center text-xs font-semibold text-cira-accent">
-              {metodos.length} seleccionados
-            </span>
+            <span className="aire-text-footnote shrink-0 font-semibold text-aire-accent-text">{tr("{n} seleccionados", { n: metodos.length })}</span>
           </div>
-          <div className="flex flex-wrap gap-3">
-            {METODOS.map((m) => {
-              const active = metodos.includes(m.value);
-              return (
-                <button
-                  key={m.value}
-                  type="button"
-                  onClick={() => toggleMetodo(m.value)}
-                  aria-pressed={active}
-                  className={`flex w-[92px] flex-col items-center gap-2 rounded-2xl bg-cira-card p-2.5 ${
-                    active ? "border-2 border-cira-accent" : "border-2 border-cira-border"
-                  }`}
-                >
-                  <span
-                    className={`flex h-[38px] w-[38px] items-center justify-center rounded-xl ${
-                      active ? "bg-cira-accent" : "bg-cira-surface-muted"
-                    }`}
-                  >
-                    <Icon name={m.icon} size={22} className={active ? "text-cira-card" : "text-cira-accent"} />
-                  </span>
-                  <span className="text-[9px] font-semibold text-cira-text-primary uppercase">{m.value}</span>
-                </button>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-3">
+            {METODOS.map((m) => (
+              <SelectableCard key={m.value} icon={m.icon} text={tr(m.value)} selected={metodos.includes(m.value)} onClick={() => toggleMetodo(m.value)} />
+            ))}
           </div>
         </Card>
 
-        {error && <p className="text-center text-[13px] text-cira-accent">{error}</p>}
+        {error && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{error}</p>}
 
-        <Button onClick={guardar} disabled={guardando}>
-          {guardando ? "Guardando..." : "Guardar cambios"}
+        <Button loading={guardando} onClick={guardar}>
+          {tr("Guardar cambios")}
         </Button>
       </div>
 
@@ -223,6 +192,7 @@ export function EditProfilePage() {
           setError(null);
         }}
       />
+      <AvatarSheet open={eligiendoFoto} onClose={() => setEligiendoFoto(false)} />
     </div>
   );
 }

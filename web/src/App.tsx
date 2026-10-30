@@ -1,12 +1,14 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { AppShell } from "@/layouts/AppShell";
+import { GestionLayout } from "@/layouts/GestionLayout";
 
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { PinLoginPage } from "@/pages/auth/PinLoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { RecoverAccessPage } from "@/pages/auth/RecoverAccessPage";
 
+import { ExplorarPage } from "@/pages/ExplorarPage";
 import { ExplorarTrabajosPage } from "@/pages/ExplorarTrabajosPage";
 import { ExplorarTrabajadoresPage } from "@/pages/ExplorarTrabajadoresPage";
 import { MapaPage } from "@/pages/MapaPage";
@@ -21,6 +23,16 @@ import { EditProfilePage } from "@/pages/EditProfilePage";
 import { AccountMenuPage } from "@/pages/AccountMenuPage";
 import { ConfigurarServiciosPage } from "@/pages/ConfigurarServiciosPage";
 import { ConfigurarDisponibilidadPage } from "@/pages/ConfigurarDisponibilidadPage";
+import { AlertasPage } from "@/pages/AlertasPage";
+import { TarjetaPage } from "@/pages/TarjetaPage";
+import { ActividadPage } from "@/pages/ActividadPage";
+import { PlanPage } from "@/pages/PlanPage";
+import { IngresosPage } from "@/pages/IngresosPage";
+import { AgendaPage } from "@/pages/AgendaPage";
+import { PropiedadesPage } from "@/pages/PropiedadesPage";
+import { DeConfianzaPage } from "@/pages/DeConfianzaPage";
+import { VerificacionPage } from "@/pages/VerificacionPage";
+import { PerfilPublicoPage } from "@/pages/PerfilPublicoPage";
 import { InhabilitarCuentaPage } from "@/pages/InhabilitarCuentaPage";
 
 export default function App() {
@@ -36,18 +48,33 @@ export default function App() {
 
           {/* App autenticada */}
           <Route element={<AppShell />}>
-            <Route path="/explorar" element={<ExplorarTrabajosPage />} />
+            <Route path="/explorar" element={<ExplorarPage />} />
+            <Route path="/explorar/trabajos" element={<ExplorarTrabajosPage />} />
             <Route path="/trabajadores" element={<ExplorarTrabajadoresPage />} />
             <Route path="/mapa" element={<MapaPage />} />
             <Route path="/crear-trabajo" element={<CrearTrabajoPage />} />
-            <Route path="/publicaciones" element={<MisPublicacionesPage />} />
-            <Route path="/mis-trabajos" element={<MisTrabajosPage />} />
+            <Route path="/publicaciones/:id/editar" element={<CrearTrabajoPage />} />
+            <Route path="/alertas" element={<AlertasPage />} />
+            <Route path="/usuarios/:id" element={<PerfilPublicoPage />} />
+            <Route path="/cuenta/propiedades" element={<PropiedadesPage />} />
+            {/* Mis trabajos, Mis publicaciones, Agenda y De confianza comparten franja y pestañas. */}
+            <Route element={<GestionLayout />}>
+              <Route path="/mis-trabajos" element={<MisTrabajosPage />} />
+              <Route path="/publicaciones" element={<MisPublicacionesPage />} />
+              <Route path="/agenda" element={<AgendaPage />} />
+              <Route path="/de-confianza" element={<DeConfianzaPage />} />
+            </Route>
             <Route path="/historial" element={<HistorialTrabajosPage />} />
             <Route path="/chats" element={<ChatsPage />} />
             <Route path="/chats/:id" element={<ConversacionPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/perfil/editar" element={<EditProfilePage />} />
             <Route path="/cuenta" element={<AccountMenuPage />} />
+            <Route path="/cuenta/tarjeta" element={<TarjetaPage />} />
+            <Route path="/cuenta/verificacion" element={<VerificacionPage />} />
+            <Route path="/cuenta/actividad" element={<ActividadPage />} />
+            <Route path="/cuenta/plan" element={<PlanPage />} />
+            <Route path="/cuenta/ingresos" element={<IngresosPage />} />
             <Route path="/cuenta/servicios" element={<ConfigurarServiciosPage />} />
             <Route path="/cuenta/disponibilidad" element={<ConfigurarDisponibilidadPage />} />
             <Route path="/cuenta/inhabilitar" element={<InhabilitarCuentaPage />} />

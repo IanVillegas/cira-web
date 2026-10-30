@@ -1,20 +1,135 @@
-export function mapUsuario(row, servicios) {
+import { db } from "./db.js";
+import { CONFIG } from "./config.js";
+
+// ── Utilidades ──────────────────────────────────────────────────────
+/** SQLite guarda datetime('now') en UTC como "YYYY-MM-DD HH:MM:SS". */
+export function parseFechaSql(valor) {
+  return Date.parse(`${valor.replace(" ", "T")}Z`);
+}
+
+export function distanciaKm(lat1, lng1, lat2, lng2) {
+  if ([lat1, lng1, lat2, lng2].some((v) => v == null)) return null;
+  const rad = (g) => (g * Math.PI) / 180;
+  const dLat = rad(lat2 - lat1);
+  const dLng = rad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.sqrt(a));
+}
+
+const redondear1 = (n) => Math.round(n * 10) / 10;
+
+/** Distancia entre dos puntos para mostrar en la app (0 si falta alguna coordenada). */
+function distanciaMostrada(a, b) {
+  const d = distanciaKm(a?.lat, a?.lng, b?.lat, b?.lng);
+  return d == null ? 0 : redondear1(d);
+}
+
+export function obtenerUsuario(id) {
+  return db.prepare("SELECT * FROM usuario WHERE id = ?").get(id);
+}
+
+// ── Reputación e insignias ──────────────────────────────────────────
+export function reputacionDe(usuarioId) {
+  const r = db
+    .prepare("SELECT AVG(estrellas) AS promedio, COUNT(*) AS total FROM calificacion WHERE a_id = ?")
+    .get(usuarioId);
   return {
-    id: row.id,
-    nombre: row.nombre,
-    cedula: row.cedula,
-    telefono: row.telefono,
-    correo: row.correo ?? "",
-    descripcion: row.descripcion,
-    zona: row.zona,
-    metodosPago: JSON.parse(row.metodos_pago),
-    disponible: !!row.disponible,
-    calificacion: row.calificacion,
-    trabajosCompletados: row.trabajos_completados,
-    servicios: servicios.map(mapServicio),
+    calificacion: r.total > 0 ? redondear1(r.promedio) : null,
+    numCalificaciones: r.total,
   };
 }
 
+export function trabajosCompletadosDe(row) {
+  const n = db
+    .prepare("SELECT COUNT(*) AS n FROM trabajo WHERE trabajador_id = ? AND estado = 'Finalizado'")
+    .get(row.id).n;
+  return row.trabajos_base + n;
+}
+
+// ── Verificación de documentos (simulada) ───────────────────────────
+const hoyIso = () => new Date().toISOString().slice(0, 10);
+
+/** Fecha (YYYY-MM-DD) en que vence una hoja de delincuencia emitida en `emision`. */
+export function venceAntecedentes(emision) {
+  const d = new Date(`${emision}T00:00:00Z`);
+  d.setUTCMonth(d.getUTCMonth() + CONFIG.VIGENCIA_ANTECEDENTES_MESES);
+  return d.toISOString().slice(0, 10);
+}
+
+const antecedentesVigentes = (row) =>
+  !!row.antecedentes && !!row.antecedentes_emision && venceAntecedentes(row.antecedentes_emision) >= hoyIso();
+
+/**
+ * La "revisión" de un documento termina sola pasados unos segundos: al leer el usuario se
+ * aprueba lo que ya cumplió el tiempo. Devuelve la fila actualizada.
+ */
+export function resolverRevision(row) {
+  const listo = (enviada) => enviada && Date.now() - parseFechaSql(enviada) >= CONFIG.REVISION_DOCUMENTOS_SEG * 1000;
+  let cambio = false;
+  if (!row.cedula_verificada && listo(row.cedula_enviada_en)) {
+    db.prepare("UPDATE usuario SET cedula_verificada = 1 WHERE id = ?").run(row.id);
+    cambio = true;
+  }
+  if (row.antecedentes_enviada_en && !row.antecedentes && listo(row.antecedentes_enviada_en)) {
+    db.prepare("UPDATE usuario SET antecedentes = 1 WHERE id = ?").run(row.id);
+    cambio = true;
+  }
+  return cambio ? obtenerUsuario(row.id) : row;
+}
+
+/** Estado de cada documento para la pantalla de Verificación (solo para su dueño). */
+export function mapVerificacion(row) {
+  const cedula = row.cedula_verificada ? "verificada" : row.cedula_enviada_en ? "en_revision" : "sin_enviar";
+  let antecedentes = "sin_enviar";
+  if (row.antecedentes) antecedentes = antecedentesVigentes(row) ? "verificada" : "vencida";
+  else if (row.antecedentes_enviada_en) antecedentes = "en_revision";
+  return {
+    cedula: { estado: cedula, numero: row.cedula },
+    antecedentes: {
+      estado: antecedentes,
+      emision: row.antecedentes_emision ?? null,
+      venceEl: row.antecedentes_emision ? venceAntecedentes(row.antecedentes_emision) : null,
+      vigenciaMeses: CONFIG.VIGENCIA_ANTECEDENTES_MESES,
+    },
+  };
+}
+
+export function insigniasDe(row, completados) {
+  const lista = [];
+  if (row.plan === "plus") lista.push("plus");
+  if (row.cedula_verificada) lista.push("cedula");
+  // La hoja de delincuencia solo cuenta mientras está vigente.
+  if (antecedentesVigentes(row)) lista.push("antecedentes");
+  if (completados >= 50) lista.push("mas50");
+  if (row.responde_urgencias) lista.push("urgencias");
+  return lista;
+}
+
+/** Trueques que una persona publicó este mes (el plan gratis tiene un límite). */
+export function truequesDelMes(usuarioId) {
+  return db
+    .prepare(
+      `SELECT COUNT(*) AS n FROM trabajo
+        WHERE publicador_id = ? AND es_trueque = 1 AND estado != 'Cancelado'
+          AND strftime('%Y-%m', creado_en) = strftime('%Y-%m', 'now')`,
+    )
+    .get(usuarioId).n;
+}
+
+/** Cuántas personas guardaron a este trabajador en "De confianza". */
+export function guardadoPorDe(usuarioId) {
+  return db.prepare("SELECT COUNT(*) AS n FROM favorito WHERE trabajador_id = ?").get(usuarioId).n;
+}
+
+function esDeConfianza(viewerId, trabajadorId) {
+  return !!db.prepare("SELECT 1 FROM favorito WHERE usuario_id = ? AND trabajador_id = ?").get(viewerId, trabajadorId);
+}
+
+function serviciosDe(usuarioId) {
+  return db.prepare("SELECT * FROM servicio WHERE usuario_id = ?").all(usuarioId);
+}
+
+// ── Usuarios ────────────────────────────────────────────────────────
 export function mapServicio(row) {
   return {
     id: row.id,
@@ -24,7 +139,151 @@ export function mapServicio(row) {
   };
 }
 
-export function mapTrabajo(row) {
+/** Usuario completo: solo se devuelve a su dueño. */
+export function mapUsuario(row) {
+  const completados = trabajosCompletadosDe(row);
+  return {
+    id: row.id,
+    nombre: row.nombre,
+    avatar: row.avatar ?? null,
+    cedula: row.cedula,
+    telefono: row.telefono,
+    correo: row.correo,
+    descripcion: row.descripcion,
+    zona: row.zona,
+    lat: row.lat ?? undefined,
+    lng: row.lng ?? undefined,
+    metodosPago: JSON.parse(row.metodos_pago),
+    tarjeta: mapTarjeta(row),
+    disponible: !!row.disponible,
+    plan: row.plan,
+    insignias: insigniasDe(row, completados),
+    trabajosCompletados: completados,
+    servicios: serviciosDe(row.id).map(mapServicio),
+    guardadoPor: guardadoPorDe(row.id),
+    verificacion: mapVerificacion(row),
+    truequesMes: truequesDelMes(row.id),
+    ...reputacionDe(row.id),
+  };
+}
+
+/** Lo que otros usuarios pueden ver de una persona (sin cédula, teléfono ni correo). */
+export function mapTrabajador(row, viewer) {
+  const completados = trabajosCompletadosDe(row);
+  return {
+    id: row.id,
+    nombre: row.nombre,
+    avatar: row.avatar ?? null,
+    descripcion: row.descripcion,
+    servicios: serviciosDe(row.id).map((s) => s.categoria),
+    lat: row.lat ?? undefined,
+    lng: row.lng ?? undefined,
+    distanciaKm: distanciaMostrada(viewer, row),
+    disponible: !!row.disponible,
+    zona: row.zona,
+    insignias: insigniasDe(row, completados),
+    trabajosCompletados: completados,
+    deConfianza: viewer ? esDeConfianza(viewer.id, row.id) : false,
+    guardadoPor: guardadoPorDe(row.id),
+    ...reputacionDe(row.id),
+  };
+}
+
+export function mapPerfilPublico(row, viewer) {
+  const comentarios = db
+    .prepare(
+      `SELECT c.estrellas, c.comentario, c.cumplio, c.creado_en, u.nombre AS autor
+         FROM calificacion c JOIN usuario u ON u.id = c.de_id
+        WHERE c.a_id = ? AND c.comentario != ''
+        ORDER BY c.creado_en DESC, c.rowid DESC LIMIT 10`,
+    )
+    .all(row.id)
+    .map((c) => ({
+      autor: c.autor,
+      estrellas: c.estrellas,
+      comentario: c.comentario,
+      fecha: c.creado_en,
+      cumplioTrueque: c.cumplio == null ? undefined : !!c.cumplio,
+    }));
+  return { ...mapTrabajador(row, viewer), comentarios };
+}
+
+// ── Pagos ───────────────────────────────────────────────────────────
+/**
+ * Resumen del pago. La comisión de CIRA (solo con tarjeta), la tarifa de urgencia y la propina se
+ * suman al monto del trabajo; el trabajador recibe el monto completo, la propina y su parte de la
+ * tarifa de urgencia (repartoUrgencia).
+ * Con efectivo, el cliente entrega en mano el monto (y la propina); lo demás se cobra con su tarjeta.
+ */
+export function calcularResumenPago(monto, urgente, metodo, propina = 0) {
+  const comision = metodo === "Tarjeta" ? Math.round((monto * CONFIG.COMISION_PCT) / 100) : 0;
+  const tarifaUrgencia = urgente ? Math.round((monto * CONFIG.URGENCIA_PCT) / 100) : 0;
+  const total = monto + comision + tarifaUrgencia + propina;
+  const enEfectivo = metodo === "Efectivo" ? monto + propina : 0;
+  return { monto, comision, tarifaUrgencia, propina, total, enEfectivo, enTarjeta: total - enEfectivo };
+}
+
+/**
+ * Reparto de la tarifa de urgencia: el trabajador recibe URGENCIA_TRABAJADOR_PCT de los
+ * URGENCIA_PCT puntos (10 de 15) y CIRA el resto. Se calcula a partir de la tarifa guardada,
+ * así sirve también para los pagos ya hechos.
+ */
+export function repartoUrgencia(tarifaUrgencia) {
+  if (!tarifaUrgencia || CONFIG.URGENCIA_PCT <= 0) return { trabajador: 0, cira: 0 };
+  const parte = Math.min(CONFIG.URGENCIA_TRABAJADOR_PCT, CONFIG.URGENCIA_PCT) / CONFIG.URGENCIA_PCT;
+  const trabajador = Math.round(tarifaUrgencia * parte);
+  return { trabajador, cira: tarifaUrgencia - trabajador };
+}
+
+/** Datos de la tarjeta registrada (nunca se guarda el número completo ni el CVV). */
+export function mapTarjeta(row) {
+  if (!row.tarjeta_ultimos4) return null;
+  return {
+    marca: row.tarjeta_marca,
+    ultimos4: row.tarjeta_ultimos4,
+    titular: row.tarjeta_titular,
+    vence: row.tarjeta_vence,
+  };
+}
+
+/** Pago ya realizado de un trabajo, con el mismo formato que el resumen. */
+function resumenPagado(trabajoId) {
+  const p = db.prepare("SELECT * FROM pago WHERE trabajo_id = ?").get(trabajoId);
+  if (!p) return null;
+  return {
+    monto: p.monto,
+    comision: p.comision,
+    tarifaUrgencia: p.tarifa_urgencia,
+    propina: p.propina,
+    total: p.total,
+    enEfectivo: p.en_efectivo,
+    enTarjeta: p.total - p.en_efectivo,
+  };
+}
+
+// ── Trabajos ────────────────────────────────────────────────────────
+export function mapTrabajo(row, viewerId) {
+  const viewer = obtenerUsuario(viewerId);
+  const publicador = obtenerUsuario(row.publicador_id);
+  const trabajador = row.trabajador_id ? obtenerUsuario(row.trabajador_id) : null;
+  const postulantes = db.prepare("SELECT COUNT(*) AS n FROM postulacion WHERE trabajo_id = ?").get(row.id).n;
+  const yaPostulado = !!db
+    .prepare("SELECT 1 FROM postulacion WHERE trabajo_id = ? AND usuario_id = ?")
+    .get(row.id, viewerId);
+  const calificadoPorMi = !!db
+    .prepare("SELECT 1 FROM calificacion WHERE trabajo_id = ? AND de_id = ?")
+    .get(row.id, viewerId);
+  const esPublicador = row.publicador_id === viewerId;
+  const contraparte = esPublicador ? trabajador : publicador;
+  const invitado = row.invitado_id ? obtenerUsuario(row.invitado_id) : null;
+  const serie = row.serie_id ? db.prepare("SELECT * FROM serie WHERE id = ?").get(row.serie_id) : null;
+  const propiedad = row.propiedad_id ? db.prepare("SELECT * FROM propiedad WHERE id = ?").get(row.propiedad_id) : null;
+  // Las instrucciones de la propiedad (dónde está la llave…) solo las ven el cliente y quien hará el trabajo.
+  const veInstrucciones = esPublicadorDe(row, viewerId) || row.trabajador_id === viewerId || row.invitado_id === viewerId;
+  const miPropuesta = row.es_trueque
+    ? db.prepare("SELECT propuesta FROM postulacion WHERE trabajo_id = ? AND usuario_id = ?").get(row.id, viewerId)?.propuesta
+    : null;
+
   return {
     id: row.id,
     titulo: row.titulo,
@@ -33,59 +292,134 @@ export function mapTrabajo(row) {
     ubicacion: row.ubicacion,
     lat: row.lat ?? undefined,
     lng: row.lng ?? undefined,
-    distanciaKm: row.distancia_km,
+    distanciaKm: distanciaMostrada(viewer, row),
     fecha: row.fecha,
+    // "Listo antes de" (opcional).
+    limite: row.limite ?? null,
     pago: row.pago,
     metodoPago: row.metodo_pago,
-    publicador: row.publicador,
+    publicador: publicador.nombre,
+    publicadorId: publicador.id,
+    publicadorCalificacion: reputacionDe(publicador.id).calificacion,
+    trabajadorId: trabajador?.id,
+    trabajadorNombre: trabajador?.nombre,
     estado: row.estado,
-    postulantes: row.postulantes,
-    yaPostulado: !!row.ya_postulado,
+    etapa: row.etapa ?? undefined,
+    urgente: !!row.urgente,
+    invitadoId: invitado?.id,
+    invitadoNombre: invitado?.nombre,
+    // Oferta directa esperando respuesta de quien mira.
+    invitacionParaMi:
+      row.invitado_id === viewerId && !row.invitacion_rechazada && row.estado === "Pendiente" && !row.trabajador_id,
+    invitacionRechazada: !!row.invitacion_rechazada,
+    // CIRA Agenda: visita de un servicio recurrente.
+    serie: serie
+      ? {
+          id: serie.id,
+          frecuencia: serie.frecuencia,
+          activa: !!serie.activa,
+          aceptada: !!serie.aceptada,
+          trabajadorId: serie.trabajador_id,
+          trabajadorNombre: obtenerUsuario(serie.trabajador_id)?.nombre,
+        }
+      : null,
+    reemplazo: row.reemplazo ?? null,
+    // Limpieza entre huéspedes: cuánto le queda al limpiador habitual antes de que pase a urgencia.
+    turno: row.turno
+      ? {
+          escalado: !!row.escalado,
+          escalaEnSeg: row.escalar_en ? Math.max(0, Math.round((parseFechaSql(row.escalar_en) - Date.now()) / 1000)) : null,
+        }
+      : null,
+    propiedad: propiedad
+      ? { id: propiedad.id, nombre: propiedad.nombre, instrucciones: veInstrucciones ? propiedad.instrucciones : undefined }
+      : null,
+    // Trueque: `pago` es el diferencial en dinero (puede ser 0) y `metodoPago`, cómo se paga.
+    trueque: row.es_trueque
+      ? {
+          ofrece: row.ofrece,
+          acordado: row.trueque_acordado ?? undefined,
+          miPropuesta: miPropuesta ?? undefined,
+          acuerdoAceptado: !!row.acuerdo_aceptado,
+          etapa: row.trueque_etapa ?? "en_curso",
+        }
+      : null,
+    postulantes,
+    yaPostulado,
+    esMio: esPublicador,
+    asignadoAMi: row.trabajador_id === viewerId,
+    pagado: !!row.pagado,
+    resumenPago: resumenPagado(row.id) ?? calcularResumenPago(row.pago, !!row.urgente, row.metodo_pago),
+    calificadoPorMi,
+    contraparteId: contraparte?.id,
+    contraparteNombre: contraparte?.nombre,
+    creadoEn: row.creado_en,
   };
 }
 
-export function mapTrabajador(row) {
+// ── Chats ───────────────────────────────────────────────────────────
+export function mapMensaje(row, viewerId) {
   return {
     id: row.id,
-    nombre: row.nombre,
-    servicios: JSON.parse(row.servicios),
-    lat: row.lat ?? undefined,
-    lng: row.lng ?? undefined,
-    distanciaKm: row.distancia_km,
-    calificacion: row.calificacion,
-    disponible: !!row.disponible,
-    zona: row.zona,
-  };
-}
-
-export function mapMensaje(row) {
-  return {
-    id: row.id,
-    autor: row.autor,
+    autor: row.autor_id === viewerId ? "yo" : "otro",
     texto: row.texto,
     hora: row.hora,
   };
 }
 
-export function mapConversacion(row, mensajes) {
+export function contarNoLeidos(conversacionId, viewerId) {
+  return db
+    .prepare("SELECT COUNT(*) AS n FROM mensaje WHERE conversacion_id = ? AND autor_id != ? AND leido = 0")
+    .get(conversacionId, viewerId).n;
+}
+
+export function mapConversacion(row, viewerId) {
+  const otroId = row.usuario_a === viewerId ? row.usuario_b : row.usuario_a;
+  const otro = obtenerUsuario(otroId);
+  const mensajes = db
+    .prepare("SELECT * FROM mensaje WHERE conversacion_id = ? ORDER BY creado_en ASC, rowid ASC")
+    .all(row.id);
   const ultimo = mensajes[mensajes.length - 1];
   return {
     id: row.id,
-    nombre: row.nombre,
+    nombre: otro.nombre,
+    avatar: otro.avatar ?? null,
+    contraparteId: otro.id,
     ultimoMensaje: ultimo?.texto ?? "",
     hora: ultimo?.hora ?? "",
-    noLeidos: 0,
-    mensajes: mensajes.map(mapMensaje),
+    noLeidos: contarNoLeidos(row.id, viewerId),
+    mensajes: mensajes.map((m) => mapMensaje(m, viewerId)),
   };
 }
 
-export function mapHistorial(row) {
+const esPublicadorDe = (row, viewerId) => row.publicador_id === viewerId;
+
+// ── Mis propiedades ─────────────────────────────────────────────────
+export function mapPropiedad(row) {
+  return {
+    id: row.id,
+    nombre: row.nombre,
+    ubicacion: row.ubicacion,
+    lat: row.lat ?? undefined,
+    lng: row.lng ?? undefined,
+    instrucciones: row.instrucciones,
+    limpiadorId: row.limpiador_id ?? undefined,
+    limpiadorNombre: row.limpiador_id ? obtenerUsuario(row.limpiador_id)?.nombre : undefined,
+  };
+}
+
+// ── Historial ───────────────────────────────────────────────────────
+export function mapHistorial(row, viewerId) {
+  const otroId = row.publicador_id === viewerId ? row.trabajador_id : row.publicador_id;
+  const otro = otroId ? obtenerUsuario(otroId) : null;
   return {
     id: row.id,
     titulo: row.titulo,
-    fecha: row.fecha,
+    categoria: row.categoria,
+    // Fecha del trabajo (o, si se atendió "lo antes posible", cuándo terminó).
+    fecha: row.fecha ?? (row.finalizado_en ? row.finalizado_en.replace(" ", "T").slice(0, 16) : null),
     pago: row.pago,
     estado: row.estado,
-    contraparte: row.contraparte,
+    contraparte: otro?.nombre ?? "Sin asignar",
   };
 }

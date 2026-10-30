@@ -1,89 +1,275 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { ExploreTabs } from "@/components/ui/ExploreTabs";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Icon } from "@/components/ui/Icon";
-import { Loader } from "@/components/ui/Loader";
-import { CardAction, JobStatusCard, type StatusBadge } from "@/components/JobStatusCard";
+import { Button, Icon, Loader, Stagger } from "@/components/aire";
+import { AcuerdoTrueque } from "@/components/AcuerdoTrueque";
+import { VisitaInfo } from "@/components/VisitaInfo";
+import { CardAction, JobStatusCard, type EstadoTono } from "@/components/JobStatusCard";
+import { RatingSheet } from "@/components/RatingSheet";
+import { SeguimientoTrabajo } from "@/components/SeguimientoTrabajo";
+import { Vacio } from "@/components/Vacio";
 import { api } from "@/lib/api";
+import { ETAPAS } from "@/lib/etapas";
+import { fechaTrabajo, frecuenciaTexto, limiteTexto } from "@/lib/fechas";
+import { formatoColones } from "@/lib/format";
+import { tr } from "@/lib/i18n";
+import { mostrarToast } from "@/lib/toast";
+import { usePolling } from "@/lib/usePolling";
 import type { Trabajo } from "@/lib/types";
 
-// Colores del StatusBackground/StatusTextColor de MisTrabajosPage.xaml.cs
-function badgeDe(estado: Trabajo["estado"]): StatusBadge {
-  if (estado === "Asignado") return { text: "Asignado", bg: "#FFF8E1", color: "#F57C00" };
-  if (estado === "En progreso") return { text: "En proceso", bg: "#E8F5E9", color: "#2E7D32" };
-  return { text: estado, bg: "#EEF3FF", color: "#3E7BE1" };
+function estadoDe(t: Trabajo): { text: string; tone: EstadoTono } {
+  if (t.invitacionParaMi && t.turno) return { text: tr("Por responder"), tone: "warning" };
+  if (t.invitacionParaMi) return { text: tr("Te quieren recontratar"), tone: "accent" };
+  if (t.trueque && t.asignadoAMi && t.estado !== "Finalizado") {
+    if (!t.trueque.acuerdoAceptado) return { text: tr("Acepta el acuerdo"), tone: "accent" };
+    if (t.trueque.etapa === "primera") return { text: tr("Esperando su parte"), tone: "warning" };
+  }
+  if (t.estado === "Pendiente") return { text: tr("Postulado"), tone: "accent" };
+  if (t.estado === "Asignado") return { text: tr("Asignado"), tone: "warning" };
+  if (t.estado === "En progreso") return { text: tr("En proceso"), tone: "success" };
+  if (t.estado === "Finalizado") return { text: tr("Por calificar"), tone: "success" };
+  return { text: tr(t.estado), tone: "neutral" };
 }
+
+const ICONO_ETAPA: Record<string, string> = { "En camino": "directions_car", Llegó: "pin_drop", Terminado: "task_alt" };
 
 export function MisTrabajosPage() {
   const navigate = useNavigate();
   const [trabajos, setTrabajos] = useState<Trabajo[] | null>(null);
+  const [aCalificar, setACalificar] = useState<Trabajo | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const cargar = useCallback(
+    () => api.trabajos.listar({ mios: true }).then(setTrabajos).catch(() => setTrabajos((t) => t ?? [])),
+    [],
+  );
 
   useEffect(() => {
-    api.trabajos
-      .listar({ postulado: true })
-      .then((lista) => setTrabajos(lista.filter((t) => t.estado !== "Cancelado" && t.estado !== "Finalizado")))
-      .catch(() => setTrabajos([]));
-  }, []);
+    cargar();
+  }, [cargar]);
+  // Si el publicador elige a otra persona, o cancela, se refleja sin recargar.
+  usePolling(cargar, 5000);
 
-  const cambiar = async (id: string, estado: Trabajo["estado"]) => {
-    await api.trabajos.cambiarEstado(id, estado);
-    setTrabajos((prev) =>
-      (prev ?? [])
-        .map((t) => (t.id === id ? { ...t, estado } : t))
-        .filter((t) => t.estado !== "Cancelado" && t.estado !== "Finalizado"),
-    );
+  const ejecutar = async (accion: () => Promise<Trabajo>, aviso?: string) => {
+    setError(null);
+    try {
+      await accion();
+      if (aviso) mostrarToast(aviso, "info");
+      await cargar();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tr("No se pudo completar la acción."));
+    }
+  };
+
+  const abrirChat = async (usuarioId: string) => {
+    const conversacion = await api.conversaciones.con(usuarioId);
+    navigate(`/chats/${conversacion.id}`);
   };
 
   return (
-    <div className="flex min-h-full flex-col pb-4">
-      <PageHeader title="Mis trabajos" subtitle="Consulta y gestiona tus trabajos activos." icon="work" />
-      <ExploreTabs />
+    <div>
 
-      <div className="flex-1 px-5 pt-4">
+      <div className="grid gap-3 px-5 pt-2">
+        {error && (
+          <p role="alert" className="aire-text-subhead rounded-aire-md bg-aire-danger-soft p-3 font-semibold text-aire-danger-text">
+            {error}
+          </p>
+        )}
         {trabajos === null ? (
-          <Loader label="Cargando tus trabajos..." />
+          <Loader label={tr("Cargando tus trabajos...")} />
         ) : trabajos.length === 0 ? (
-          <EmptyState
-            title="No tienes trabajos activos"
-            message="Aquí aparecerán los trabajos que estés realizando."
-          />
+          <Vacio title={tr("No tienes trabajos activos")} message={tr("Aquí aparecerán los trabajos a los que te postules o que te asignen.")} />
         ) : (
-          trabajos.map((t) => (
-            <JobStatusCard
-              key={t.id}
-              titulo={t.titulo}
-              publicador={t.publicador}
-              fecha={t.fecha}
-              badge={badgeDe(t.estado)}
-              actions={
-                <>
-                  {t.estado === "Asignado" && (
-                    <CardAction icon="play_arrow" label="Iniciar" onClick={() => cambiar(t.id, "En progreso")} />
-                  )}
-                  <CardAction
-                    icon="cancel"
-                    label="Cancelar"
-                    destructive
-                    onClick={() => cambiar(t.id, "Cancelado")}
-                  />
-                </>
-              }
-            />
-          ))
+          <Stagger className="grid gap-3">
+            {trabajos.map((t) => {
+              const siguiente = ETAPAS[ETAPAS.indexOf(t.etapa ?? "Aceptado") + 1];
+              const asignado = t.asignadoAMi && (t.estado === "Asignado" || t.estado === "En progreso");
+              return (
+                <JobStatusCard
+                  key={t.id}
+                  titulo={t.titulo}
+                  categoria={t.categoria}
+                  publicador={t.publicador}
+                  fecha={fechaTrabajo(t.fecha)}
+                  estado={estadoDe(t)}
+                  actions={
+                    <>
+                      <CardAction icon="chat_bubble" label={tr("Escribir al publicador")} onClick={() => abrirChat(t.publicadorId)} />
+                      {t.estado !== "Finalizado" && !t.invitacionParaMi && t.trueque?.etapa !== "primera" && (
+                        <CardAction
+                          icon="close"
+                          label={
+                            t.asignadoAMi && t.serie && !t.reemplazo
+                              ? tr("No puedo ir a esta visita")
+                              : t.asignadoAMi
+                                ? tr("Cancelar trabajo")
+                                : tr("Retirar postulación")
+                          }
+                          destructive
+                          onClick={() => {
+                            const visita = t.asignadoAMi && t.serie && !t.reemplazo;
+                            if (visita && !window.confirm(tr("¿No puedes ir a esta visita? Le avisamos a {nombre} para que elija un reemplazo.", { nombre: t.publicador })))
+                              return;
+                            ejecutar(
+                              () => api.trabajos.cancelar(t.id),
+                              visita
+                                ? tr("Le avisamos a {nombre} para que elija un reemplazo", { nombre: t.publicador })
+                                : t.asignadoAMi
+                                  ? tr("Cancelaste el trabajo")
+                                  : tr("Retiraste tu postulación"),
+                            );
+                          }}
+                        />
+                      )}
+                    </>
+                  }
+                  footer={
+                    <>
+                      {t.urgente && <p className="aire-text-eyebrow text-aire-danger-text">{tr("Urgencia")}</p>}
+                      <VisitaInfo trabajo={t} instrucciones={t.asignadoAMi || t.invitacionParaMi} />
+                      {t.reemplazo === "cubierto" && t.asignadoAMi && (
+                        <p className="aire-text-footnote text-aire-ink-2">
+                          {tr("Reemplazas a {nombre} en esta visita.", { nombre: t.serie?.trabajadorNombre ?? "" })}
+                        </p>
+                      )}
+                      {t.invitacionParaMi && (
+                        <>
+                          <p className="aire-text-subhead text-aire-ink-2">
+                            {t.turno
+                              ? tr("{nombre} necesita la limpieza entre huéspedes de {lugar} ({cuando}). Si no respondes pronto, se ofrece a otros trabajadores.", {
+                                  nombre: t.publicador,
+                                  lugar: t.propiedad?.nombre ?? t.ubicacion,
+                                  cuando: `${fechaTrabajo(t.fecha)}${t.limite ? ` · ${limiteTexto(t.limite, t.fecha).toLowerCase()}` : ""}`,
+                                })
+                              : t.reemplazo === "invitado"
+                              ? tr("{nombre} te pide reemplazar a {otro} en esta visita, por {pago}.", {
+                                  nombre: t.publicador,
+                                  otro: t.serie?.trabajadorNombre ?? "",
+                                  pago: formatoColones.format(t.pago),
+                                })
+                              : t.serie && !t.serie.aceptada
+                                ? tr("{nombre} quiere contratarte {cada} por {pago}. Lo aceptas una vez y CIRA agenda las siguientes visitas.", {
+                                    nombre: t.publicador,
+                                    cada: frecuenciaTexto(t.serie.frecuencia, t.fecha).toLowerCase(),
+                                    pago: formatoColones.format(t.pago),
+                                  })
+                                : t.trueque
+                              ? tr("{nombre} te propone un trueque: a cambio, {ofrece}. Solo tú puedes verlo.", {
+                                  nombre: t.publicador,
+                                  ofrece: t.trueque.ofrece,
+                                })
+                              : tr("{nombre} te envió una oferta directa por {pago}. Solo tú puedes verla.", {
+                                  nombre: t.publicador,
+                                  pago: formatoColones.format(t.pago),
+                                })}
+                          </p>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <Button
+                              variant="secondary"
+                              onClick={() => ejecutar(() => api.trabajos.rechazarInvitacion(t.id), tr("Rechazaste la oferta"))}
+                            >
+                              {tr("No puedo")}
+                            </Button>
+                            <Button
+                              icon="check"
+                              onClick={() => ejecutar(() => api.trabajos.aceptarInvitacion(t.id), tr("¡Aceptaste el trabajo!"))}
+                            >
+                              {tr("Aceptar")}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                      {t.trueque && !t.asignadoAMi && t.estado === "Pendiente" && !t.invitacionParaMi && (
+                        <p className="aire-text-footnote flex items-start gap-1.5 text-aire-ink-2">
+                          <Icon name="handshake" size={16} className="mt-px shrink-0 text-aire-accent-text" />
+                          {t.trueque.miPropuesta
+                            ? tr("Trueque · propusiste a cambio: {texto}", { texto: t.trueque.miPropuesta })
+                            : tr("Trueque · a cambio: {texto}", { texto: t.trueque.ofrece })}
+                        </p>
+                      )}
+                      {t.trueque && t.asignadoAMi && <AcuerdoTrueque trabajo={t} rol="trabajador" />}
+                      {t.trueque && asignado && !t.trueque.acuerdoAceptado && (
+                        <>
+                          <p className="aire-text-footnote text-aire-ink-2">
+                            {tr("{nombre} te eligió y firmó el acuerdo. Acéptalo para empezar.", { nombre: t.publicador })}
+                          </p>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <Button
+                              variant="secondary"
+                              onClick={() => ejecutar(() => api.trabajos.cancelar(t.id), tr("Rechazaste el acuerdo"))}
+                            >
+                              {tr("No acepto")}
+                            </Button>
+                            <Button
+                              icon="handshake"
+                              onClick={() => ejecutar(() => api.trabajos.aceptarTrueque(t.id), tr("Acuerdo aceptado: ¡a trabajar!"))}
+                            >
+                              {tr("Aceptar acuerdo")}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                      {t.asignadoAMi && (!t.trueque || t.trueque.acuerdoAceptado) && <SeguimientoTrabajo etapa={t.etapa} />}
+                      {asignado && siguiente && (!t.trueque || t.trueque.acuerdoAceptado) && (
+                        <Button icon={ICONO_ETAPA[siguiente]} onClick={() => ejecutar(() => api.trabajos.avanzarEtapa(t.id), tr("Seguimiento actualizado"))}>
+                          {siguiente === "Terminado"
+                            ? t.trueque
+                              ? tr("Entregué mi parte")
+                              : tr("Marcar como terminado")
+                            : tr(siguiente === "En camino" ? "Estoy en camino" : "Ya llegué")}
+                        </Button>
+                      )}
+                      {t.trueque?.etapa === "primera" && t.asignadoAMi && (
+                        <>
+                          <p className="aire-text-footnote text-aire-ink-2">
+                            {tr("Entregaste tu parte. Cuando {nombre} cumpla la suya, cierra el trueque.", { nombre: t.publicador })}
+                          </p>
+                          <Button
+                            icon="task_alt"
+                            onClick={() => ejecutar(() => api.trabajos.finalizarTrueque(t.id), tr("¡Trueque finalizado!"))}
+                          >
+                            {tr("Recibí su parte: finalizar trueque")}
+                          </Button>
+                        </>
+                      )}
+                      {t.serie?.activa && t.serie.aceptada && t.serie.trabajadorId === t.trabajadorId && t.asignadoAMi && t.estado !== "Finalizado" && (
+                        <Button
+                          variant="plain"
+                          icon="event_repeat"
+                          onClick={() => {
+                            if (!t.serie || !window.confirm(tr("¿Dejar este servicio recurrente? Se cancelan las próximas visitas."))) return;
+                            const serieId = t.serie.id;
+                            ejecutar(async () => {
+                              await api.agenda.terminarSerie(serieId);
+                              return t;
+                            }, tr("Dejaste el servicio recurrente"));
+                          }}
+                        >
+                          {tr("Dejar el servicio recurrente")}
+                        </Button>
+                      )}
+                      {t.estado === "Finalizado" && (
+                        <Button icon="star" onClick={() => setACalificar(t)}>
+                          {tr("Calificar a {nombre}", { nombre: t.publicador })}
+                        </Button>
+                      )}
+                    </>
+                  }
+                />
+              );
+            })}
+          </Stagger>
         )}
       </div>
 
-      <div className="sticky bottom-[18px] flex justify-end px-5">
-        <button
-          onClick={() => navigate("/historial")}
-          aria-label="Ver historial"
-          className="flex h-[58px] w-[58px] items-center justify-center rounded-[20px] bg-cira-header-icon-bg shadow-[0_8px_18px_rgba(0,0,0,0.26)]"
-        >
-          <Icon name="history" size={30} className="text-cira-accent" />
-        </button>
-      </div>
+      <RatingSheet
+        trabajo={aCalificar}
+        onClose={() => setACalificar(null)}
+        onDone={() => {
+          setACalificar(null);
+          mostrarToast(tr("¡Gracias por tu calificación!"));
+          cargar();
+        }}
+      />
     </div>
   );
 }

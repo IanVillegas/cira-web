@@ -1,16 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Icon } from "@/components/ui/Icon";
-import { Button } from "@/components/ui/Button";
-import { PinInput } from "@/components/ui/PinInput";
-import { FieldCaption } from "@/components/ui/FieldCaption";
+import { Button, Card, FieldCaption, Icon, PageHeader, PinInput, Switch } from "@/components/aire";
 import { useAuth } from "@/lib/auth";
+import { tr } from "@/lib/i18n";
 
 const RESUMEN = [
-  { icon: "logout", text: "Se cerrarán todas tus sesiones activas." },
-  { icon: "visibility_off", text: "Tu perfil no aparecera en busquedas." },
-  { icon: "history", text: "Tus trabajos se conservan." },
+  { icon: "logout", text: tr("Se cerrarán todas tus sesiones activas.") },
+  { icon: "visibility_off", text: tr("Tu perfil no aparecera en busquedas.") },
+  { icon: "history", text: tr("Tus trabajos se conservan.") },
 ];
 
 /** Réplica de InhabilitarCuentaPage.xaml: resumen + confirmación con PIN. */
@@ -22,58 +19,54 @@ export function InhabilitarCuentaPage() {
   const [estado, setEstado] = useState<string | null>(null);
 
   const inhabilitar = () => {
-    if (pin.length < 4) return setEstado("Ingresa tu PIN de 4 dígitos.");
-    if (!confirmar) return setEstado("Confirma que deseas inhabilitar tu cuenta.");
+    if (pin.length < 4) return setEstado(tr("Ingresa tu PIN de 4 dígitos."));
+    if (!confirmar) return setEstado(tr("Confirma que deseas inhabilitar tu cuenta."));
     logout();
     navigate("/login", { replace: true });
   };
 
   return (
-    <div>
+    <div className="pb-6">
       <PageHeader
-        title="Inhabilitar cuenta"
-        subtitle="La cuenta quedará inactiva hasta que solicites recuperarla."
-        icon="person_off"
-        showBack
+        title={tr("Inhabilitar cuenta")}
+        subtitle={tr("La cuenta quedará inactiva hasta que solicites recuperarla.")}
+        onBack={() => navigate(-1)}
+        backLabel={tr("Atrás")}
+        large={false}
       />
 
-      <div className="flex flex-col gap-[18px] px-5 pt-2 pb-7">
-        <div className="flex flex-col gap-3 rounded-[14px] bg-cira-card p-4">
-          <h2 className="text-base font-semibold text-cira-text-primary">Resumen</h2>
-          <div className="flex flex-col gap-2.5">
+      <div className="grid gap-4 px-5 pt-2">
+        <Card className="grid gap-3">
+          <h2 className="aire-text-title-3 text-aire-ink">{tr("Resumen")}</h2>
+          <div className="grid gap-3">
             {RESUMEN.map((r) => (
-              <div key={r.icon} className="flex items-center gap-2.5">
-                <Icon name={r.icon} size={22} className="shrink-0 text-cira-accent" />
-                <span className="text-[13px] text-cira-text-secondary">{r.text}</span>
+              <div key={r.icon} className="flex items-center gap-3">
+                <Icon name={r.icon} size={22} className="shrink-0 text-aire-accent-text" />
+                <span className="aire-text-subhead text-aire-ink-2">{r.text}</span>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
-        <div className="flex flex-col gap-3.5 rounded-[14px] bg-cira-card p-4">
-          <h2 className="text-base font-semibold text-cira-text-primary">Confirmacion</h2>
+        <Card className="grid gap-4">
+          <h2 className="aire-text-title-3 text-aire-ink">{tr("Confirmación")}</h2>
 
-          <div className="flex flex-col items-center gap-2.5">
-            <FieldCaption>PIN</FieldCaption>
-            <PinInput value={pin} onChange={setPin} />
+          <div className="grid justify-items-center gap-2.5">
+            <FieldCaption>{tr("PIN")}</FieldCaption>
+            <PinInput value={pin} onChange={setPin} error={!!estado && pin.length < 4} />
           </div>
 
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={confirmar}
-              onChange={(e) => setConfirmar(e.target.checked)}
-              className="h-5 w-5 shrink-0 accent-cira-accent"
-            />
-            <span className="text-[13px] text-cira-text-secondary">
-              Confirmo que deseo inhabilitar temporalmente mi cuenta.
-            </span>
-          </label>
+          <div className="flex items-center gap-3">
+            <span className="aire-text-subhead flex-1 text-aire-ink-2">{tr("Confirmo que deseo inhabilitar temporalmente mi cuenta.")}</span>
+            <Switch checked={confirmar} onChange={setConfirmar} label={tr("Confirmo que deseo inhabilitar temporalmente mi cuenta.")} />
+          </div>
 
-          {estado && <p className="text-[13px] text-cira-accent">{estado}</p>}
+          {estado && <p className="aire-text-footnote text-center font-semibold text-aire-danger-text">{estado}</p>}
 
-          <Button onClick={inhabilitar}>INHABILITAR CUENTA</Button>
-        </div>
+          <Button variant="destructive" onClick={inhabilitar}>
+            {tr("Inhabilitar cuenta")}
+          </Button>
+        </Card>
       </div>
     </div>
   );

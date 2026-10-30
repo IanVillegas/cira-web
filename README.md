@@ -7,6 +7,12 @@ mockup interactivo web con datos reales.
 - [`web/`](web) — Frontend (React + TypeScript + Tailwind CSS, Vite).
 - [`server/`](server) — Backend (Express + SQLite vía `node:sqlite`).
 
+## Documentación del proyecto
+
+- [`docs/novedades-entregable-final.md`](docs/novedades-entregable-final.md): todo lo nuevo para la exposición final, con su justificación y el guion de la demo.
+- [`docs/ideas-innovacion-cira.md`](docs/ideas-innovacion-cira.md): backlog y valoración de ideas.
+- [`DESIGN.md`](DESIGN.md): sistema de diseño CIRA Aire.
+
 ## Uso rápido
 
 ```bash
@@ -34,6 +40,8 @@ cd server
 npm install        # solo la primera vez (y `npm install` en web/)
 npm run demo       # compila web/ y levanta todo en http://localhost:3001
 ```
+
+El día de la presentación, corre antes `npm run reset` en `server/`: las fechas de los trabajos de ejemplo (mañana, el próximo viernes…) se calculan desde el día en que se crea la base.
 
 La consola imprime la dirección para otros dispositivos, por ejemplo
 `http://192.168.x.x:3001`: ábrela desde el teléfono conectado a la **misma red

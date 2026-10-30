@@ -5,6 +5,25 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CIRA</title>
+    <meta name="theme-color" content="#f5f5f7" />
+    <!-- App instalable (PWA): sin el manifiesto, "Instalar app" de Chrome abre con la barra de la URL. -->
+    <!-- use-credentials: el túnel (Dev Tunnels) solo entrega archivos a quien ya aceptó su aviso (cookie);
+         sin esto Chrome pide el manifiesto sin cookie, recibe la página de aviso y no deja instalar. -->
+    <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="CIRA" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- Aplica el tema guardado antes de pintar, para que el modo oscuro no parpadee en claro. -->
+    <script>
+      try {
+        var t = localStorage.getItem("cira.tema");
+        var o = t === "oscuro" || (t !== "claro" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = o ? "dark" : "light";
+        document.documentElement.style.colorScheme = o ? "dark" : "light";
+      } catch (e) {}
+    </script>
     <meta name="description" content="CIRA — conecta trabajos con trabajadores cerca de ti." />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />

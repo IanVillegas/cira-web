@@ -22,8 +22,13 @@ const VISUALES: Record<string, { slug: string; icono: string }> = {
   Reparaciones: { slug: "reparaciones", icono: "handyman" },
 };
 
+// Categorías todavía sin foto: tarjeta con el tono por defecto y su ícono.
+const SIN_FOTO: Record<string, string> = {
+  "Cerrajería": "key",
+};
+
 export function visualDeCategoria(categoria: string): CategoriaVisual {
   const v = VISUALES[categoria];
-  if (!v) return { imagen: "", tono: "var(--aire-cat-default)", icono: "work" };
+  if (!v) return { imagen: "", tono: "var(--aire-cat-default)", icono: SIN_FOTO[categoria] ?? "work" };
   return { imagen: `/images/categorias/${v.slug}.webp`, tono: `var(--aire-cat-${v.slug})`, icono: v.icono };
 }

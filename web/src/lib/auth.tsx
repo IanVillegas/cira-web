@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { api } from "./api";
+import { api, getToken, setToken } from "./api";
 import type { Usuario } from "./types";
 
 interface AuthContextValue {
@@ -7,7 +7,9 @@ interface AuthContextValue {
   /** Teléfono/correo recordado: si hay uno pero la sesión se perdió, se muestra "Sesión expirada". */
   lastIdentifier: string | null;
   usuario: Usuario | null;
-  login: (identifier: string) => void;
+  /** Valida teléfono/correo + PIN contra el servidor; lanza un Error con el mensaje a mostrar. */
+  login: (identifier: string, pin: string) => Promise<void>;
+  registrar: (datos: Parameters<typeof api.auth.registro>[0]) => Promise<void>;
   /** Cierra sesión y olvida la cuenta (vuelve al login normal). */
   logout: () => void;
   /** Olvida solo la cuenta recordada ("Cambiar de cuenta"). */
@@ -17,7 +19,6 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const SESSION_KEY = "cira.session";
 const IDENTIFIER_KEY = "cira.identifier";
 
 function readStorage(storage: Storage, key: string): string | null {
@@ -38,9 +39,7 @@ function writeStorage(storage: Storage, key: string, value: string | null) {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    () => readStorage(sessionStorage, SESSION_KEY) === "true",
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => getToken() !== null);
   const [lastIdentifier, setLastIdentifier] = useState<string | null>(() =>
     readStorage(localStorage, IDENTIFIER_KEY),
   );
@@ -60,11 +59,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isAuthenticated) refrescarUsuario();
   }, [isAuthenticated]);
 
-  const login = (identifier: string) => {
-    writeStorage(sessionStorage, SESSION_KEY, "true");
+  const iniciarSesion = (token: string, identifier: string, datos: Usuario) => {
+    setToken(token);
     writeStorage(localStorage, IDENTIFIER_KEY, identifier);
     setLastIdentifier(identifier);
+    setUsuario(datos);
     setIsAuthenticated(true);
+  };
+
+  const login = async (identifier: string, pin: string) => {
+    const { token, usuario: datos } = await api.auth.login(identifier, pin);
+    iniciarSesion(token, identifier, datos);
+  };
+
+  const registrar = async (datos: Parameters<typeof api.auth.registro>[0]) => {
+    const { token, usuario: nuevo } = await api.auth.registro(datos);
+    iniciarSesion(token, datos.telefono, nuevo);
   };
 
   const forgetIdentifier = () => {
@@ -73,14 +83,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    writeStorage(sessionStorage, SESSION_KEY, null);
+    setToken(null);
+    setUsuario(null);
     forgetIdentifier();
     setIsAuthenticated(false);
   };
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, lastIdentifier, usuario, login, logout, forgetIdentifier, refrescarUsuario }}
+      value={{ isAuthenticated, lastIdentifier, usuario, login, registrar, logout, forgetIdentifier, refrescarUsuario }}
     >
       {children}
     </AuthContext.Provider>

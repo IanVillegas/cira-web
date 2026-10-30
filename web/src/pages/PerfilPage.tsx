@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Icon } from "@/components/ui/Icon";
-import { Button } from "@/components/ui/Button";
-import { Loader } from "@/components/ui/Loader";
-import { Switch } from "@/components/ui/Switch";
+import { Button, Card, Icon, Loader, PageHeader, Reveal, Sheet, Switch } from "@/components/aire";
+import { Calificacion } from "@/components/Estrellas";
+import { GuardadoPor } from "@/components/GuardadoPor";
+import { InsigniaChips } from "@/components/InsigniaChips";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { tr } from "@/lib/i18n";
+import { Avatar } from "@/components/Avatar";
+import { AvatarSheet } from "@/components/AvatarSheet";
 
 function serviceIcon(categoria: string) {
   const v = categoria.toLowerCase();
@@ -17,10 +19,7 @@ function serviceIcon(categoria: string) {
 }
 
 function paymentIcon(metodo: string) {
-  const v = metodo.toLowerCase();
-  if (v.includes("sinpe") || v.includes("movil") || v.includes("móvil")) return "smartphone";
-  if (v.includes("transfer") || v.includes("banco")) return "account_balance";
-  return "payments";
+  return metodo === "Tarjeta" ? "credit_card" : "payments";
 }
 
 /** Réplica de PerfilPage.xaml: avatar, tarjeta de disponibilidad, servicios y métodos de pago. */
@@ -28,10 +27,10 @@ export function PerfilPage() {
   const { usuario, refrescarUsuario } = useAuth();
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
-  const [usarRango, setUsarRango] = useState(false);
+  const [eligiendoFoto, setEligiendoFoto] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
-  if (!usuario) return <Loader label="Cargando perfil..." />;
+  if (!usuario) return <Loader label={tr("Cargando perfil...")} />;
 
   const guardarDisponibilidad = async (disponible: boolean) => {
     setGuardando(true);
@@ -49,193 +48,183 @@ export function PerfilPage() {
   };
 
   const servicios = usuario.servicios.slice(0, 5);
+  // Recordatorio de verificación: lo más importante primero (hoja vencida, luego cédula sin verificar).
+  const { cedula, antecedentes } = usuario.verificacion;
+  const aviso =
+    antecedentes.estado === "vencida"
+      ? { icon: "event_busy", titulo: tr("Tu hoja de delincuencia venció"), texto: tr("Renuévala para recuperar la insignia en tu perfil.") }
+      : cedula.estado === "sin_enviar"
+        ? { icon: "badge", titulo: tr("Verifica tu cédula"), texto: tr("Genera confianza y podrás aceptar urgencias.") }
+        : null;
 
   return (
-    <div className="flex flex-col gap-6 px-6 pb-7">
-      <PageHeader
-        title="Perfil"
-        icon="settings"
-        onIconClick={() => navigate("/cuenta")}
-        className="px-0 pt-6 pb-3"
-      />
+    <div className="pb-6">
+      <PageHeader title={tr("Perfil")} variante="simple" action={{ icon: "settings", label: tr("Cuenta"), onClick: () => navigate("/cuenta") }} />
 
-      <div className="flex flex-col items-center gap-3">
-        <div className="flex h-[112px] w-[112px] items-center justify-center rounded-full border-[3px] border-cira-card bg-cira-header-icon-bg">
-          <Icon name="account_circle" size={66} className="text-cira-accent" />
-        </div>
-        <p className="text-center text-[26px] font-semibold text-cira-text-primary">{usuario.nombre}</p>
-        <p className="text-center text-cira-body text-cira-text-secondary">
-          {usuario.zona || "Sin ubicación"}
-        </p>
-      </div>
-
-      <div className="flex items-center gap-3.5 rounded-[18px] bg-cira-surface-muted p-4">
-        <div className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-2xl bg-cira-header-icon-bg">
-          <Icon name="event_available" size={24} className="text-cira-accent" />
-        </div>
-        <div className="flex-1">
-          <p className="text-[15px] font-semibold text-cira-text-primary">Disponibilidad</p>
-          <p className="text-[10px] font-semibold tracking-[0.12em] text-cira-text-secondary">
-            {usuario.disponible ? "ESTADO ACTUAL" : "NO DISPONIBLE"}
-          </p>
-        </div>
-        <Switch
-          checked={usuario.disponible}
-          onChange={onToggle}
-          disabled={guardando}
-          label="Disponibilidad"
-        />
-      </div>
-
-      <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-cira-text-primary">Mis Servicios</h2>
-          <button
-            onClick={() => navigate("/cuenta/servicios")}
-            className="text-[13px] font-semibold text-cira-accent"
-          >
-            Editar
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-x-2.5 gap-y-2.5">
-          {servicios.map((s) => (
-            <span
-              key={s.id}
-              className="flex items-center gap-1.5 rounded-[18px] bg-cira-card px-3.5 py-[9px] text-[13px] text-cira-text-primary"
+      <div className="grid gap-6 px-5">
+        <Reveal effect="scale">
+          <div className="grid justify-items-center gap-2 text-center">
+            <button
+              type="button"
+              className="ca-avatar-editar"
+              aria-label={tr("Cambiar foto de perfil")}
+              onClick={() => setEligiendoFoto(true)}
             >
-              <Icon name={serviceIcon(s.categoria)} size={16} className="text-cira-accent" />
-              {s.categoria}
-            </span>
-          ))}
-          <button
-            onClick={() => navigate("/cuenta/servicios")}
-            className="flex items-center gap-1.5 rounded-[18px] border border-cira-border bg-cira-card px-3.5 py-[9px] text-[13px] text-cira-text-primary"
-          >
-            <Icon name="add" size={16} className="text-cira-text-secondary" />
-            {servicios.length === 0 ? "Añadir servicio" : "Añadir"}
-          </button>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-cira-text-primary">Métodos de Pago</h2>
-          <button
-            onClick={() => navigate("/perfil/editar")}
-            className="text-[13px] font-semibold text-cira-accent"
-          >
-            Editar
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {usuario.metodosPago.length === 0 ? (
-            <PaymentCard text="Añadir" icon="add" active={false} onClick={() => navigate("/perfil/editar")} />
-          ) : (
-            usuario.metodosPago.map((m) => (
-              <PaymentCard
-                key={m}
-                text={m}
-                icon={paymentIcon(m)}
-                active
-                onClick={() => navigate("/perfil/editar")}
-              />
-            ))
-          )}
-        </div>
-      </section>
-
-      {modalOpen && (
-        <div
-          className="absolute inset-0 z-[3000] flex items-center justify-center bg-black/60 p-[18px]"
-          onClick={() => setModalOpen(false)}
-        >
-          <div
-            className="w-full max-w-[420px] rounded-[22px] bg-cira-card p-[22px]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-[21px] font-semibold text-cira-text-primary">Activar disponibilidad</h3>
-            <p className="mt-1 text-[13px] text-cira-text-secondary">
-              Puedes activarla ahora o definir un rango opcional.
-            </p>
-
-            <label className="mt-4 flex items-center gap-2.5 text-sm font-semibold text-cira-text-primary">
-              <input
-                type="checkbox"
-                checked={usarRango}
-                onChange={(e) => setUsarRango(e.target.checked)}
-                className="h-5 w-5 accent-cira-accent"
-              />
-              Usar rango opcional
-            </label>
-
-            {usarRango && (
-              <div className="mt-3 grid grid-cols-2 gap-2.5">
-                <RangeField label="DESDE" type="date" />
-                <RangeField label="HORA" type="time" />
-                <RangeField label="HASTA" type="date" />
-                <RangeField label="HORA" type="time" />
-              </div>
+              <Avatar nombre={usuario.nombre} src={usuario.avatar} size={112} />
+              <span className="ca-avatar-editar__badge" aria-hidden="true">
+                <Icon name="photo_camera" filled size={18} />
+              </span>
+            </button>
+            <p className="aire-text-title-1 text-aire-ink">{usuario.nombre}</p>
+            <p className="aire-text-subhead text-aire-ink-2">{usuario.zona || tr("Sin ubicación")}</p>
+            <Calificacion valor={usuario.calificacion} total={usuario.numCalificaciones} />
+            <InsigniaChips insignias={usuario.insignias} />
+            {usuario.guardadoPor > 0 && <GuardadoPor n={usuario.guardadoPor} />}
+            {usuario.plan !== "plus" && (
+              <button type="button" onClick={() => navigate("/cuenta/plan")} className="aire-text-subhead min-h-11 font-semibold text-aire-accent-text">
+                {tr("Conoce el Plan Plus")}
+              </button>
             )}
-
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <Button variant="secondary" onClick={() => setModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={async () => {
-                  setModalOpen(false);
-                  setUsarRango(false);
-                  await guardarDisponibilidad(true);
-                }}
-              >
-                Activar
-              </Button>
-            </div>
           </div>
+        </Reveal>
+
+        {aviso && (
+          <Card interactive onClick={() => navigate("/cuenta/verificacion")} className="flex items-center gap-3.5">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-warning-soft text-aire-warning-text">
+              <Icon name={aviso.icon} size={24} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="aire-text-headline text-aire-ink">{aviso.titulo}</p>
+              <p className="aire-text-footnote text-aire-ink-2">{aviso.texto}</p>
+            </div>
+            <Icon name="chevron_forward" size={22} className="shrink-0 text-aire-ink-2" />
+          </Card>
+        )}
+
+        <Card className="flex items-center gap-3.5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+            <Icon name="event_available" size={24} className="text-aire-accent-text" />
+          </span>
+          <div className="flex-1">
+            <p className="aire-text-headline text-aire-ink">{tr("Disponibilidad")}</p>
+            <p className="aire-text-eyebrow text-aire-ink-2">{usuario.disponible ? tr("ESTADO ACTUAL") : tr("NO DISPONIBLE")}</p>
+          </div>
+          <Switch checked={usuario.disponible} onChange={onToggle} disabled={guardando} label={tr("Disponibilidad")} />
+        </Card>
+
+        <Card interactive onClick={() => navigate("/agenda")} className="flex items-center gap-3.5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+            <Icon name="calendar_month" size={24} className="text-aire-accent-text" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="aire-text-headline text-aire-ink">{tr("Mi agenda")}</p>
+            <p className="aire-text-footnote text-aire-ink-2">{tr("Tus trabajos y servicios agendados, y los días que no puedes.")}</p>
+          </div>
+          <Icon name="chevron_forward" size={22} className="shrink-0 text-aire-ink-2" />
+        </Card>
+
+        <Card interactive onClick={() => navigate("/de-confianza")} className="flex items-center gap-3.5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+            <Icon name="favorite" filled size={24} className="text-aire-accent-text" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="aire-text-headline text-aire-ink">{tr("Mis trabajadores de confianza")}</p>
+            <p className="aire-text-footnote text-aire-ink-2">{tr("Recontrata, chatea o recomienda a quienes ya conoces.")}</p>
+          </div>
+          <Icon name="chevron_forward" size={22} className="shrink-0 text-aire-ink-2" />
+        </Card>
+
+        <section className="grid gap-3">
+          <div className="flex items-center justify-between">
+            <h2 className="aire-text-title-2 text-aire-ink">{tr("Mis servicios")}</h2>
+            <button type="button" onClick={() => navigate("/cuenta/servicios")} className="aire-text-subhead min-h-11 font-semibold text-aire-accent-text">
+              {tr("Editar")}
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2.5">
+            {servicios.map((s) => (
+              <span key={s.id} className="aire-text-subhead flex items-center gap-1.5 rounded-aire-full bg-aire-surface px-3.5 py-2.5 text-aire-ink shadow-aire-card">
+                <Icon name={serviceIcon(s.categoria)} size={18} className="text-aire-accent-text" />
+                {tr(s.categoria)}
+              </span>
+            ))}
+            <button
+              type="button"
+              onClick={() => navigate("/cuenta/servicios")}
+              className="aire-text-subhead flex min-h-11 items-center gap-1.5 rounded-aire-full border border-aire-hairline px-3.5 text-aire-ink-2 transition-transform duration-[100ms] ease-aire-pop active:scale-95"
+            >
+              <Icon name="add" size={18} />
+              {servicios.length === 0 ? tr("Añadir servicio") : tr("Añadir")}
+            </button>
+          </div>
+        </section>
+
+        <section className="grid gap-3">
+          <div className="flex items-center justify-between">
+            <h2 className="aire-text-title-2 text-aire-ink">{tr("Métodos de pago")}</h2>
+            <button type="button" onClick={() => navigate("/perfil/editar")} className="aire-text-subhead min-h-11 font-semibold text-aire-accent-text">
+              {tr("Editar")}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {usuario.metodosPago.length === 0 ? (
+              <MetodoPagoTarjeta text={tr("Añadir")} icon="add" onClick={() => navigate("/perfil/editar")} />
+            ) : (
+              usuario.metodosPago.map((m) => (
+                <MetodoPagoTarjeta
+                  key={m}
+                  text={m === "Tarjeta" && usuario.tarjeta ? `${tr(m)} ·${usuario.tarjeta.ultimos4}` : tr(m)}
+                  icon={paymentIcon(m)}
+                  onClick={() => navigate(m === "Tarjeta" ? "/cuenta/tarjeta" : "/perfil/editar")}
+                />
+              ))
+            )}
+          </div>
+        </section>
+      </div>
+
+      <Sheet open={modalOpen} onClose={() => setModalOpen(false)} title={tr("Activar disponibilidad")} subtitle={tr("Volverás a recibir alertas y ofertas de trabajo.")} contained>
+        <div className="grid gap-4">
+          <p className="aire-text-subhead flex items-start gap-2 rounded-aire-md bg-aire-surface-2 p-3 text-aire-ink-2">
+            <Icon name="event_busy" size={20} className="mt-px shrink-0 text-aire-accent-text" />
+            {tr("¿Hay días que no puedes? Márcalos en tu agenda y nadie te ofrecerá trabajo directo esos días.")}
+          </p>
+          <Button
+            onClick={async () => {
+              setModalOpen(false);
+              await guardarDisponibilidad(true);
+            }}
+          >
+            {tr("Activar")}
+          </Button>
+          <Button
+            variant="secondary"
+            icon="calendar_month"
+            onClick={async () => {
+              setModalOpen(false);
+              await guardarDisponibilidad(true);
+              navigate("/agenda");
+            }}
+          >
+            {tr("Activar y abrir mi agenda")}
+          </Button>
+          <Button variant="plain" onClick={() => setModalOpen(false)}>
+            {tr("Cancelar")}
+          </Button>
         </div>
-      )}
+      </Sheet>
+      <AvatarSheet open={eligiendoFoto} onClose={() => setEligiendoFoto(false)} />
     </div>
   );
 }
 
-function PaymentCard({
-  text,
-  icon,
-  active,
-  onClick,
-}: {
-  text: string;
-  icon: string;
-  active: boolean;
-  onClick: () => void;
-}) {
+function MetodoPagoTarjeta({ text, icon, onClick }: { text: string; icon: string; onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      className={`flex w-[92px] flex-col items-center gap-2 rounded-2xl bg-cira-card p-2.5 ${
-        active ? "border-2 border-cira-accent" : "border-2 border-transparent"
-      }`}
-    >
-      <span
-        className={`flex h-[38px] w-[38px] items-center justify-center rounded-xl ${
-          active ? "bg-cira-accent" : "bg-cira-surface-muted"
-        }`}
-      >
-        <Icon name={icon} size={22} className={active ? "text-cira-card" : "text-cira-accent"} />
+    <Card interactive onClick={onClick} className="flex items-center gap-3">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-aire-md bg-aire-accent-soft">
+        <Icon name={icon} size={22} className="text-aire-accent-text" />
       </span>
-      <span className="text-[9px] font-semibold text-cira-text-primary uppercase">{text}</span>
-    </button>
-  );
-}
-
-function RangeField({ label, type }: { label: string; type: "date" | "time" }) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="text-[10px] font-bold tracking-[0.12em] text-cira-text-secondary">{label}</span>
-      <input
-        type={type}
-        className="min-h-12 rounded-cira-input bg-cira-surface-muted px-2.5 text-sm text-cira-text-primary focus:outline-none"
-      />
-    </label>
+      <span className="aire-text-subhead truncate font-semibold text-aire-ink">{text}</span>
+    </Card>
   );
 }

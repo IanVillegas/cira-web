@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 // Geocodificación gratuita usando Nominatim (OpenStreetMap). No requiere
 // API key; solo se le pide identificarse con un User-Agent/Referer válido,
 // que el navegador agrega automáticamente. Uso razonable (no hacer ráfagas
@@ -48,7 +49,7 @@ export async function buscarDireccion(query: string): Promise<ResultadoBusquedaD
 export function obtenerUbicacionActual(): Promise<{ lat: number; lng: number }> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error("Este navegador no soporta geolocalización."));
+      reject(new Error(tr("Este navegador no soporta geolocalización.")));
       return;
     }
     navigator.geolocation.getCurrentPosition(

@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { PinInput } from "@/components/ui/PinInput";
+import { Button, Input, PinInput } from "@/components/aire";
 import { AuthError, AuthHeading, AuthLayout, IdentifierChip } from "@/layouts/AuthLayout";
+import { tr } from "@/lib/i18n";
 
 type Step = "identifier" | "token" | "pin";
 
@@ -24,61 +23,56 @@ export function RecoverAccessPage() {
   return (
     <AuthLayout>
       {step === "identifier" && (
-        <div className="flex flex-col gap-[18px]">
-          <AuthHeading title="Recupera tu acceso" subtitle="Ingresa tu teléfono para enviarte un código." />
+        <>
+          <AuthHeading title={tr("Recupera tu acceso")} subtitle={tr("Ingresa tu teléfono para enviarte un código.")} />
           <Input
             type="tel"
             inputMode="numeric"
-            placeholder="Telefono"
+            icon="call"
+            placeholder={tr("Teléfono")}
             value={telefono}
+            error={error ?? undefined}
             onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ""))}
           />
-          <AuthError message={error} />
-          <Button
-            onClick={() =>
-              /^\d{8}$/.test(telefono) ? ir("token") : setError("Ingresa un número de 8 dígitos.")
-            }
-          >
-            Continuar
+          <Button onClick={() => (/^\d{8}$/.test(telefono) ? ir("token") : setError(tr("Ingresa un número de 8 dígitos.")))}>
+            {tr("Continuar")}
           </Button>
-          <Button variant="outlined" onClick={() => navigate("/login")}>
-            Volver al inicio de sesión
+          <Button variant="plain" onClick={() => navigate("/login")}>
+            {tr("Volver al inicio de sesión")}
           </Button>
-        </div>
+        </>
       )}
 
       {step === "token" && (
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-2">
-            <AuthHeading title="Verifica el codigo" />
+        <>
+          <div className="grid gap-3">
+            <AuthHeading title={tr("Verifica el código")} />
             <IdentifierChip>{telefono}</IdentifierChip>
           </div>
           <PinInput value={token} onChange={setToken} length={6} isPassword={false} allowLetters autoUppercase autoFocus />
           <AuthError message={error} />
           <Button disabled={token.length < 6} onClick={() => ir("pin")}>
-            Verificar
+            {tr("Verificar")}
           </Button>
-          <Button variant="outlined" onClick={() => setToken("")}>
-            Reenviar SMS
+          <Button variant="plain" onClick={() => setToken("")}>
+            {tr("Reenviar SMS")}
           </Button>
-        </div>
+        </>
       )}
 
       {step === "pin" && (
-        <div className="flex flex-col gap-5">
-          <AuthHeading title="Crea tu nuevo PIN" subtitle="Usalo para entrar de nuevo a CIRA." />
-          <PinInput label="PIN nuevo" value={pin} onChange={setPin} />
-          <PinInput label="Confirmar PIN" value={confirmPin} onChange={setConfirmPin} />
+        <>
+          <AuthHeading title={tr("Crea tu nuevo PIN")} subtitle={tr("Úsalo para entrar de nuevo a CIRA.")} />
+          <PinInput label={tr("PIN nuevo")} value={pin} onChange={setPin} />
+          <PinInput label={tr("Confirmar PIN")} value={confirmPin} onChange={setConfirmPin} error={!!error} />
           <AuthError message={error} />
           <Button
             disabled={pin.length < 4 || confirmPin.length < 4}
-            onClick={() =>
-              pin === confirmPin ? navigate("/login", { replace: true }) : setError("Los PIN no coinciden.")
-            }
+            onClick={() => (pin === confirmPin ? navigate("/login", { replace: true }) : setError(tr("Los PIN no coinciden.")))}
           >
-            Guardar PIN
+            {tr("Guardar PIN")}
           </Button>
-        </div>
+        </>
       )}
     </AuthLayout>
   );

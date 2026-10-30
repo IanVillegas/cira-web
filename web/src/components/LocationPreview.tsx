@@ -1,12 +1,13 @@
 import { useEffect } from "react";
-import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
-import { Icon } from "./ui/Icon";
-import { iconoSeleccionado } from "@/lib/leafletIcons";
+import { Icon } from "@/components/aire";
+import { Map, MapMarker, MarkerContent } from "@/components/mapa/mapcn";
+import { useMap } from "@/components/mapa/mapContext";
+import { ANCLA_GOTA, PinSeleccionado } from "@/components/mapa/Pines";
 
 function Recenter({ center }: { center: [number, number] }) {
-  const map = useMap();
+  const { map } = useMap();
   useEffect(() => {
-    map.setView(center, 14);
+    map?.jumpTo({ center: [center[1], center[0]], zoom: 13 });
   }, [center, map]);
   return null;
 }
@@ -22,32 +23,25 @@ interface LocationPreviewProps {
  */
 export function LocationPreview({ center, text }: LocationPreviewProps) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex min-h-14 items-center gap-2.5 rounded-cira-input bg-cira-input-bg px-3.5">
-        <Icon name="location_on" size={20} className="text-cira-accent" />
-        <span className="text-cira-body text-cira-text-secondary">{text}</span>
+    <div className="grid gap-2">
+      <div className="flex min-h-14 items-center gap-2.5 rounded-aire-sm bg-aire-surface-2 px-4">
+        <Icon name="location_on" size={20} className="shrink-0 text-aire-accent-text" />
+        <span className="aire-text-subhead text-aire-ink-2">{text}</span>
       </div>
 
-      <div className="relative h-48 overflow-hidden rounded-cira-input bg-cira-input-bg">
+      <div className="relative h-48 overflow-hidden rounded-aire-md bg-aire-surface-3">
         {center ? (
-          <MapContainer
-            center={center}
-            zoom={14}
-            className="h-full w-full"
-            zoomControl={false}
-            dragging={false}
-            scrollWheelZoom={false}
-            doubleClickZoom={false}
-            touchZoom={false}
-            attributionControl={false}
-          >
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <Map center={[center[1], center[0]]} zoom={13} interactive={false}>
             <Recenter center={center} />
-            <Marker position={center} icon={iconoSeleccionado} />
-          </MapContainer>
+            <MapMarker longitude={center[1]} latitude={center[0]} anchor={ANCLA_GOTA}>
+              <MarkerContent>
+                <PinSeleccionado />
+              </MarkerContent>
+            </MapMarker>
+          </Map>
         ) : (
           <div className="flex h-full items-center justify-center">
-            <Icon name="explore_nearby" size={44} className="text-cira-text-helper" />
+            <Icon name="explore_nearby" size={44} className="text-aire-ink-3" />
           </div>
         )}
       </div>

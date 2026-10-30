@@ -10,4 +10,5 @@ export const CATEGORIAS = [
   "Transporte",
   "Cuidado de mascotas",
   "Reparaciones",
+  "Cerrajería",
 ];

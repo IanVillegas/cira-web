@@ -2,7 +2,7 @@
 
 Backlog de funcionalidades para CIRA (curso Aplicaciones Informáticas Globales). Cada idea incluye su propósito, cómo funciona, su relación con el modelo de negocio y qué tan viable es para la demo del entregable final.
 
-Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"**.
+Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"**. Lo que ya está en la app, explicado para la exposición, está en [`novedades-entregable-final.md`](novedades-entregable-final.md).
 
 **Estados:** 💡 Propuesta · ✔️ Aprobada · 🛠️ En desarrollo · ✅ Implementada · ❌ Descartada · 🗺️ Roadmap (fase futura)
 
@@ -12,20 +12,25 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 | # | Idea | Estado | Prioridad |
 |---|------|--------|-----------|
-| 1 | Calificaciones (bidireccionales) y reportes | ✔️ Aprobada | Alta |
+| 1 | Calificaciones (bidireccionales) y reportes | ✅ Implementada | Alta |
 | 2 | Diagnóstico / sugerencia de categoría con IA | ❌ Descartada → 🗺️ Roadmap | — |
-| 3 | Modo Urgencia con tarifa de urgencia | ✔️ Aprobada | Alta |
-| 4 | Pago en la app con comisión de CIRA | ✔️ Aprobada | Alta |
-| 5 | Verificación con insignias | 💡 Propuesta | Media |
-| 6 | Plan Plus para trabajadores (alertas prioritarias) | ✔️ Aprobada | Alta |
-| 7 | Seguimiento del trabajo tipo Uber | 💡 Propuesta | Media (la primera extra) |
-| 8 | Compartir un trabajo por WhatsApp | 💡 Propuesta | Baja |
-| 9 | Idioma español / inglés | 💡 Propuesta | Baja |
+| 3 | Modo Urgencia con tarifa de urgencia | ✅ Implementada | Alta |
+| 4 | Pago con tarjeta y comisión de CIRA | ✅ Implementada | Alta |
+| 5 | Verificación con insignias | ✅ Implementada (datos de prueba) | Media |
+| 6 | Plan Plus para trabajadores (alertas prioritarias) | ✅ Implementada | Alta |
+| 7 | Seguimiento del trabajo tipo Uber | ✅ Implementada | Media (la primera extra) |
+| 8 | Compartir un trabajo por WhatsApp | ✅ Implementada | Baja |
+| 9 | Idioma español / inglés | ✅ Implementada | Baja |
+| 10 | Trueque de servicios ("Trueque de barrio") | ✅ Implementada (alcance recortado) | Media |
+| 11 | Agenda, servicios recurrentes y propiedades ("CIRA Agenda" + alquileres) | ✅ Implementada (alcance recortado) | Alta |
+| 12 | Limpieza entre huéspedes y trabajos con hora límite | ✅ Implementada | Alta |
 
 **Monetización (freemium):** la app es gratis para todos y CIRA gana dinero con tres fuentes, todas simuladas en la demo:
 1. **Plan Plus**: suscripción mensual del trabajador (idea #6).
 2. **Tarifa de urgencia**: pago único por trabajo urgente (idea #3).
 3. **Comisión** sobre los pagos hechos en la app (idea #4).
+
+El **trueque** (idea #10) no mueve dinero, así que se monetiza por el Plan Plus: el plan gratis permite 1 trueque al mes y Plus, ilimitados. Si el trueque lleva un diferencial en dinero y se paga con tarjeta, cobra la comisión normal.
 
 ---
 
@@ -71,7 +76,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 **Cómo funciona:**
 - Al crear un trabajo, el cliente activa la opción **"Es urgente"**.
-- Limitado a categorías críticas: fontanería, electricidad y cerrajería.
+- Disponible para cualquier categoría (decisión tras la primera revisión; el documento original la limitaba a fontanería, electricidad y cerrajería).
 - Se envía una alerta a los trabajadores **disponibles** de esa categoría más cercanos (usando las coordenadas `lat`/`lng` ya existentes); primero a los del Plan Plus (idea #6).
 - El primero que acepta se queda con el trabajo.
 - El trabajo se paga un poco mejor por ser inmediato, y el cliente paga una **tarifa de urgencia** que se muestra en el resumen del pago.
@@ -82,13 +87,13 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 ---
 
-## 4. Pago en la app con comisión de CIRA
+## 4. Pago con tarjeta y comisión de CIRA
 
 **Problema que resuelve:** Falta de confianza en los pagos: el cliente teme pagar por adelantado y que no se haga el trabajo; el trabajador teme no recibir su pago.
 
 **Cómo funciona:**
-- Solo quedan dos métodos de pago: **Efectivo** y **Pago en la app**. Se eliminan SINPE y Transferencia (ya se quitaron en el primer entregable, pero siguen en el código).
-- Con "Pago en la app" el resumen del pago muestra el monto del trabajo, la **comisión de CIRA** y, si aplica, la tarifa de urgencia.
+- Solo quedan dos métodos de pago: **Efectivo** y **Tarjeta**. Se eliminan SINPE y Transferencia (ya se quitaron en el primer entregable, pero siguen en el código).
+- Con "Tarjeta" el resumen del pago muestra el monto del trabajo, la **comisión de CIRA** y, si aplica, la tarifa de urgencia.
 - El pago es **simulado** (el profesor lo permite).
 - Opcional: el dinero queda retenido hasta que ambas partes confirmen que el trabajo terminó; confirmar y calificar (idea #1) es el mismo paso.
 
@@ -182,11 +187,115 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 
 ---
 
+## 10. Trueque de servicios ("Trueque de barrio")
+
+> Idea propuesta por una compañera del equipo. Valorada en grupo antes de implementarla; se hizo con un alcance recortado.
+
+**Problema que resuelve:** Muchos trabajadores independientes necesitan servicios para su casa o su negocio, pero no siempre tienen el dinero para pagarlos. Pueden pagarlos con su propio trabajo.
+
+**Propuesta original:** intercambio 1 a 1 de servicios sin créditos ni monedas internas, con diferencial en efectivo, contraofertas por chat, acuerdo digital, cierre en dos pasos, calificación cruzada obligatoria y un sistema de disputas y sanciones (evidencia con chat, geolocalización y fotos; congelamiento de la cuenta; suspensión de 30 días a la primera falta y expulsión permanente a la segunda; sanción al denunciante de mala fe).
+
+**Valoración:**
+- ⚠️ **Choca con el modelo de negocio:** un trueque no mueve dinero, así que CIRA no cobra nada. Además abre un hueco: marcar como trueque un trabajo pagado para no pagar la comisión. → Se resuelve atándolo al **Plan Plus** (gratis: 1 trueque al mes; Plus: ilimitados).
+- ⚠️ **No resuelve el arranque ("huevo y gallina"), lo dificulta:** un trueque necesita que coincidan dos necesidades a la vez (yo necesito lo que tú ofreces y tú lo que yo ofrezco), algo más difícil con pocos usuarios que un trabajo pagado. Sí sirve como **mensaje de marketing** para el lanzamiento local.
+- ⚠️ **Las sanciones son demasiado para el MVP:** bloquear por huella del dispositivo, verificar la geolocalización y resolver en 48 horas requiere un panel de administración que no existe y genera preguntas de privacidad; suspender 30 días a la primera falta es muy duro. Quedan como **política** (roadmap y términos de uso), no en la app. Se rescata la sanción al denunciante de mala fe.
+- ✅ Gran parte ya existía: chat (contraofertas), seguimiento por etapas (cierre en dos pasos), calificación en ambas direcciones y "Reportar usuario" (disputas).
+
+**Cómo funciona (lo implementado):**
+- Al publicar, **Trueque** es un tercer método de pago (junto a Efectivo y Tarjeta): se indica qué se ofrece a cambio y, opcionalmente, un **diferencial** en colones (en efectivo o con tarjeta).
+- Al postularse, el trabajador acepta lo ofrecido o **propone otra cosa** (contraoferta). El publicador ve la propuesta de cada postulante antes de elegir.
+- **Acuerdo digital:** al elegir a alguien, el publicador firma el acuerdo (quién hace qué y cuándo); el trabajador lo acepta en *Mis trabajos* antes de empezar. Sin acuerdo aceptado no arranca el seguimiento.
+- **Cierre en dos pasos:** el trabajador hace su parte con el seguimiento normal y la marca como **"Primera parte entregada"**; cuando recibe la parte del publicador, marca **"Trueque finalizado"**.
+- Después se paga el diferencial (si hay) y ambos se califican, con la pregunta de si la otra persona **cumplió su parte**.
+- Disputas: con el "Reportar usuario" existente.
+
+**Relación con el modelo de negocio:** Empuja a los usuarios hacia el Plan Plus (trueques ilimitados) y el diferencial con tarjeta genera comisión. Refuerza el sentido de comunidad, que es parte de la propuesta de valor.
+
+**Viabilidad para la demo:** Alta. Se apoya en el flujo de publicar, postular, seguimiento, pago y calificación que ya existe.
+
+---
+
+## 11. Agenda, servicios recurrentes y propiedades
+
+> Dos ideas que llegaron juntas: **"CIRA Agenda"** (el trabajador convierte trabajos ocasionales en ingresos recurrentes) y **"CIRA para alquileres vacacionales"** (la propiedad lista antes del próximo huésped). Ian propuso unirlas en una agenda para trabajadores y clientes, enlazada con "Recontratar".
+
+**Problema que resuelve:**
+- El trabajador no tiene dónde ver qué días ya tiene trabajo ni cómo avisar qué días no puede.
+- El cliente que necesita el mismo servicio seguido (limpieza cada viernes, jardín cada mes) tiene que volver a contratarlo cada vez.
+- Quien administra varias propiedades (Airbnb, condominios, apartamentos) repite cada vez la dirección y las instrucciones (dónde está la llave, qué revisar).
+- Si el trabajador de siempre cancela, el cliente se queda sin servicio.
+
+**Propuestas originales:**
+- *CIRA Agenda:* contratar un servicio semanal, quincenal o mensual; CIRA organiza las visitas y, si el trabajador cancela, ofrece un reemplazo con autorización del cliente. Conserva instrucciones, frecuencia, presupuesto y un suplente. Cobro: herramientas para el trabajador, coordinación para empresas o comisión por servicio.
+- *Alquileres vacacionales:* el anfitrión registra propiedades y fechas de entrada; CIRA coordina limpieza, revisión y reparaciones, con una lista de verificación con fotos como evidencia. Si aparece una avería, se crea un trabajo relacionado. Cobro: mensualidad por propiedad.
+
+**Valoración:**
+- ✅ **Retención:** una contratación produce muchas transacciones futuras, y cada visita pagada con tarjeta genera comisión. Es la idea que más mueve el modelo de negocio por usuario.
+- ✅ **Se apoya en lo que existe:** "Recontratar" y las ofertas directas (idea de "De confianza"), el seguimiento, el pago y la calificación.
+- ✅ **Diferenciador:** la programación recurrente ya existe en productos como Jobber; lo que defendemos es la **combinación de recurrencia + reemplazos dentro de la comunidad local** (los trabajadores "De confianza" del cliente).
+- ⚠️ **Cambio técnico de fondo:** las fechas de los trabajos eran texto libre ("Sábado, 4:00 p.m.") y la disponibilidad solo era "sí/no". Hubo que pasar todas las fechas a fechas reales.
+- ⚠️ **La lista de verificación con fotos y el trabajo relacionado automático** tienen una dificultad alta y abren otro segmento (anfitriones con mensualidad por propiedad). Quedan en el **roadmap** como la siguiente fase de "Mis propiedades".
+
+**Cómo funciona (lo implementado):**
+- **Agenda** (Perfil → Mi agenda): calendario mensual con todo lo agendado, como trabajador y como cliente, filtrable por rol y por propiedad. El trabajador **bloquea días** que no puede trabajar.
+- **Disponibilidad al contratar:** al recontratar a alguien se ven sus próximos días ocupados o libres (nunca con quién ni qué trabajo).
+- **Frecuencia:** al recontratar se elige *Una vez, Semanal, Quincenal o Mensual*. La persona acepta la oferta una sola vez y CIRA genera las próximas visitas. Cada visita se hace, se paga y se califica por separado.
+- **Reemplazo:** si el trabajador cancela una visita, el cliente ve sugerencias de reemplazo (primero sus trabajadores "De confianza" del mismo oficio que estén libres ese día; luego otros cercanos y bien calificados). Al elegir uno, le llega como oferta directa solo para esa visita; la serie sigue con el trabajador de siempre. También puede publicarla para todos.
+- **Mis propiedades:** el cliente guarda direcciones con nombre e **instrucciones fijas**. Al publicar o recontratar elige la propiedad y se llenan la ubicación y las instrucciones. Las instrucciones solo las ven el cliente y el trabajador asignado.
+
+**Relación con el modelo de negocio:** más visitas por cliente = más comisiones, sin costo extra de adquisición. Refuerza "De confianza" (los reemplazos salen de ahí) y prepara el segmento de administradores de propiedades para una fase futura con mensualidad.
+
+**Viabilidad para la demo:** Alta para lo implementado. Ian ya tiene una limpieza semanal con Marisol en "Apartamento Escazú": se muestra la agenda, Marisol cancela un viernes y Ian elige a Jixi como reemplazo.
+
+---
+
+## 12. Limpieza entre huéspedes y trabajos con hora límite
+
+> Observación de Ian sobre la idea #11: un Airbnb no limpia "cada viernes". Limpia cuando sale un huésped, y tiene que estar listo antes de que entre el siguiente; muchas veces con poco aviso.
+
+**Problema que resuelve:**
+- La recurrencia fija sirve para casas y oficinas, pero no para alquileres de corta estancia, donde las limpiezas dependen de las reservas.
+- Una urgencia era "lo antes posible", sin hora. No había forma de decir *"el huésped sale a las 11 y el próximo entra a las 3: tiene que estar listo antes"*.
+
+**Valoración:**
+- ✅ Completa la idea #11 para su segmento más exigente (anfitriones) sin cambiar lo que ya funciona.
+- ✅ **Reusa el Modo Urgencia:** si el limpiador de siempre no responde, el trabajo se vuelve urgencia y se avisa a los cercanos. La tarifa de urgencia se cobra justo donde más valor tiene.
+- ✅ La **hora límite** sirve para cualquier trabajo, no solo para limpiezas.
+- ⚠️ En producción, las reservas se leerían solas del calendario de Airbnb o Booking (exportan iCal). En la demo se registran a mano: queda en el **roadmap**.
+
+**Cómo funciona (lo implementado):**
+- **Hora límite ("Listo antes de")** opcional al publicar cualquier trabajo, también en las urgencias. Se ve en las tarjetas, en *Mis trabajos*, *Mis publicaciones* y la agenda: *"Desde 11:00 a. m. · listo antes de 3:00 p. m."*.
+- **Limpiador habitual** de cada propiedad (en *Mis propiedades*), elegido entre los trabajadores "De confianza" que ofrecen Limpieza.
+- **Registrar salida de huésped** en la propiedad: hora de salida, hora de entrada del próximo y monto. CIRA crea la limpieza con esa ventana y se la ofrece primero al limpiador habitual.
+- Si no responde en **10 minutos** (configurable) o dice que no, **pasa sola a urgencia**: se avisa a los trabajadores cercanos de Limpieza (Plus primero) y se cobra la tarifa de urgencia. El anfitrión también puede pasarla a urgencia al instante. Sin limpiador habitual, es urgencia desde el inicio.
+- Las urgencias exigen tarjeta registrada (por la tarifa) y que quien acepta tenga la cédula verificada, como siempre.
+
+**Relación con el modelo de negocio:** cada salida de huésped es una transacción; las que se vuelven urgentes pagan la tarifa de urgencia. Prepara la mensualidad por propiedad para anfitriones del roadmap.
+
+**Viabilidad para la demo:** Alta. Ian registra que el huésped del Apartamento Escazú sale y el próximo entra en unas horas; le llega a Marisol, Ian la pasa a urgencia y Jixi la acepta.
+
+---
+
+## Decisiones de implementación (para el documento)
+
+- **Cobros (todos simulados):** el cliente paga el monto del trabajo **+ comisión de CIRA (10 %, solo si paga con tarjeta) + tarifa de urgencia (15 %, solo urgencias)**; el trabajador recibe el monto completo. Los porcentajes y el precio del Plus se cambian en `server/src/config.js`.
+- **Tarjeta (simulada):** se registra en Cuenta → Mi tarjeta (se valida el formato; solo se guardan marca, últimos 4, titular y vencimiento). Es obligatoria para pagar con tarjeta y para publicar urgencias. Una urgencia puede pagarse en efectivo: el monto se entrega en mano y la tarifa de urgencia se cobra a la tarjeta.
+- **Propina:** opcional al pagar (₡500, ₡1 000, ₡2 000 u otro monto); va completa para el trabajador y no genera comisión.
+- **Mi actividad:** en Cuenta, lo que pagó (publicaciones) y lo que ganó (trabajos) cada usuario; distinto de "Ingresos de CIRA".
+- **Avisos:** toasts y modal de éxito para confirmar acciones; los mensajes de chat sin leer se avisan con un toast y una insignia en la barra inferior.
+- **Alertas:** se consultan cada 5 s (sin notificaciones push). Radio de 15 km; los Plus las ven al instante (los mejor calificados primero, +10 s por puesto) y el plan gratis tras 2 minutos (`CIRA_RETRASO_ALERTAS_SEG` para acortarlo en la demo). Una alerta dura 30 minutos.
+- **Seguimiento:** aplica a cualquier trabajo asignado, no solo a urgencias. Al marcar "Terminado" el cliente paga y luego ambos califican.
+- **Insignias:** Plus (según el plan), cédula y hoja de delincuencia (campos de prueba), +50 trabajos (calculado) y "Responde urgencias" (se activa al aceptar una).
+- **Trueque (#10):** `pago` es el diferencial (puede ser 0) y `metodoPago`, cómo se paga. El límite del plan gratis está en `server/src/config.js` (`TRUEQUES_GRATIS_MES`). Un trueque no puede ser urgencia. Al elegir postulante, el publicador firma el acuerdo; sin que el trabajador lo acepte no arranca el seguimiento. "Terminado" en el seguimiento es la primera parte; el trueque termina cuando el trabajador marca que recibió la segunda, y si no hay diferencial queda pagado automáticamente.
+- **Fechas y agenda (#11):** las fechas de los trabajos son fecha y hora locales de Costa Rica (`2026-10-31T09:00`); `null` = lo antes posible (urgencias). Un servicio recurrente es una `serie` con las visitas como trabajos; CIRA mantiene 4 visitas futuras creadas y las completa al consultar. Si el trabajador cancela una visita, queda en reemplazo pendiente (no se publica para todos) hasta que el cliente elija. Las fechas de ejemplo se regeneran con `npm run reset` en `server/`.
+- **Limpieza entre huéspedes (#12):** la limpieza es un trabajo con `turno`, `fecha` = salida y `limite` = entrada del próximo. Se le ofrece al limpiador habitual de la propiedad; el escalado a urgencia se revisa en cada petición al servidor (no hay tarea programada). Sin tarjeta registrada, el escalado la publica para todos sin tarifa de urgencia.
+- **Idioma (#9):** selector en Cuenta (recarga la app). Los textos viven en el código en español y `web/src/lib/i18n/en.ts` trae la traducción al inglés (clave = texto en español; si falta, se muestra en español). Los errores del servidor también se traducen. El contenido escrito por los usuarios (títulos, descripciones, chats) no se traduce.
+
 ## Cambios técnicos pendientes (no son ideas nuevas)
 
-- **Quitar SINPE y Transferencia del código.** Siguen en `types.ts`, `CrearTrabajoPage.tsx` (SINPE viene por defecto), `EditProfilePage.tsx`, `PerfilPage.tsx` y `seed.js`. Solo deben quedar "Efectivo" y "Pago en la app".
-- **Editar publicaciones.** El backend ya permite editar un trabajo (`PATCH /trabajos/:id`); falta el botón y la pantalla en "Mis publicaciones".
-- **Usuarios definidos y multiusuario.** Login por teléfono con PIN `1234` para todos (fase de pruebas), para que varios compañeros puedan interactuar a la vez (postularse, chatear, calificar). Hoy el backend usa un usuario fijo (`u-1`). Los teléfonos reales van en un archivo local excluido de git, no en el repo.
+- ✅ **Quitar SINPE y Transferencia del código.** Siguen en `types.ts`, `CrearTrabajoPage.tsx` (SINPE viene por defecto), `EditProfilePage.tsx`, `PerfilPage.tsx` y `seed.js`. Solo deben quedar "Efectivo" y "Tarjeta".
+- ✅ **Editar publicaciones.** El backend ya permite editar un trabajo (`PATCH /trabajos/:id`); falta el botón y la pantalla en "Mis publicaciones".
+- ✅ **Usuarios definidos y multiusuario.** Login por teléfono con PIN `1234` para todos (fase de pruebas), para que varios compañeros puedan interactuar a la vez (postularse, chatear, calificar). Hoy el backend usa un usuario fijo (`u-1`). Los 6 usuarios del equipo (con sus teléfonos reales) están sembrados en `server/src/seed.js`; ver `server/README.md`.
 - **Publicar en internet:** no es necesario. La demo corre local con `npm run demo` y los demás dispositivos se conectan por la misma red WiFi.
 
 ---
@@ -196,7 +305,7 @@ Alineado con el resumen del grupo **"CIRA – Cambios para el entregable final"*
 1. El cliente crea un trabajo de fontanería y activa **"Es urgente"**.
 2. La alerta llega primero a los fontaneros **Plus** cercanos y, minutos después, al resto.
 3. Un trabajador acepta y el cliente ve el **seguimiento**: Aceptado → En camino → Llegó → Terminado.
-4. El cliente paga con **Pago en la app**; el resumen muestra la tarifa de urgencia y la comisión de CIRA.
+4. El cliente paga con **Tarjeta** (con propina opcional); el resumen muestra la tarifa de urgencia y la comisión de CIRA.
 5. Ambos se **califican con estrellas** y, si hace falta, pueden **reportar** al otro usuario.
 
 ---
