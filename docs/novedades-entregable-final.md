@@ -619,7 +619,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | Reparto de la tarifa de urgencia: 10 % al trabajador (bono) y 5 % a CIRA | 6.1, 7.2 |
+| `c446546` | Reparto de la tarifa de urgencia: 10 % al trabajador (bono) y 5 % a CIRA | 6.1, 7.2 |
 | `9297146` | Cuenta regresiva del aviso siempre en azul (estilo Uber), sin naranja ni rojo | 7.2 |
 | `7c77d05` | Aviso de urgencia con cuenta regresiva de 30 s en el botón Aceptar (azul → naranja → rojo) | 7.2 |
 | `c5671fe` | El manifiesto se pide con cookies para que la instalación funcione detrás de Dev Tunnels | 4.5.1 |
