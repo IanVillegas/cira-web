@@ -268,7 +268,7 @@ export function CrearTrabajoPage() {
             <div className="flex-1">
               <p className="aire-text-headline text-aire-ink">{tr("Es urgente")}</p>
               <p className="aire-text-footnote text-aire-ink-2">
-                {tr("Alertamos primero a los trabajadores más cercanos y disponibles. Tiene una tarifa de urgencia del {pct}%, que se cobra con tu tarjeta registrada.", { pct: config.urgenciaPct })}
+                {tr("Alertamos primero a los trabajadores más cercanos y disponibles. Tiene una tarifa de urgencia del {pct}%, que se cobra con tu tarjeta registrada: {trab}% es para quien atiende la urgencia y {cira}% para CIRA.", { pct: config.urgenciaPct, trab: config.urgenciaTrabajadorPct, cira: config.urgenciaPct - config.urgenciaTrabajadorPct })}
               </p>
             </div>
             {!editando && <Switch checked={esUrgente} onChange={setUrgente} label={tr("Es urgente")} />}

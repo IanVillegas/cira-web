@@ -198,6 +198,8 @@ export interface MovimientoActividad {
   total: number;
   enEfectivo: number;
   enTarjeta: number;
+  /** Solo en ganancias: la parte de la tarifa de urgencia que recibe el trabajador. */
+  bonoUrgencia?: number;
 }
 
 export interface Actividad {
@@ -258,6 +260,8 @@ export interface Alerta {
 export interface ConfigNegocio {
   comisionPct: number;
   urgenciaPct: number;
+  /** De esos puntos, cuántos van al trabajador (el resto es de CIRA). */
+  urgenciaTrabajadorPct: number;
   plusPrecio: number;
   retrasoGratisSeg: number;
   truequesGratisMes: number;
@@ -266,7 +270,8 @@ export interface ConfigNegocio {
 
 export interface Ingresos {
   planPlus: { total: number; cantidad: number };
-  tarifaUrgencia: { total: number; cantidad: number };
+  /** total: la parte de CIRA; alTrabajador: lo que se reparte a los trabajadores. */
+  tarifaUrgencia: { total: number; cantidad: number; alTrabajador: number };
   comisiones: { total: number; cantidad: number };
   total: number;
 }

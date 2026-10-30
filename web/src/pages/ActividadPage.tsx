@@ -100,6 +100,7 @@ function Movimiento({ m, tipo }: { m: MovimientoActividad; tipo: Pestana }) {
         <span>{tr("Trabajo")}: {formatoColones.format(m.monto)}</span>
         {tipo === "pagos" && m.comision > 0 && <span>{tr("Comisión")}: {formatoColones.format(m.comision)}</span>}
         {tipo === "pagos" && m.tarifaUrgencia > 0 && <span>{tr("Urgencia")}: {formatoColones.format(m.tarifaUrgencia)}</span>}
+        {tipo !== "pagos" && (m.bonoUrgencia ?? 0) > 0 && <span>{tr("Bono de urgencia")}: {formatoColones.format(m.bonoUrgencia ?? 0)}</span>}
         {m.propina > 0 && <span>{tr("Propina")}: {formatoColones.format(m.propina)}</span>}
         <span>{m.metodo === "Efectivo" ? tr("Efectivo") : tr("Tarjeta")}</span>
       </div>

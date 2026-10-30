@@ -14,7 +14,7 @@ import {
   tieneTrabajoEseDia,
 } from "./agenda.js";
 import { RE_DIA, ahoraIso, diaDe, fechaHoraValida, hoyIso } from "./fechas.js";
-import {
+import { repartoUrgencia,
   calcularResumenPago,
   distanciaKm,
   mapConversacion,
@@ -115,6 +115,7 @@ router.get("/config", (_req, res) => {
   res.json({
     comisionPct: CONFIG.COMISION_PCT,
     urgenciaPct: CONFIG.URGENCIA_PCT,
+    urgenciaTrabajadorPct: CONFIG.URGENCIA_TRABAJADOR_PCT,
     plusPrecio: CONFIG.PLUS_PRECIO,
     retrasoGratisSeg: CONFIG.RETRASO_GRATIS_SEG,
     truequesGratisMes: CONFIG.TRUEQUES_GRATIS_MES,
@@ -1252,10 +1253,14 @@ router.get("/actividad", (req, res) => {
   });
 
   const pagos = filas.filter((p) => p.publicador_id === req.usuarioId).map((p) => mapear(p, p.trabajador_id));
-  // El trabajador recibe el monto completo más la propina; CIRA se queda con comisión y tarifa.
+  // El trabajador recibe el monto completo, la propina y su parte de la tarifa de urgencia;
+  // CIRA se queda con la comisión y el resto de la tarifa.
   const ganancias = filas
     .filter((p) => p.trabajador_id === req.usuarioId)
-    .map((p) => ({ ...mapear(p, p.publicador_id), total: p.monto + p.propina }));
+    .map((p) => {
+      const bono = repartoUrgencia(p.tarifa_urgencia).trabajador;
+      return { ...mapear(p, p.publicador_id), bonoUrgencia: bono, total: p.monto + p.propina + bono };
+    });
 
   res.json({
     pagos,
@@ -1269,11 +1274,17 @@ router.get("/actividad", (req, res) => {
 router.get("/ingresos", (_req, res) => {
   const suma = (sql) => db.prepare(sql).get();
   const plus = suma("SELECT COALESCE(SUM(monto), 0) AS total, COUNT(*) AS n FROM suscripcion");
-  const urgencia = suma("SELECT COALESCE(SUM(tarifa_urgencia), 0) AS total, COUNT(*) AS n FROM pago WHERE tarifa_urgencia > 0");
+  // De cada tarifa de urgencia, CIRA solo cuenta su parte (la otra va al trabajador).
+  const tarifas = db.prepare("SELECT tarifa_urgencia FROM pago WHERE tarifa_urgencia > 0").all();
+  const urgencia = {
+    total: tarifas.reduce((a, p) => a + repartoUrgencia(p.tarifa_urgencia).cira, 0),
+    alTrabajador: tarifas.reduce((a, p) => a + repartoUrgencia(p.tarifa_urgencia).trabajador, 0),
+    n: tarifas.length,
+  };
   const comision = suma("SELECT COALESCE(SUM(comision), 0) AS total, COUNT(*) AS n FROM pago WHERE comision > 0");
   res.json({
     planPlus: { total: plus.total, cantidad: plus.n },
-    tarifaUrgencia: { total: urgencia.total, cantidad: urgencia.n },
+    tarifaUrgencia: { total: urgencia.total, cantidad: urgencia.n, alTrabajador: urgencia.alTrabajador },
     comisiones: { total: comision.total, cantidad: comision.n },
     total: plus.total + urgencia.total + comision.total,
   });

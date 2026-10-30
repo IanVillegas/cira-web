@@ -161,7 +161,7 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 
 **Por qué así:**
 - Es el patrón de inicio de las apps de servicios (Airbnb, Rappi, Uber): se ve un poco de todo sin desplazarse y cada fila invita a deslizar (se asoma la siguiente tarjeta).
-- **Las urgencias van de primero** porque son una fuente de ingreso (tarifa del 15 %, [§6.1](#61-las-fuentes-de-ingreso)) y la propuesta más fuerte para el cliente.
+- **Las urgencias van de primero** porque son una fuente de ingreso (5 de los 15 puntos de la tarifa, [§6.1](#61-las-fuentes-de-ingreso)) y la propuesta más fuerte para el cliente.
 - **Hoja y no modal centrado:** en el teléfono se cierra deslizando hacia abajo y cabe toda la tarjeta con sus botones.
 - **Mis trabajos, Mis publicaciones, Agenda y De confianza son una sola sección con pestañas:** la franja azul y los cuatro círculos se quedan quietos, el elegido se marca y solo cambian el contenido, el título, el subtítulo y el botón de la franja (historial en Mis trabajos, propiedades en la Agenda). Cambiar de opción no suma pasos al botón atrás, que vuelve a donde estabas (Explorar o Perfil). Antes cada una era una pantalla aparte y se sentía como saltar de un lado a otro.
 - **El botón "+" para crear una publicación** está ahora en *Mis publicaciones* (donde se gestionan), no en el inicio de Explorar.
@@ -307,10 +307,12 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 | Fuente | Cuánto | Quién paga | Cuándo se ve en la demo |
 |---|---|---|---|
 | **Comisión por pago con tarjeta** | 10 % del monto | El cliente, solo si paga con tarjeta | Resumen del pago al publicar y al pagar |
-| **Tarifa de urgencia** | 15 % del monto | El cliente, solo en urgencias | Al publicar una urgencia y al pagarla |
+| **Tarifa de urgencia** | 15 % del monto: **10 % para el trabajador** y **5 % para CIRA** | El cliente, solo en urgencias | Al publicar una urgencia y al pagarla |
 | **Plan Plus** | ₡2 500 al mes | El trabajador, opcional | Cuenta → Plan Plus |
 
-El trabajador siempre recibe el **monto completo** del trabajo, más la propina. Los porcentajes y el precio se cambian en `server/src/config.js`.
+El trabajador siempre recibe el **monto completo** del trabajo, más la propina y, en urgencias, un **bono de urgencia** (10 de los 15 puntos de la tarifa): estar disponible al instante merece compensación, y sin ese bono nadie tendría incentivo para responder rápido. Los porcentajes y el precio se cambian en `server/src/config.js` (`CIRA_URGENCIA_TRABAJADOR_PCT` para la parte del trabajador).
+
+**Ejemplo:** un cliente publica una urgencia de plomería por ₡20 000, la paga con tarjeta y deja ₡1 000 de propina. Paga ₡26 000 (₡20 000 del trabajo, ₡2 000 de comisión, ₡3 000 de tarifa de urgencia y ₡1 000 de propina). El plomero recibe **₡23 000** (trabajo, propina y ₡2 000 de bono) y CIRA gana **₡3 000** (₡2 000 de comisión y ₡1 000 de la tarifa). El trabajador ve el bono en *Mi actividad* e *Ingresos de CIRA* muestra solo la parte de CIRA.
 
 ### 6.2 Pago con tarjeta (simulado)
 
@@ -375,7 +377,7 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 - Disponible para cualquier categoría; al principio solo eran plomería, electricidad y cerrajería, y lo abrimos tras la primera revisión.
 - Alerta dentro de la app (banner y pantalla de Alertas), con un radio de 15 km.
 - **El aviso dura 30 segundos, como una oferta de viaje en Uber:** el botón *Aceptar* es del azul de CIRA y un azul más intenso se va retirando de derecha a izquierda, con los segundos que quedan. Siempre azul, para no romper con el color de la marca. Si no se acepta, el aviso se va solo, pero la urgencia **sigue en la pantalla de Alertas** para aceptarla después (si nadie la tomó). La ventaja de 2 minutos del plan Plus no cambia. Primero a los Plus (los mejor calificados antes) y 2 minutos después al resto.
-- La tarifa de urgencia (15 %) se muestra en el resumen. Las urgencias tienen su propia fila de primero en Explorar y van arriba en la lista completa.
+- La tarifa de urgencia (15 %: 10 % para quien la atiende y 5 % para CIRA) se muestra en el resumen. Las urgencias tienen su propia fila de primero en Explorar y van arriba en la lista completa.
 - Para aceptar una urgencia hay que tener la **cédula verificada** ([§5.2](#52-verificación-de-cédula-y-hoja-de-delincuencia)).
 
 **Por qué así:** la urgencia es donde el cliente más valora la rapidez y donde más dispuesto está a pagar. Por eso concentra una fuente de ingreso y la exigencia de verificación.
@@ -504,7 +506,7 @@ El trabajador siempre recibe el **monto completo** del trabajo, más la propina.
 | **Propuesta de valor** | Cliente: encontrar a alguien confiable y cercano, incluso en una emergencia. Trabajador: más trabajos, reputación que demuestra su calidad y clientes que vuelven |
 | **Canales** | App web en el teléfono; WhatsApp para compartir trabajos y recomendar perfiles (links que llevan a CIRA) |
 | **Relación con clientes** | Autoservicio + comunidad: calificaciones, "De confianza", trueque, avisos y chat. **Relación continua** con los servicios recurrentes de la agenda |
-| **Fuentes de ingreso** | Comisión del 10 % (tarjeta), tarifa de urgencia del 15 % y Plan Plus de ₡2 500/mes; visibles en "Ingresos de CIRA". Los servicios recurrentes multiplican las comisiones por cliente; a futuro, mensualidad por propiedad para anfitriones |
+| **Fuentes de ingreso** | Comisión del 10 % (tarjeta), tarifa de urgencia del 15 % (CIRA retiene 5 % y 10 % va al trabajador) y Plan Plus de ₡2 500/mes; visibles en "Ingresos de CIRA". Los servicios recurrentes multiplican las comisiones por cliente; a futuro, mensualidad por propiedad para anfitriones |
 | **Recursos clave** | La plataforma, la base de usuarios verificados y su reputación acumulada |
 | **Actividades clave** | Emparejar trabajos con trabajadores cercanos, verificar identidades, procesar pagos y moderar reportes |
 | **Socios clave** | Pasarela de pagos (a futuro), Poder Judicial (hoja de delincuencia), OpenStreetMap y OpenFreeMap (mapas sin costo) |
@@ -617,6 +619,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
+| `PENDIENTE` | Reparto de la tarifa de urgencia: 10 % al trabajador (bono) y 5 % a CIRA | 6.1, 7.2 |
 | `9297146` | Cuenta regresiva del aviso siempre en azul (estilo Uber), sin naranja ni rojo | 7.2 |
 | `7c77d05` | Aviso de urgencia con cuenta regresiva de 30 s en el botón Aceptar (azul → naranja → rojo) | 7.2 |
 | `c5671fe` | El manifiesto se pide con cookies para que la instalación funcione detrás de Dev Tunnels | 4.5.1 |

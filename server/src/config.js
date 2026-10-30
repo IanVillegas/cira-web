@@ -11,6 +11,8 @@ export const CONFIG = {
   COMISION_PCT: num(process.env.CIRA_COMISION_PCT, 10),
   /** Tarifa de urgencia sobre el monto del trabajo (%). Pago único por trabajo urgente. */
   URGENCIA_PCT: num(process.env.CIRA_URGENCIA_PCT, 15),
+  /** Parte de la tarifa de urgencia (puntos del monto) que va al trabajador por estar disponible; CIRA se queda el resto (15 − 10 = 5). */
+  URGENCIA_TRABAJADOR_PCT: num(process.env.CIRA_URGENCIA_TRABAJADOR_PCT, 10),
   /** Precio mensual del Plan Plus (colones). */
   PLUS_PRECIO: num(process.env.CIRA_PLUS_PRECIO, 2500),
   /** Segundos que espera el plan gratis para recibir una alerta (los Plus la reciben primero). */

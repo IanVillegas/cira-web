@@ -72,6 +72,7 @@ En `src/config.js` (se pueden sobrescribir con variables de entorno):
 | --- | --- | --- |
 | `CIRA_COMISION_PCT` | 10 | Comisión de CIRA sobre pagos con tarjeta |
 | `CIRA_URGENCIA_PCT` | 15 | Tarifa de urgencia (pago único por trabajo urgente) |
+| `CIRA_URGENCIA_TRABAJADOR_PCT` | 10 | De esos puntos, los que van al trabajador como bono (CIRA se queda el resto: 5) |
 | `CIRA_PLUS_PRECIO` | 2500 | Precio mensual del Plan Plus (colones) |
 | `CIRA_RETRASO_ALERTAS_SEG` | 120 | Segundos que espera el plan gratis para ver una alerta (bajalo para la demo) |
 | `CIRA_VENTANA_ALERTAS_MIN` | 30 | Minutos que una alerta sigue activa |

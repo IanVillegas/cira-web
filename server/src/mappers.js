@@ -209,7 +209,8 @@ export function mapPerfilPublico(row, viewer) {
 // ── Pagos ───────────────────────────────────────────────────────────
 /**
  * Resumen del pago. La comisión de CIRA (solo con tarjeta), la tarifa de urgencia y la propina se
- * suman al monto del trabajo; el trabajador recibe el monto completo más la propina.
+ * suman al monto del trabajo; el trabajador recibe el monto completo, la propina y su parte de la
+ * tarifa de urgencia (repartoUrgencia).
  * Con efectivo, el cliente entrega en mano el monto (y la propina); lo demás se cobra con su tarjeta.
  */
 export function calcularResumenPago(monto, urgente, metodo, propina = 0) {
@@ -218,6 +219,18 @@ export function calcularResumenPago(monto, urgente, metodo, propina = 0) {
   const total = monto + comision + tarifaUrgencia + propina;
   const enEfectivo = metodo === "Efectivo" ? monto + propina : 0;
   return { monto, comision, tarifaUrgencia, propina, total, enEfectivo, enTarjeta: total - enEfectivo };
+}
+
+/**
+ * Reparto de la tarifa de urgencia: el trabajador recibe URGENCIA_TRABAJADOR_PCT de los
+ * URGENCIA_PCT puntos (10 de 15) y CIRA el resto. Se calcula a partir de la tarifa guardada,
+ * así sirve también para los pagos ya hechos.
+ */
+export function repartoUrgencia(tarifaUrgencia) {
+  if (!tarifaUrgencia || CONFIG.URGENCIA_PCT <= 0) return { trabajador: 0, cira: 0 };
+  const parte = Math.min(CONFIG.URGENCIA_TRABAJADOR_PCT, CONFIG.URGENCIA_PCT) / CONFIG.URGENCIA_PCT;
+  const trabajador = Math.round(tarifaUrgencia * parte);
+  return { trabajador, cira: tarifaUrgencia - trabajador };
 }
 
 /** Datos de la tarjeta registrada (nunca se guarda el número completo ni el CVV). */

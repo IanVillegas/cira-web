@@ -23,7 +23,12 @@ export function IngresosPage() {
     { titulo: tr("Plan Plus"), detalle: tr("{n} suscripción(es)", { n: ingresos.planPlus.cantidad }), total: ingresos.planPlus.total },
     {
       titulo: tr("Tarifa de urgencia"),
-      detalle: tr("{n} urgencia(s) · {pct}%", { n: ingresos.tarifaUrgencia.cantidad, pct: config.urgenciaPct }),
+      detalle: tr("{n} urgencia(s) · {pct}% de {total}% (el resto, {resto}, va al trabajador)", {
+        n: ingresos.tarifaUrgencia.cantidad,
+        pct: config.urgenciaPct - config.urgenciaTrabajadorPct,
+        total: config.urgenciaPct,
+        resto: formatoColones.format(ingresos.tarifaUrgencia.alTrabajador ?? 0),
+      }),
       total: ingresos.tarifaUrgencia.total,
     },
     {

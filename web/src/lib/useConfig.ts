@@ -6,6 +6,7 @@ import type { ConfigNegocio, MetodoPago, ResumenPago } from "./types";
 const POR_DEFECTO: ConfigNegocio = {
   comisionPct: 10,
   urgenciaPct: 15,
+  urgenciaTrabajadorPct: 10,
   plusPrecio: 2500,
   retrasoGratisSeg: 120,
   truequesGratisMes: 1,
