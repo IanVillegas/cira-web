@@ -223,7 +223,7 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 
 **Cómo funciona:** el servidor lista las imágenes de `web/public/images/cira-avatars/` (basta con agregar o quitar archivos) y solo acepta fotos de ese catálogo. La columna `avatar` se agrega sin recrear la base, así no se pierden los datos de prueba.
 
-**Dónde está:** `web/src/components/Avatar.tsx`, `web/src/components/AvatarSheet.tsx`, endpoints `GET /api/avatares` y `PUT /api/usuario/avatar` en `server/src/routes.js` · Commit `PENDIENTE`
+**Dónde está:** `web/src/components/Avatar.tsx`, `web/src/components/AvatarSheet.tsx`, endpoints `GET /api/avatares` y `PUT /api/usuario/avatar` en `server/src/routes.js` · Commit `7ff06f0`
 
 ---
 
@@ -631,7 +631,7 @@ Del más reciente al más antiguo. **Al agregar una funcionalidad:** se suma una
 
 | Commit | Qué entró | Sección |
 |---|---|---|
-| `PENDIENTE` | Foto de perfil elegida de un catálogo de avatares (solo demo) | 4.5.2 |
+| `7ff06f0` | Foto de perfil elegida de un catálogo de avatares (solo demo) | 4.5.2 |
 | `c446546` | Reparto de la tarifa de urgencia: 10 % al trabajador (bono) y 5 % a CIRA | 6.1, 7.2 |
 | `9297146` | Cuenta regresiva del aviso siempre en azul (estilo Uber), sin naranja ni rojo | 7.2 |
 | `7c77d05` | Aviso de urgencia con cuenta regresiva de 30 s en el botón Aceptar (azul → naranja → rojo) | 7.2 |
