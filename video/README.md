@@ -1,6 +1,6 @@
 # Video de presentación
 
-Teaser de ~1:40 de CIRA en formato **Samsung Galaxy S24 Ultra** (1440 × 3120 px, vertical, 30 fps, H.264 + AAC 48 kHz),
+Teaser de ~1:41 de CIRA en formato **Samsung Galaxy S24 Ultra** (1440 × 3120 px, vertical, 30 fps, H.264 + AAC 48 kHz),
 grabado de la app real con Playwright: `cira-demo-s24ultra.mp4`.
 
 Perfil protagonista: **Ian Villegas, teléfono 61044195** (PIN `1234`), que inicia sesión en cámara.
