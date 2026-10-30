@@ -30,6 +30,9 @@ const OVERLAY_CSS = `
     letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;
     transition:opacity .3s cubic-bezier(.2,.8,.2,1),transform .3s cubic-bezier(.2,.8,.2,1)}
   .v-rol.on{opacity:1;transform:translate(-50%,0)}
+  html[data-theme=dark] .v-rotulo{background:rgba(248,250,252,.95);color:#0f172a;box-shadow:0 8px 28px rgba(0,0,0,.5)}
+  html[data-theme=dark] .v-rotulo b{color:#fff}
+  html[data-theme=dark] .v-rol{background:rgba(248,250,252,.95);color:#0f172a}
   .v-rol i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;background:var(--c,#34d399)}
 `;
 
@@ -258,10 +261,11 @@ class Camara {
   async iniciar() { this.browser = await chromium.launch(); return this; }
 
   // usuarioId: id del usuario con sesión iniciada (el "token" de la demo); null = sin sesión.
-  async telefono(usuarioId = null, locale = "es-CR") {
+  // tema: "dark" o "light" del teléfono; la app lo sigue (apariencia "Automático").
+  async telefono(usuarioId = null, { tema = "light", locale = "es-CR" } = {}) {
     const ctx = await this.browser.newContext({
       viewport: { width: Math.round(ANCHO / DSF), height: Math.round(ALTO / DSF) },
-      deviceScaleFactor: DSF, isMobile: true, hasTouch: true, locale,
+      deviceScaleFactor: DSF, isMobile: true, hasTouch: true, locale, colorScheme: tema,
       geolocation: { latitude: 10.0163, longitude: -84.2113 }, permissions: ["geolocation"], // Alajuela Centro
       userAgent: "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36",
     });

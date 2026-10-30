@@ -26,8 +26,9 @@ const escenas = fs.readdirSync(path.join(__dirname, "escenas")).filter((f) => f.
   const ctx = { camara, perfil: PERFIL, tel: {}, ids: { ian: "u-1", marisol: "u-2", bayron: "u-3", eduardo: "u-4", jose: "u-5", jixi: "u-6" } };
   // Teléfono de cada persona; Ian inicia sesión en cámara en la escena 1 (si no se graba, ya trae sesión).
   const conSesion = !SOLO || SOLO.includes(1);
-  ctx.tel.ian = await camara.telefono(conSesion ? null : ctx.ids.ian);
-  ctx.tel.bayron = await camara.telefono(ctx.ids.bayron);
+  // Cada persona con su tema para distinguir los teléfonos: Ian en oscuro, Bayron en claro.
+  ctx.tel.ian = await camara.telefono(conSesion ? null : ctx.ids.ian, { tema: "dark" });
+  ctx.tel.bayron = await camara.telefono(ctx.ids.bayron, { tema: "light" });
   ctx.tel.nuevo = (id) => camara.telefono(id);
 
   for (const e of escenas) {

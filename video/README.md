@@ -4,7 +4,8 @@ Teaser de ~1:41 de CIRA en formato **Samsung Galaxy S24 Ultra** (1440 × 3120 px
 grabado de la app real con Playwright: `cira-demo-s24ultra.mp4`.
 
 Perfil protagonista: **Ian Villegas, teléfono 61044195** (PIN `1234`), que inicia sesión en cámara.
-Cuando entra Bayron (plomero, Plan Plus) se corta a su teléfono con la etiqueta de rol arriba.
+Cuando entra Bayron (plomero, Plan Plus) se corta a su teléfono, con la etiqueta de rol arriba. Cada teléfono tiene
+su tema para distinguirlos de un vistazo: **Ian en oscuro y Bayron en claro** (los rótulos se invierten para contrastar).
 
 ## Guion
 
