@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img">
+<defs><clipPath id="c-yara"><circle cx="50" cy="50" r="50"/></clipPath></defs>
+<g clip-path="url(#c-yara)">
+<rect width="100" height="100" fill="#FBE3CF"/>
+<g transform="translate(50 62) scale(1.28) translate(-50 -62)">
+<path d="M35 42 C31 26 69 26 65 42 C68 52 64 58 67 66 C70 74 64 80 60 80 L40 80 C36 80 30 74 33 66 C36 58 32 52 35 42Z" fill="#D37936"/>
+<path d="M44 54 L56 54 L56 72 C53 74 47 74 44 72Z" fill="#E8BFA6"/>
+<path d="M16 100 C16 80 30 71 50 71 C70 71 84 80 84 100Z" fill="#2FA39A"/><path d="M43 71.4 C44 76 56 76 57 71.4Z" fill="#278A82"/>
+<ellipse cx="37.3" cy="47" rx="2" ry="3.2" fill="#E8BFA6"/>
+<ellipse cx="62.7" cy="47" rx="2" ry="3.2" fill="#E8BFA6"/>
+<ellipse cx="50" cy="45" rx="12.5" ry="15.5" fill="#F6D7C3"/>
+<path d="M50 29.5 C57 29.5 62.5 36 62.5 45 C62.5 54 57 60.5 50 60.5Z" fill="#E8BFA6" opacity="0.35"/>
+<path d="M37 50 C33 29 45 24.5 50 25 C58 25 67 31 63 46 C60 37 54 34 48 34 C44 37 40 42 37 50Z" fill="#F08A3E"/>
+</g>
+</g>
+</svg>
