@@ -145,6 +145,7 @@ export function mapUsuario(row) {
   return {
     id: row.id,
     nombre: row.nombre,
+    avatar: row.avatar ?? null,
     cedula: row.cedula,
     telefono: row.telefono,
     correo: row.correo,
@@ -172,6 +173,7 @@ export function mapTrabajador(row, viewer) {
   return {
     id: row.id,
     nombre: row.nombre,
+    avatar: row.avatar ?? null,
     descripcion: row.descripcion,
     servicios: serviciosDe(row.id).map((s) => s.categoria),
     lat: row.lat ?? undefined,
@@ -381,6 +383,7 @@ export function mapConversacion(row, viewerId) {
   return {
     id: row.id,
     nombre: otro.nombre,
+    avatar: otro.avatar ?? null,
     contraparteId: otro.id,
     ultimoMensaje: ultimo?.texto ?? "",
     hora: ultimo?.hora ?? "",

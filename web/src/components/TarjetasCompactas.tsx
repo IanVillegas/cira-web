@@ -5,6 +5,7 @@ import { visualDeCategoria } from "@/lib/categorias";
 import { formatoColones } from "@/lib/format";
 import { tr } from "@/lib/i18n";
 import type { Trabajador, Trabajo } from "@/lib/types";
+import { Avatar } from "@/components/Avatar";
 
 // Tarjetas compactas para los carruseles de Explorar: todas del mismo tamaño y
 // con lo justo para decidir. Al tocarlas se abre la hoja con la información completa.
@@ -63,14 +64,6 @@ export function TrabajoMini({ trabajo, onOpen }: { trabajo: Trabajo; onOpen: () 
   );
 }
 
-function iniciales(nombre: string) {
-  return nombre
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-}
 
 /** Trabajador: avatar, nombre, calificación, servicio principal, zona y disponibilidad. */
 export function TrabajadorMini({ trabajador, onOpen }: { trabajador: Trabajador; onOpen: () => void }) {
@@ -79,7 +72,7 @@ export function TrabajadorMini({ trabajador, onOpen }: { trabajador: Trabajador;
   return (
     <button type="button" className="ca-mini ca-mini--trabajador" onClick={onOpen} aria-label={trabajador.nombre}>
       <span className="ca-mini__top">
-        <span className="ca-mini__avatar aire-text-headline">{iniciales(trabajador.nombre)}</span>
+        <Avatar nombre={trabajador.nombre} src={trabajador.avatar} size={56} />
         {trabajador.deConfianza && (
           <span className="ca-mini__fav" aria-label={tr("De confianza")}>
             <Icon name="favorite" filled size={18} />

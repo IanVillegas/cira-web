@@ -6,16 +6,8 @@ import { api } from "@/lib/api";
 import { tr } from "@/lib/i18n";
 import { usePolling } from "@/lib/usePolling";
 import type { Conversacion } from "@/lib/types";
+import { Avatar } from "@/components/Avatar";
 
-function iniciales(nombre: string) {
-  return nombre
-    .split(" ")
-    .filter(Boolean)
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
 
 export function ChatsPage() {
   const navigate = useNavigate();
@@ -59,9 +51,7 @@ export function ChatsPage() {
               onClick={() => navigate(`/chats/${c.id}`)}
               className="flex min-h-[72px] w-full items-center gap-3.5 border-b border-aire-hairline px-4 py-3 text-left transition-colors duration-[100ms] last:border-b-0 active:bg-aire-surface-2"
             >
-              <span className="aire-text-headline flex h-12 w-12 shrink-0 items-center justify-center rounded-aire-full bg-aire-accent-soft text-aire-accent-text">
-                {iniciales(c.nombre)}
-              </span>
+              <Avatar nombre={c.nombre} src={c.avatar} size={48} />
               <span className="grid min-w-0 flex-1 gap-0.5">
                 <span className={`aire-text-headline truncate text-aire-ink ${c.noLeidos > 0 ? "" : "font-medium"}`}>{c.nombre}</span>
                 <span className={`aire-text-subhead truncate ${c.noLeidos > 0 ? "font-semibold text-aire-ink" : "text-aire-ink-2"}`}>

@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { cambiarIdioma, idioma, tr, type Idioma } from "@/lib/i18n";
 import { formatearTelefono } from "@/lib/format";
 import { cambiarTema, useTema, type Tema } from "@/lib/tema";
+import { Avatar } from "@/components/Avatar";
 
 const OPCIONES = [
   { icon: "edit", label: "Editar perfil", to: "/perfil/editar" },
@@ -49,9 +50,7 @@ export function AccountMenuPage() {
 
       <div className="grid gap-5 px-5 pt-2">
         <div className="grid justify-items-center gap-1.5 text-center">
-          <span className="flex h-24 w-24 items-center justify-center rounded-aire-full bg-aire-accent-soft">
-            <Icon name="account_circle" filled size={56} className="text-aire-accent-text" />
-          </span>
+          <Avatar nombre={usuario.nombre} src={usuario.avatar} size={96} />
           <p className="aire-text-title-1 text-aire-ink">{usuario.nombre}</p>
           <p className="aire-text-subhead text-aire-ink-2">{formatearTelefono(usuario.telefono)}</p>
         </div>

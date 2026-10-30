@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Supercluster from "supercluster";
 import { cx } from "@/components/aire";
+import { iniciales } from "@/lib/iniciales";
 import { visualDeCategoria } from "@/lib/categorias";
 import { tr } from "@/lib/i18n";
 import { MapMarker, MarkerContent } from "./mapcn";
@@ -21,16 +22,26 @@ export function PinTrabajo({ categoria, urgente = false }: { categoria: string; 
   );
 }
 
-function iniciales(nombre: string) {
-  const partes = nombre.trim().split(/\s+/);
-  return ((partes[0]?.[0] ?? "") + (partes[1]?.[0] ?? "")).toUpperCase();
-}
 
 /** Avatar con iniciales, punto de disponibilidad y su calificación. */
-export function PinTrabajador({ nombre, disponible, calificacion }: { nombre: string; disponible: boolean; calificacion: number | null }) {
+export function PinTrabajador({
+  nombre,
+  avatar,
+  disponible,
+  calificacion,
+}: {
+  nombre: string;
+  avatar?: string | null;
+  disponible: boolean;
+  calificacion: number | null;
+}) {
   return (
     <div className={cx("ca-mappin-avatar", !disponible && "ca-mappin-avatar--ocupado")}>
-      <span className="ca-mappin-avatar-ini">{iniciales(nombre)}</span>
+      {avatar ? (
+        <img className="ca-mappin-avatar-img" src={avatar} alt="" loading="lazy" decoding="async" />
+      ) : (
+        <span className="ca-mappin-avatar-ini">{iniciales(nombre)}</span>
+      )}
       <span className="ca-mappin-avatar-dot" />
       {calificacion != null && <span className="ca-mappin-avatar-nota">★ {calificacion.toFixed(1)}</span>}
     </div>

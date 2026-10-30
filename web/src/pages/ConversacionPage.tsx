@@ -6,16 +6,8 @@ import { api } from "@/lib/api";
 import { usePolling } from "@/lib/usePolling";
 import type { Conversacion } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import { Avatar } from "@/components/Avatar";
 
-function iniciales(nombre: string) {
-  return nombre
-    .split(" ")
-    .filter(Boolean)
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
 
 /** Réplica de ConversacionPage.xaml: encabezado con avatar, burbujas y campo de mensaje en píldora. */
 export function ConversacionPage() {
@@ -74,9 +66,7 @@ export function ConversacionPage() {
         <button type="button" onClick={() => navigate(-1)} aria-label={tr("Atrás")} className="flex h-11 w-11 items-center justify-center text-aire-accent-text">
           <Icon name="chevron_backward" size={28} />
         </button>
-        <span className="aire-text-headline flex h-10 w-10 shrink-0 items-center justify-center rounded-aire-full bg-aire-accent-soft text-aire-accent-text">
-          {iniciales(conversacion.nombre)}
-        </span>
+        <Avatar nombre={conversacion.nombre} src={conversacion.avatar} size={40} />
         <button
           type="button"
           onClick={() => navigate(`/usuarios/${conversacion.contraparteId}`)}

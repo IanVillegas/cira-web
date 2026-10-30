@@ -85,8 +85,13 @@ export const api = {
 
   config: () => request<ConfigNegocio>("/config"),
 
+  /** Catálogo de avatares de la demo (imágenes en public/images/cira-avatars). */
+  avatares: () => request<string[]>("/avatares"),
+
   usuario: {
     obtener: () => request<Usuario>("/usuario"),
+    cambiarAvatar: (avatar: string | null) =>
+      request<Usuario>("/usuario/avatar", { method: "PUT", body: JSON.stringify({ avatar }) }),
     actualizar: (
       datos: Partial<
         Pick<Usuario, "nombre" | "zona" | "lat" | "lng" | "descripcion" | "metodosPago" | "telefono" | "correo" | "cedula">
