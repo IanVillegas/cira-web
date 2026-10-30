@@ -181,18 +181,22 @@ router.post("/usuario/verificacion/antecedentes", (req, res) => {
 });
 
 // ── Catálogo de avatares (solo para la demo) ────────────────────────
-// Lee las imágenes de web/public/images/cira-avatars: basta con agregar o quitar archivos.
-const CARPETA_AVATARES = ["public", "dist"]
+// Lee las imágenes de web/public/images/cira-avatars/svg (o de la carpeta misma si no hay svg/):
+// basta con agregar o quitar archivos. preview.png y los demás archivos de la carpeta raíz no cuentan.
+const RAIZ_AVATARES = ["public", "dist"]
   .map((d) => path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "web", d, "images", "cira-avatars"))
   .find((d) => fs.existsSync(d));
+const SUBCARPETA_AVATARES = RAIZ_AVATARES && fs.existsSync(path.join(RAIZ_AVATARES, "svg")) ? "svg" : "";
 
 function catalogoAvatares() {
-  if (!CARPETA_AVATARES) return [];
+  if (!RAIZ_AVATARES) return [];
+  const carpeta = path.join(RAIZ_AVATARES, SUBCARPETA_AVATARES);
+  const base = `/images/cira-avatars/${SUBCARPETA_AVATARES ? `${SUBCARPETA_AVATARES}/` : ""}`;
   return fs
-    .readdirSync(CARPETA_AVATARES)
-    .filter((f) => /\.(png|jpe?g|webp|svg|gif|avif)$/i.test(f))
+    .readdirSync(carpeta)
+    .filter((f) => /\.(png|jpe?g|webp|svg|gif|avif)$/i.test(f) && !/^preview\./i.test(f))
     .sort((a, b) => a.localeCompare(b, "es", { numeric: true }))
-    .map((f) => `/images/cira-avatars/${encodeURIComponent(f)}`);
+    .map((f) => `${base}${encodeURIComponent(f)}`);
 }
 
 router.get("/avatares", (_req, res) => {

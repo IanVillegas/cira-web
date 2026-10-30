@@ -221,7 +221,7 @@ Cada fila tiene **"Ver todos"** (y una tarjeta final "Ver los N") que abre la **
 
 **Por qué así:** es una solución **de desarrollo** para que la demo se vea como una app real sin manejar fotos subidas por usuarios. En producción cada persona subiría su propia foto (con almacenamiento en la nube y moderación).
 
-**Cómo funciona:** el servidor lista las imágenes de `web/public/images/cira-avatars/` (basta con agregar o quitar archivos) y solo acepta fotos de ese catálogo. La columna `avatar` se agrega sin recrear la base, así no se pierden los datos de prueba.
+**Cómo funciona:** el servidor lista las imágenes de `web/public/images/cira-avatars/svg/` (29 avatares; basta con agregar o quitar archivos) y solo acepta fotos de ese catálogo. La columna `avatar` se agrega sin recrear la base, así no se pierden los datos de prueba.
 
 **Dónde está:** `web/src/components/Avatar.tsx`, `web/src/components/AvatarSheet.tsx`, endpoints `GET /api/avatares` y `PUT /api/usuario/avatar` en `server/src/routes.js` · Commit `7ff06f0`
 
