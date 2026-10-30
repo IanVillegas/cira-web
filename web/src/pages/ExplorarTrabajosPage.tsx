@@ -9,13 +9,6 @@ import { tr } from "@/lib/i18n";
 import { mostrarToast } from "@/lib/toast";
 import type { Trabajo } from "@/lib/types";
 
-const SECCIONES = [
-  { value: "/explorar", label: "Trabajos" },
-  { value: "/trabajadores", label: "Trabajadores" },
-  { value: "/publicaciones", label: "Mis publicaciones" },
-  { value: "/mis-trabajos", label: "Mis trabajos" },
-];
-
 export function ExplorarTrabajosPage() {
   const navigate = useNavigate();
   // Con ?trabajo=ID ese trabajo va primero y abierto (los links compartidos ahora abren la hoja en /explorar).
