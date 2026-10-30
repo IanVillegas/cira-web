@@ -5,9 +5,10 @@ module.exports = async ({ tel }) => {
   await t.clipIniciar("03-mapa");
   await t.rol("Ian · cliente", "#60a5fa");
   await t.tap(t.page.locator(".ca-tabbar button", { hasText: "Mapa" }).first(), 600);
-  await t.page.waitForSelector(".maplibregl-marker", { timeout: 20000 });
+  // Espera a que el mapa termine de cargar (sin "Cargando mapa..." y con pines) antes del rótulo.
+  await t.page.waitForFunction(() => !document.body.innerText.includes("Cargando mapa") && document.querySelector(".maplibregl-marker"), null, { timeout: 30000 });
   await t.page.waitForLoadState("networkidle").catch(() => {});
-  await t.espera(300);
+  await t.espera(500);
   await t.rotulo("3", "Todo en el mapa, en tiempo real", "Pines por categoría, urgencia y disponibilidad");
   await t.pellizcar(205, 470, 0.55, 450);
   await t.espera(1300);

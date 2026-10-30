@@ -42,7 +42,7 @@ porque las escenas crean y cierran la urgencia.
 
 Opciones de desarrollo:
 
-- `--escenas=3,4` graba solo esas escenas y deja los clips sueltos (`--tmp=<carpeta>` para conservarlos).
+- `--escenas=3,4` graba solo esas escenas y deja los clips sueltos. Con `--tmp=<carpeta>` los clips se conservan también tras el montaje.
 - `MAPA_PROVISIONAL=1` usa un fondo liso en el mapa cuando no hay red (solo para probar pines y popups).
 - `DEBUG_VIDEO=1` muestra cuánto tarda cada gesto.
 
@@ -53,4 +53,4 @@ Opciones de desarrollo:
 - `lib/camara.cjs`: teléfonos S24 Ultra, grabación por screencast, gestos (toque, escribir, deslizar, pellizco, arrastre) y rótulos.
 - `lib/tarjetas.cjs`: tarjetas de apertura y cierre.
 - `lib/montaje.cjs`: une los clips con transiciones y mezcla el audio (normalizado a −16 LUFS).
-- `lib/musica.py` y `lib/sfx.py`: música y efectos.
+- `lib/musica.py` y `lib/sfx.py`: música y el sonido de cada toque (sin efectos en las transiciones).

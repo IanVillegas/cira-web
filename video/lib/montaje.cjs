@@ -35,8 +35,7 @@ function montar(clips, salida, { tmp, musica = true, fondoMusica = null }) {
 
   // ── audio ──
   const taps = clips.flatMap((c, i) => c.taps.map((t) => inicios[i] + t));
-  const whooshes = inicios.slice(1);
-  fs.writeFileSync(path.join(tmp, "eventos.json"), JSON.stringify({ taps, whooshes }));
+  fs.writeFileSync(path.join(tmp, "eventos.json"), JSON.stringify({ taps }));
   const here = __dirname;
   const wavSfx = path.join(tmp, "sfx.wav");
   const wavMus = path.join(tmp, "musica.wav");

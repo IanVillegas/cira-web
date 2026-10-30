@@ -1,6 +1,6 @@
-"""Efectos de sonido sutiles: un 'tic' al tocar la pantalla y un 'whoosh' en cada transición.
+"""Efecto de sonido sutil: un 'tic' al tocar la pantalla.
 Uso: python3 sfx.py eventos.json salida.wav duracion_segundos
-eventos.json: {"taps": [segundos...], "whooshes": [segundos...]}
+eventos.json: {"taps": [segundos...]}
 """
 import json
 import sys
@@ -35,25 +35,9 @@ tic += np.diff(rng.standard_normal(len(x) + 1)) * np.exp(-x * 160) * 0.05
 for k, t0 in enumerate(eventos.get("taps", [])):
     poner(tic * (0.9 + 0.1 * np.sin(k)), t0, pan=0.1 * np.sin(k * 1.7), g=0.55)
 
-# whoosh: ruido filtrado con barrido y envolvente en campana
-d = int(0.55 * SR)
-y = np.arange(d) / SR
-ruido = rng.standard_normal(d)
-# filtro paso-bajo móvil simple (media móvil con ventana creciente)
-barrido = np.zeros(d)
-acc = 0.0
-for n in range(d):
-    a = 0.02 + 0.5 * (n / d)
-    acc += a * (ruido[n] - acc)
-    barrido[n] = acc
-env = np.sin(np.pi * np.clip(y / 0.55, 0, 1)) ** 2
-whoosh = barrido * env * 1.6
-for t0 in eventos.get("whooshes", []):
-    poner(whoosh, t0 - 0.12, g=0.55)
-
 est = np.stack([izq, der], axis=1)
 est = np.clip(est, -1, 1)
 with wave.open(salida, "wb") as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
     w.writeframes((est * 32767).astype("<i2").tobytes())
-print(f"{salida}: {len(eventos.get('taps', []))} toques, {len(eventos.get('whooshes', []))} transiciones")
+print(f"{salida}: {len(eventos.get('taps', []))} toques")

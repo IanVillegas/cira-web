@@ -44,5 +44,5 @@ const escenas = fs.readdirSync(path.join(__dirname, "escenas")).filter((f) => f.
   if (SOLO) { console.log(`Clips en ${TMP}`); return; }
   const r = montar(camara.clips, SALIDA, { tmp: TMP });
   console.log(`\nListo: ${SALIDA} (${r.total.toFixed(1)} s)`);
-  fs.rmSync(TMP, { recursive: true, force: true });
+  if (!arg("tmp")) fs.rmSync(TMP, { recursive: true, force: true }); // con --tmp se conservan los clips
 })().catch((e) => { console.error(e); process.exit(1); });
